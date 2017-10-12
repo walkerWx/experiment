@@ -1,6 +1,0 @@
-Error: failed external call: _ZNSolsEPFRSt8ios_baseS0_E
-File: /home/walker/Projects/Experiment/1/case/float_extension/float_extension_i.cc
-Line: 26
-assembly.ll line: 115
-Stack: 
-	#000000115 in main () at /home/walker/Projects/Experiment/1/case/float_extension/float_extension_i.cc:26
