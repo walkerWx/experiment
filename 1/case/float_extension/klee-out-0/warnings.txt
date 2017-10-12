@@ -1,0 +1,13 @@
+KLEE: WARNING: undefined reference to function: _ZNSolsEPFRSoS_E
+KLEE: WARNING: undefined reference to function: _ZNSolsEPFRSt8ios_baseS0_E
+KLEE: WARNING: undefined reference to function: _ZNSolsEi
+KLEE: WARNING: undefined reference to function: _ZNSt8ios_base4InitC1Ev
+KLEE: WARNING: undefined reference to function: _ZNSt8ios_base4InitD1Ev
+KLEE: WARNING: undefined reference to variable: _ZSt4cout
+KLEE: WARNING: undefined reference to function: _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_
+KLEE: WARNING: undefined reference to function: _ZStlsIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_St13_Setprecision
+KLEE: WARNING: undefined reference to function: __cxa_atexit
+KLEE: WARNING: undefined reference to variable: __dso_handle
+KLEE: WARNING ONCE: calling external: _ZNSt8ios_base4InitC1Ev(36377536)
+KLEE: WARNING ONCE: calling external: __cxa_atexit(35475184, 36377536, 36478032)
+KLEE: WARNING ONCE: calling external: _ZNSolsEPFRSt8ios_baseS0_E(36235344, 35475632)
