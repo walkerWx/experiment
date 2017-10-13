@@ -1,4 +1,9 @@
-evaluate
-1
-x
-((((((((((((((x+(x*x))+((x*x)*x))+(((x*x)*x)*x))+((((x*x)*x)*x)*x))+(((((x*x)*x)*x)*x)*x))+((((((x*x)*x)*x)*x)*x)*x))+(((((((x*x)*x)*x)*x)*x)*x)*x))+((((((((x*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))
+{
+    "programName": "analytic",
+	"functionName" : "evaluate",
+	"variableNum" : 2,
+	"variableNames" : [ "x", "y"],
+	"pathNum" : 1,
+	"constrains" : [ "true"],
+	"paths" : ["((((((((((((((x+(x*x))+((x*x)*x))+(((x*x)*x)*x))+((((x*x)*x)*x)*x))+(((((x*x)*x)*x)*x)*x))+((((((x*x)*x)*x)*x)*x)*x))+(((((((x*x)*x)*x)*x)*x)*x)*x))+((((((((x*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))"]
+}
