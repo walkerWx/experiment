@@ -259,15 +259,14 @@ def accumulationTransform(expr):
     expr = expr.expand()
     return expr
 
-#
+# Horner form transformation
 def hornerTransform(expr, x):
     return expr.horner(x) 
 
+# 判断一个表达式在给定区间是否稳定
+def isStable(expr, interval):
+    return True
 
-# analytic
 
-pthFile = './analytic/analytic.pth'
 
-with open(pthFile) as f:
-    content = f.readlines()
 
