@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
 import json
 
 # 判断一个表达式在给定约束下是否稳定
@@ -13,17 +16,12 @@ def optimize(pthFile):
     # 解析path文件，得到路径抽取所得到的路径与约束 
     with open(pthFile) as f:
 
-        data = json.load(pthFile)
+        data = json.load(f)
         variableNum = data['variableNum']
         variables = data['variables']
-        pthNum = data['pthNum']
+        pathNum = data['pathNum']
         paths = data['paths']
         constrains = data['constrains']
-
-        outputDirectory = ''
-        if (pthFile.rfind('/') != -1):
-            outputDirectory = pthFile[:pthFile.rfind('/')+1]
-        outputFile = open(outputDirectory+data['programName']+'.opt.pth', 'w')
 
 
     # 优化后的路劲以及其对应的约束以及实现类型
@@ -35,22 +33,46 @@ def optimize(pthFile):
     FLOATTYPE = 'float'
     REALTYPE = 'real'
 
-    for i in range(pthNum):
+    for i in range(pathNum):
 
         # 路径计算稳定，无需进行优化 
-        if (isStable(paths[i], constrain[i])):
+        if (isStable(paths[i], constrains[i])):
             optPaths.append(paths[i])
-            optConstrains.append(constrain[i])
+            optConstrains.append(constrains[i])
             optType.append(FLOATTYPE)
             continue
      
         # 路径在数学意义上计算不稳定，无法进行优化，依然使用高精度实现
         if (isMathUnstable(paths[i], constrains[i])):
             optPaths.append(paths[i])
-            optConstrains.append(constrain[i])
+            optConstrains.append(constrains[i])
             optType.append(REALTYPE)
             continue
 
         # 依次尝试使用不同的优化方法进行优化，并检测其稳定性
-
+           
+         
               
+
+    # write optimized paths to file
+    outputData = {} 
+    outputData['programName'] = data['programName']
+    outputData['functionName'] = data['functionName']
+    outputData['variables'] = data['variables']
+    outputData['pathNum'] = len(optPaths)
+    outputData['constrains'] = optConstrains
+    outputData['paths'] = optPaths
+    outputData['types'] = optType 
+    
+    outputDirectory = ''
+    if (pthFile.rfind('/') != -1):
+        outputDirectory = pthFile[:pthFile.rfind('/')+1]
+    outputFile = outputDirectory+data['programName']+'.opt.pth'
+    print (outputFile)
+    print (outputData)
+
+    with open(outputFile, 'w') as f:
+        json.dump(outputData, f, indent=4)
+
+
+optimize('./analytic/analytic.pth')
