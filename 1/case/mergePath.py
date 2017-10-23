@@ -1,7 +1,7 @@
-# merge paths in pth file to a C program
 
 import json
 
+# merge paths in pth file to a C program
 def mergePath(pthFile):
 
     with open(pthFile) as f:
@@ -38,6 +38,59 @@ def mergePath(pthFile):
 
         print ('}', file=outputFile)
 
+# generate runable cpp file according to path, constrain and type
+def generateCpp(variabels, constrain, path, type = 'float'):
+    
+    # according to different implement type, we should include different header files and use different things
 
-mergePath('./analytic/analytic.pth') 
+    header = ''
+    declType = ''
+    inputStream = ''
+    outputStream = ''
+    precisionSetting = ''
 
+    if (type == 'float'):
+
+        header += '#include <iostream>\n'
+        header += '#include <iomanip>\n'
+        header += '#include <cmath>\n'
+        header += '#include <limits>\n'
+        header += 'using namespace std;\n'
+
+        declType = 'double'
+        inputStream = 'cin'
+        outputStream = 'cout'
+
+        precisionSetting = outputStream + ' << scientific << setprecision(numeric_limits<double>::digit10)\n'
+
+    elif (type == 'real'):
+
+        header += '"iRRAM.h"\n'
+        header += 'using namespace iRRAM;\n'
+
+        declType = 'REAL'
+        inputStream = 'cin'
+        outputStream = 'cout'
+
+        precisionSetting = outputStream + ' << setRwidth(45)\n'
+
+    elif (type == 'interval'):
+        # TODO
+        header += ''
+
+        declType = ''
+
+    mainFunc = '\n'
+    mainFunc += 'int main(){\n'
+    mainFunc += '\t' + precisionSetting
+    mainFunc += '\t' + declType + ','.join(variabels) + ';\n'
+    mainFunc += '\t' + inputStream + ' >> ' + ' >> '.join(variabels) + ';\n'
+    mainFunc += '\t' + declType + ' res;\n'
+    mainFunc += '\t' + 'res = ' + path + ';\n'
+    mainFunc += '\t' + outputStream + ' << res;\n'
+    mainFunc += '}'
+
+    print (header)
+    print (mainFunc)
+
+    
