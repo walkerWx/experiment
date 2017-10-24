@@ -2,25 +2,62 @@
 # -*- coding: utf-8 -*-
 
 from sage.all import *
+from mergePath import *
 
 import random
 
-size = var('size');
-n = var('n');
-sigma = var('sigma');
-i = var('i');
-t = var('t');
-dt = var('dt');
-risingIncrement = var('risingIncrement');
-period = var('period');
-m_amplitude = var('m_amplitude');
-normalizedFrequency = var('normalizedFrequency');
-m_phase = var('m_phase');
-x = var('x');
-c = var('c');
-f = (x+c)*(x-c);
-a = var('a');
-b = var('b');
+var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
+
+rules= {'(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))':'-sgn(abs(atan2(b,a)-atan2(d,c))-pi)*cos(0.5*(atan2(b, a)+atan2(d, c)))'}
+
+
+class Path:
+
+    def __init__(self, variables, path):
+        self.varNum = len(variables)
+        self.variables = variables
+        self.path = path
+
+
+# 判断两个计算路径是否等价
+def isEqual(path1, path2):
+
+    # 变量数量一致
+    if (path1.varNum != path2.varNum):
+        return False
+
+    var(' '.join(path1.variables))  
+    var(' '.join(path2.variables))  
+
+    exec 'expr1 = ' + path1.path
+    exec 'expr2 = ' + path2.path
+
+    # substitute variables with random numbers, if the result of the paths are always the same, they are equal paths
+    TryNum = 10
+    for _ in range(TryNum):
+        randomNumbers = [] 
+        for _ in range(path1.varNum):
+            randomNumbers.append(random.uniform(-10, 10))
+
+        execStr1 = 'res1 = expr1.subs('
+        variables = list(path1.variables)
+        for j in range(len(variables)):
+            variables[j] += '=' + '{:.9f}'.format(randomNumbers[j])
+        execStr1 += ','.join(variables) + ')'
+        exec execStr1
+
+        execStr2 = 'res2 = expr2.subs('
+        variables = list(path2.variables)
+        for j in range(len(variables)):
+            variables[j] += '=' + '{:.9f}'.format(randomNumbers[j])
+        execStr2 += ','.join(variables) + ')'
+        exec execStr2
+
+        epsi = 1e-10
+        if (res1-res2 > epsi):
+            return False
+
+    return  True
 
 #输入一个分式。返回一个分式的随机拆分
 def get_random_denominator(f):
@@ -267,6 +304,39 @@ def hornerTransform(expr, x):
 def isStable(expr, interval):
     return True
 
+# 生成等价表达式
+def generateEqualPath(variables, path):
 
+    var(' '.join(variables))             
+    exec 'expr = ' + path
+
+    print expr.subs('ar' == 'a')
+
+    return []
+
+
+# 稳定性分析，将path的constrain分解为3个部分，稳定区间，不稳定区间以及未知区间  
+def stableAnalysis(variables, path, constrain):
+
+    res['stable'] = []
+    res['unstable'] = []
+    res['unknown'] = []
+    
+    # TODO
+    # 根据约束及路径生成可编译执行的cpp文件 
+    generateCpp(variables, constrain, path)
+    
+    return res
+
+#variables = ['ar', 'ai', 'br', 'bi']
+variables = ['a', 'b', 'c', 'd']
+path1 = "(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))"
+path2 = ""
+
+path1 = Path(variables, path1)
+path2 = Path(variables, path2)
+
+isEqual(path1, path2)
+    
 
 
