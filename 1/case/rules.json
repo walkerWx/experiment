@@ -1,0 +1,10 @@
+{
+    "rules": [
+        {
+            "variables": ["a", "b", "c", "d"],
+            "originPath": "(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))",
+            "equalPath": "-sgn(abs(atan2(b,a)-atan2(d,c))-pi)*cos(0.5*(atan2(b, a)+atan2(d, c)))"
+        }
+    ]
+
+}

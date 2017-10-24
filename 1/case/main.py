@@ -3,9 +3,15 @@
 
 import json
 
+from mergePath import *
+from transform import *
+
+def isEqualPathStable(path, constrain):
+    return True
+
 # 判断一个表达式在给定约束下是否稳定
 def isStable(path, constrain):
-    return True
+    return False 
 
 # 判断一条路径在给定约束下是否在数学意义上不稳定
 def isMathUnstable(path, constrain):
@@ -49,11 +55,30 @@ def optimize(pthFile):
             optType.append(REALTYPE)
             continue
 
-        # 依次尝试使用不同的优化方法进行优化，并检测其稳定性
-           
-         
-              
+        # TODO
+        # analysis the stability of the path, divide the constrain into 3 parts: stable, unstable, unknown
+        # res = stableAnalysis(variables, constrains[i], paths[i])
+    
+        # transform the path into an equvalent paths set
+        equalPaths = generateEqualPath(variables, paths[i])
 
+        findStable = False
+        for j in range(len(equalPaths)):
+            # find a stable path in the equvalent paths set
+            if (isEqualPathStable(equalPaths[j], constrains[i])):
+                findStable = True
+                optPaths.append(equalPaths[j])
+                optConstrains.append(constrains[i])
+                optType.append(FLOATTYPE)
+                break
+        
+        # if we can not find a stable path, we just keep the original multi-precision version
+        if (not findStable):
+            optPaths.append(paths[i])
+            optConstrains.append(constrains[i])
+            optType.append(REALTYPE)
+
+        
     # write optimized paths to file
     outputData = {} 
     outputData['programName'] = data['programName']
@@ -75,4 +100,5 @@ def optimize(pthFile):
         json.dump(outputData, f, indent=4)
 
 
-optimize('./analytic/analytic.pth')
+optimize('./midarc/midarc.pth')
+mergePath('./midarc/midarc.opt.pth')

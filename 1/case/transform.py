@@ -3,13 +3,43 @@
 
 from sage.all import *
 from mergePath import *
+import json
 
 import random
 
 var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 
-rules= {'(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))':'-sgn(abs(atan2(b,a)-atan2(d,c))-pi)*cos(0.5*(atan2(b, a)+atan2(d, c)))'}
+# load rules from file
+rulesFile = 'rules.json' 
+with open(rulesFile) as f:
+    rules = json.load(f)["rules"]
+    print rules
 
+# variables substitution in path. e.g x+y --> a+b
+def convertPath(originPath, originVars, newVars):
+
+    m = {}
+    for i in range(len(originVars)):
+        m[originVars[i]] = newVars[i]
+
+    newPath = ''
+    i = 0
+    while i < len(originPath):
+        if (not originPath[i].isalpha()):
+            newPath += originPath[i]
+            i += 1
+        else:
+            j = i  
+            while (j < len(originPath) and originPath[j].isalpha()):
+                j += 1
+            var = originPath[i:j]
+            if (var in m):
+                newPath += m[var]
+            else:
+                newPath += var
+            i = j
+
+    return newPath
 
 class Path:
 
@@ -54,7 +84,8 @@ def isEqual(path1, path2):
         exec execStr2
 
         epsi = 1e-10
-        if (res1-res2 > epsi):
+        print res1-res2
+        if (abs(res1-res2) > epsi):
             return False
 
     return  True
@@ -307,12 +338,24 @@ def isStable(expr, interval):
 # 生成等价表达式
 def generateEqualPath(variables, path):
 
-    var(' '.join(variables))             
-    exec 'expr = ' + path
+    equalPaths = []
+    path = Path(variables, path)
 
-    print expr.subs('ar' == 'a')
+    # check the rule list to find whether there is a transform rule
+    for rule in rules:
 
-    return []
+        # TODO
+        # we should also shuffle the variables here, becasue maybe the sequence is different
+        rulePath = Path(rule['variables'], rule['originPath'])
+
+        if (isEqual(path, rulePath)):
+            equalPaths.append(convertPath(rule['equalPath'], rule['variables'], path.variables))
+
+    # TODO
+    # we should also generate equvalent paths by some mathematic ways, like:
+    # equalPaths.append(transform(path), 100)
+        
+    return equalPaths
 
 
 # 稳定性分析，将path的constrain分解为3个部分，稳定区间，不稳定区间以及未知区间  
@@ -330,13 +373,14 @@ def stableAnalysis(variables, path, constrain):
 
 #variables = ['ar', 'ai', 'br', 'bi']
 variables = ['a', 'b', 'c', 'd']
+variables2 = ['s', 't', 'a', 'b']
 path1 = "(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))"
-path2 = ""
+path2 = convertPath(path1, variables, variables2) 
+print path1
+print path2
 
-path1 = Path(variables, path1)
-path2 = Path(variables, path2)
 
-isEqual(path1, path2)
+#isEqual(path1, path2)
     
 
 

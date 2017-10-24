@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import json
 
 # merge paths in pth file to a C program
@@ -17,9 +19,9 @@ def mergePath(pthFile):
         print ('double ' + data['functionName'], end='', file=outputFile)        
 
         # construct argument list
-        for i in range(len(data['variableNames'])):
-            data['variableNames'][i] = 'double '+data['variableNames'][i]
-        argumentList = '('+' ,'.join(data['variableNames'])+')'
+        for i in range(len(data['variables'])):
+            data['variables'][i] = 'double '+data['variables'][i]
+        argumentList = '('+' ,'.join(data['variables'])+')'
         print (argumentList, file=outputFile)
 
         # function body
@@ -39,7 +41,7 @@ def mergePath(pthFile):
         print ('}', file=outputFile)
 
 # generate runable cpp file according to path, constrain and type
-def generateCpp(variabels, constrain, path, type = 'float'):
+def generateCpp(variabels, constrain, path, type):
     
     # according to different implement type, we should include different header files and use different things
 
@@ -77,10 +79,9 @@ def generateCpp(variabels, constrain, path, type = 'float'):
     elif (type == 'interval'):
         # TODO
         header += ''
-
         declType = ''
 
-    mainFunc = '\n'
+    mainFunc = ''
     mainFunc += 'int main(){\n'
     mainFunc += '\t' + precisionSetting
     mainFunc += '\t' + declType + ','.join(variabels) + ';\n'
@@ -88,9 +89,13 @@ def generateCpp(variabels, constrain, path, type = 'float'):
     mainFunc += '\t' + declType + ' res;\n'
     mainFunc += '\t' + 'res = ' + path + ';\n'
     mainFunc += '\t' + outputStream + ' << res;\n'
-    mainFunc += '}'
+    mainFunc += '}\n'
 
     print (header)
     print (mainFunc)
 
-    
+# generate all types of runable cpp file
+def generateCpp(variabels, constrain, path):
+    generateEqualPath(variable, constrain, path, 'float')
+    generateEqualPath(variable, constrain, path, 'real')
+
