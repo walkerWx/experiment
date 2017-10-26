@@ -364,7 +364,7 @@ def stableAnalysis(variables, path, constrain):
     res['stable'] = []
     res['unstable'] = []
     res['unknown'] = []
-    
+     
     # TODO
     # 根据约束及路径生成可编译执行的cpp文件 
     generateCpp(variables, constrain, path)
