@@ -2,11 +2,17 @@
 # -*- coding:utf-8 -*-
 
 from __future__ import print_function
+from subprocess import call
+from decimal import *
 
 import json
 
 FLOATCPP = 'float.cpp'
 REALCPP = 'real.cpp'
+
+LOGFILE = open('LOG', 'w')
+
+getcontext().prec = 20
 
 # 以step为步长对输入区间[start, end]进行划分，并将结果输出 
 def divideInputSpace(varNum, start, end, prec):
@@ -72,7 +78,7 @@ def generateCpp(variables, path, constrain, type = 'all'):
     inputStream = ''
     outputStream = ''
     precisionSetting = ''
-
+    mainFunc = ''
 
     if (type == 'float'):
 
@@ -82,36 +88,38 @@ def generateCpp(variables, path, constrain, type = 'all'):
         header += '#include <limits>\n'
         header += 'using namespace std;\n'
 
+        mainFunc += 'int main(){\n'
+
         declType = 'double'
         inputStream = 'cin'
         outputStream = 'cout'
 
-        precisionSetting = outputStream + ' << scientific << setprecision(numeric_limits<double>::digit10)\n'
+        precisionSetting = outputStream + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
 
     elif (type == 'real'):
 
         header += '#include "iRRAM.h"\n'
         header += 'using namespace iRRAM;\n'
+        
+        mainFunc += 'void compute(){\n'
 
         declType = 'REAL'
         inputStream = 'cin'
         outputStream = 'cout'
 
-        precisionSetting = outputStream + ' << setRwidth(45)\n'
+        precisionSetting = outputStream + ' << setRwidth(45);\n'
 
     elif (type == 'interval'):
         # TODO
         header += ''
         declType = ''
 
-    mainFunc = ''
-    mainFunc += 'int main(){\n'
     mainFunc += '\t' + precisionSetting
-    mainFunc += '\t' + declType + ','.join(variables) + ';\n'
+    mainFunc += '\t' + declType + ' ' +  ','.join(variables) + ';\n'
     mainFunc += '\t' + inputStream + ' >> ' + ' >> '.join(variables) + ';\n'
     mainFunc += '\t' + declType + ' res;\n'
     mainFunc += '\t' + 'res = ' + path + ';\n'
-    mainFunc += '\t' + outputStream + ' << res;\n'
+    mainFunc += '\t' + outputStream + ' << res << "\\n";\n'
     mainFunc += '}\n'
 
     outputFile = {}
@@ -121,28 +129,88 @@ def generateCpp(variables, path, constrain, type = 'all'):
     print (header, file=f)
     print (mainFunc, file=f)
 
+
 # 稳定性分析主逻辑
 def stableAnalysis(variables, path, constrain):
+
+    print ('VARIABLES:\t', variables, file=LOGFILE)
+    print ('PATH:\t', path, file=LOGFILE)
+    print ('CONSTRAIN:\t', constrain, file=LOGFILE)
     
-    start = 0
-    end = 1
-    prec = 3 # step = 1e-2 
-     
-    '''
-    intervals = divideInputSpace(len(varNum), start, end, prec)
+
+    # 待分析输入区间，每个输入都范围 [START, END]
+    START = 1e10 
+    END = 1e10+1 
+
+    # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
+    PREC = 3 
+
+    # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
+    TOLERANCE = 1e-16
+    
+    intervals = divideInputSpace(len(variables), START, END, PREC)
     points = [interval2Points(interval) for interval in intervals]
 
-    for i in range(len(intervals)):
-        print (intervals[i])
-        print (points[i])
-    '''
 
     generateCpp(variables, path, constrain)
-     
-    
+    call(['make'], shell=True)
 
-variables = ['x', 'y']
-path = 'sin(x)*cos(y)'
+    stableInterval = []
+    unstableInterval = []
+
+    for i in range(len(intervals)):
+
+        stable = True
+
+        print ('', file=LOGFILE)
+        print ('----------------------------------------------', file=LOGFILE)
+        print ('INTERVAL:\t', intervals[i], file=LOGFILE)
+
+        # 对待分析区间中所有点，计算其相对误差   
+        for point in points[i]:
+            
+            point = [('%.'+str(PREC)+'f') % x for x in point]
+
+            print (' '.join(point), file = open('input', 'w'))
+            
+            call(['./float < input > float_output'], shell=True)
+            call(['./real < input > real_output'], shell=True)
+
+            floatRes = Decimal([line.rstrip('\n') for line in open('float_output')][0])
+            realRes = Decimal([line.rstrip('\n') for line in open('real_output')][0])
+
+            if (realRes == Decimal(0)):
+                relativeError = abs((floatRes-realRes)/Decimal(1))
+            else:
+                relativeError = abs((floatRes-realRes)/realRes)
+
+            if (relativeError >= TOLERANCE):
+                stable = False
+            
+            print ('', file=LOGFILE)
+            print ('POINT:\t', point, file=LOGFILE) 
+            print ('FLOAT RESUTL:\t', '%.20E' % floatRes, file=LOGFILE)
+            print ('REAL RESUTL:\t', '%.20E' % realRes, file=LOGFILE)
+            print ('RELATVIE ERROR:\t','%.20E' % relativeError, file=LOGFILE )
+            print ('STABLE:\t', str(stable), file=LOGFILE )
+            
+            
+
+        if (stable):
+            stableInterval.append(intervals[i])
+        else:
+            unstableInterval.append(intervals[i])
+
+    print (' ', file=LOGFILE)
+    print ('STABLE INTERVAL:\t', len(stableInterval), file=LOGFILE)
+    print ('UNSTABLE INTERVAL:\t', len(unstableInterval), file=LOGFILE)
+
+    return {'stable': stableInterval, 'unstable': unstableInterval} 
+
+variables = ['x']
+path = 'sqrt(x+1)-sqrt(x)'
+stablepath = '1.0/(sqrt(x+1)+sqrt(x))'
 constrain = '0<x&&x<1&&0<y&&y<1'
-stableAnalysis(variables, path, constrain)
+res = stableAnalysis(variables, stablepath, constrain)
+#res = stableAnalysis(variables, path, constrain)
 
