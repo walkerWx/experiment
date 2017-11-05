@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from sage.all import *
-from mergePath import *
 import json
 
 import random
@@ -13,7 +12,6 @@ var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 rulesFile = 'rules.json' 
 with open(rulesFile) as f:
     rules = json.load(f)["rules"]
-    print rules
 
 # variables substitution in path. e.g x+y --> a+b
 def convertPath(originPath, originVars, newVars):
@@ -328,8 +326,10 @@ def accumulationTransform(expr):
     return expr
 
 # Horner form transformation
-def hornerTransform(expr, x):
-    return expr.horner(x) 
+def hornerTransform(v, e):
+    v = var(v)
+    exec 'expr = ' + e
+    return str(expr.horner(x))
 
 # 判断一个表达式在给定区间是否稳定
 def isStable(expr, interval):
@@ -358,20 +358,8 @@ def generateEqualPath(variables, path):
     return equalPaths
 
 
-# 稳定性分析，将path的constrain分解为3个部分，稳定区间，不稳定区间以及未知区间  
-def stableAnalysis(variables, path, constrain):
-
-    res['stable'] = []
-    res['unstable'] = []
-    res['unknown'] = []
-     
-    # TODO
-    # 根据约束及路径生成可编译执行的cpp文件 
-    generateCpp(variables, constrain, path)
-    
-    return res
-
 #variables = ['ar', 'ai', 'br', 'bi']
+'''
 variables = ['a', 'b', 'c', 'd']
 variables2 = ['s', 't', 'a', 'b']
 path1 = "(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))"
@@ -379,8 +367,11 @@ path2 = convertPath(path1, variables, variables2)
 print path1
 print path2
 
+'''
 
-#isEqual(path1, path2)
-    
+x = 'x'
+e = 'x+x*x+x*x*x'
+print (hornerTransform(x, e))
+ 
 
 

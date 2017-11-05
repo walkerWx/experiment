@@ -14,6 +14,16 @@ LOGFILE = open('LOG', 'w')
 
 getcontext().prec = 20
 
+# 待分析输入区间，每个输入都范围 [START, END]
+START = 1
+END = 2 
+
+# 区间拆分粒度，即划分小区间的大小 10^(-PREC)
+PREC = 2
+
+# 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
+TOLERANCE = 1e-15
+
 # 以step为步长对输入区间[start, end]进行划分，并将结果输出 
 def divideInputSpace(varNum, start, end, prec):
 
@@ -62,6 +72,26 @@ def interval2Points(interval):
         i += 1
         
     return points
+
+
+# 对拆分后的区间进行合并  
+def mergeInterval(intervals):
+    # TODO
+    return intervals
+
+# 将变量的区间转化为能直接填写到程序中的约束的字符串 
+def interval2Constrain(variables, interval):
+    constrain = []
+    for i in range(len(interval)):
+        constrain.append((('%.'+str(PREC)+'f') % interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + (('%.'+str(PREC)+'f') % interval[i][1]))
+    constrain = '(' + '&&'.join(constrain) + ')'
+    return constrain
+
+def intervals2Constrain(variables, intervals):
+    constrain = [interval2Constrain(variables, interval) for interval in intervals]
+    constrain = '||'.join(constrain)
+    return constrain
+
 
 # generate runable cpp file according to path, constrain and type
 def generateCpp(variables, path, constrain, type = 'all'):
@@ -138,19 +168,8 @@ def stableAnalysis(variables, path, constrain):
     print ('CONSTRAIN:\t', constrain, file=LOGFILE)
     
 
-    # 待分析输入区间，每个输入都范围 [START, END]
-    START = 1e10 
-    END = 1e10+1 
-
-    # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-    PREC = 3 
-
-    # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
-    TOLERANCE = 1e-16
-    
     intervals = divideInputSpace(len(variables), START, END, PREC)
     points = [interval2Points(interval) for interval in intervals]
-
 
     generateCpp(variables, path, constrain)
     call(['make'], shell=True)
@@ -160,7 +179,8 @@ def stableAnalysis(variables, path, constrain):
 
     for i in range(len(intervals)):
 
-        stable = True
+        stable = True # interval stable
+        pstable = True # point stable
 
         print ('', file=LOGFILE)
         print ('----------------------------------------------', file=LOGFILE)
@@ -168,6 +188,8 @@ def stableAnalysis(variables, path, constrain):
 
         # 对待分析区间中所有点，计算其相对误差   
         for point in points[i]:
+
+            pstable = True
             
             point = [('%.'+str(PREC)+'f') % x for x in point]
 
@@ -185,6 +207,7 @@ def stableAnalysis(variables, path, constrain):
                 relativeError = abs((floatRes-realRes)/realRes)
 
             if (relativeError >= TOLERANCE):
+                pstable = False
                 stable = False
             
             print ('', file=LOGFILE)
@@ -193,7 +216,15 @@ def stableAnalysis(variables, path, constrain):
             print ('REAL RESUTL:\t', '%.20E' % realRes, file=LOGFILE)
             print ('RELATVIE ERROR:\t','%.20E' % relativeError, file=LOGFILE )
             print ('STABLE:\t', str(stable), file=LOGFILE )
-            
+
+            '''
+            print ('')
+            print ('POINT:\t', point) 
+            print ('FLOAT RESUTL:\t', '%.20E' % floatRes)
+            print ('REAL RESUTL:\t', '%.20E' % realRes)
+            print ('RELATVIE ERROR:\t','%.20E' % relativeError)
+            print ('STABLE:\t', str(stable))
+            '''
             
 
         if (stable):
@@ -205,12 +236,27 @@ def stableAnalysis(variables, path, constrain):
     print ('STABLE INTERVAL:\t', len(stableInterval), file=LOGFILE)
     print ('UNSTABLE INTERVAL:\t', len(unstableInterval), file=LOGFILE)
 
+    call(['make clean'], shell=True)
+
+    stableInterval = mergeInterval(stableInterval)
+    unstableInterval = mergeInterval(unstableInterval)
+
+    stableInterval = intervals2Constrain(variables, stableInterval)
+    unstableInterval = intervals2Constrain(variables, unstableInterval)
+
     return {'stable': stableInterval, 'unstable': unstableInterval} 
 
+'''
 variables = ['x']
 path = 'sqrt(x+1)-sqrt(x)'
 stablepath = '1.0/(sqrt(x+1)+sqrt(x))'
 constrain = '0<x&&x<1&&0<y&&y<1'
 res = stableAnalysis(variables, stablepath, constrain)
+print (res)
 #res = stableAnalysis(variables, path, constrain)
 
+variables = [ "ar", "ai", "br", "bi"]
+path = "(ar/sqrt(ar*ar+ai*ai)+br/sqrt(br*br+bi*bi))/sqrt(2+2*(ar*br+ai*bi)/sqrt((ar*ar+ai*ai)*(br*br+bi*bi)))"
+constrain = "true"
+res = stableAnalysis(variables, path, constrain)
+'''

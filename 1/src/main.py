@@ -5,6 +5,8 @@ import json
 
 from mergePath import *
 from transform import *
+from stableAnalysis import *
+
 
 def isEqualPathStable(path, constrain):
     return True
@@ -55,30 +57,41 @@ def optimize(pthFile):
             optType.append(REALTYPE)
             continue
 
-        # TODO
+         
+        # 对于单变量的多项式计算，horner形式总优于其原来的形式 
+        if (len(variables) == 1):
+            paths[i] = hornerTransform(variables[0], paths[i])
+
         # analysis the stability of the path, divide the constrain into 3 parts: stable, unstable, unknown
-        # res = stableAnalysis(variables, constrains[i], paths[i])
-    
-        # transform the path into an equvalent paths set
-        equalPaths = generateEqualPath(variables, paths[i])
+        res = stableAnalysis(variables, paths[i], constrains[i])  
 
-        findStable = False
-        for j in range(len(equalPaths)):
-            # find a stable path in the equvalent paths set
-            if (isEqualPathStable(equalPaths[j], constrains[i])):
-                findStable = True
-                optPaths.append(equalPaths[j])
-                optConstrains.append(constrains[i])
-                optType.append(FLOATTYPE)
-                break
-        
-        # if we can not find a stable path, we just keep the original multi-precision version
-        if (not findStable):
+        if (res['stable'] != ''):
             optPaths.append(paths[i])
-            optConstrains.append(constrains[i])
-            optType.append(REALTYPE)
+            optConstrains.append(res['stable'])
+            optType.append(FLOATTYPE)
 
-        
+        if (res['unstable'] != ''):
+
+            # transform the path into an equvalent paths set
+            equalPaths = generateEqualPath(variables, paths[i])
+            print (equalPaths)
+
+            findStable = False
+            for j in range(len(equalPaths)):
+                # find a stable path in the equvalent paths set
+                if (isEqualPathStable(equalPaths[j], res['unstable'])):
+                    findStable = True
+                    optPaths.append(equalPaths[j])
+                    optConstrains.append(constrains[i])
+                    optType.append(FLOATTYPE)
+                    break
+            
+            # if we can not find a stable path, we just keep the original multi-precision version
+            if (not findStable):
+                optPaths.append(paths[i])
+                optConstrains.append(constrains[i])
+                optType.append(REALTYPE)
+
     # write optimized paths to file
     outputData = {} 
     outputData['programName'] = data['programName']
@@ -100,5 +113,9 @@ def optimize(pthFile):
         json.dump(outputData, f, indent=4)
 
 
-optimize('./midarc/midarc.pth')
-mergePath('./midarc/midarc.opt.pth')
+'''
+optimize('../case/midarc/midarc.pth')
+mergePath('../case/midarc/midarc.opt.pth')
+'''
+optimize('../case/analytic/analytic.pth')
+mergePath('../case/analytic/analytic.opt.pth')
