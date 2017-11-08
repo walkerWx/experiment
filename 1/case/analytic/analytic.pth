@@ -2,8 +2,9 @@
     "programName": "analytic",
 	"functionName" : "evaluate",
 	"variableNum" : 2,
-	"variables" : [ "x", "y"],
+	"variables" : [ "x, res"],
 	"pathNum" : 1,
 	"constrains" : [ "true"],
-	"paths" : ["((((((((((((((x+(x*x))+((x*x)*x))+(((x*x)*x)*x))+((((x*x)*x)*x)*x))+(((((x*x)*x)*x)*x)*x))+((((((x*x)*x)*x)*x)*x)*x))+(((((((x*x)*x)*x)*x)*x)*x)*x))+((((((((x*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))"]
+	"paths" : ["res=((((((((((((((x+(x*x))+((x*x)*x))+(((x*x)*x)*x))+((((x*x)*x)*x)*x))+(((((x*x)*x)*x)*x)*x))+((((((x*x)*x)*x)*x)*x)*x))+(((((((x*x)*x)*x)*x)*x)*x)*x))+((((((((x*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))"],
+    "reutrn": "res"
 }
