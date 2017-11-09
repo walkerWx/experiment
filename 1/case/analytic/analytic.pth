@@ -3,6 +3,7 @@
 	"functionName" : "evaluate",
 	"variableNum" : 2,
 	"variables" : [ "x, res"],
+    "variablesType:" ["decimal", "decimal"],
 	"pathNum" : 1,
 	"constrains" : [ "true"],
 	"paths" : ["res=((((((((((((((x+(x*x))+((x*x)*x))+(((x*x)*x)*x))+((((x*x)*x)*x)*x))+(((((x*x)*x)*x)*x)*x))+((((((x*x)*x)*x)*x)*x)*x))+(((((((x*x)*x)*x)*x)*x)*x)*x))+((((((((x*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))"],
