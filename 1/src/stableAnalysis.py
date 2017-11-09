@@ -7,6 +7,30 @@ from decimal import *
 
 import json
 
+FLOAT = {}
+REAL = {}
+
+FLOAT['decimal'] = 'double'
+FLOAT['integer'] = 'int'
+FLOAT['cin'] = 'cin'
+FLOAT['cout'] = 'cout'
+FLOAT['header'] = '''
+#include <iostream>
+#include <iomanip>
+#include <camth>
+#include <limits>
+using namespace std;
+'''
+
+REAL['decimal'] = 'REAL'
+REAL['integer'] = 'INTEGER'
+REAL['cin'] = 'cin'
+REAL['cout'] = 'cout'
+REAL['header'] = '''
+#include "iRRAM.h"
+using namespace iRRAM;
+'''
+
 FLOATCPP = 'float.cpp'
 REALCPP = 'real.cpp'
 
@@ -92,6 +116,37 @@ def intervals2Constrain(variables, intervals):
     constrain = '||'.join(constrain)
     return constrain
 
+# 生成循环cpp代码
+def generateLoop(loop, type):
+
+    if (type == 'float'):
+        implement = FLOAT
+    elif (type == 'real'):
+        implement = REAL
+
+    # 临时变量定义与初始化
+    cppcode = ''
+    for i in range(len(loop['variables'])):
+        cppcode += implement[loop['variablesType'][i]] + ' ' + loop['variables'][i] + ';\n' 
+    for i in loop['initialize']:
+        cppcode += i[0] + ' = ' + i[1] + '\n'
+    
+    # 循环体
+    cppcode += 'while(true) {\n'
+    for lb in loop['loopBody']:
+
+        cppcode += '\tif(' + lb['constrain'] + ') {\n'
+
+        for path in lb['path']:
+            cppcode += '\t\t' + path[0] + ' = ' + path[1] + ';\n'
+
+        if (lb['break'] == 'true'):
+            cppcode += '\t\tbreak;\n'
+
+        cppcode += '\t}\n'
+    cppcode +=  '}\n'
+
+    return cppcode
 
 # generate runable cpp file according to path, constrain and type
 def generateCpp(variables, path, constrain, type = 'all'):
@@ -260,3 +315,12 @@ path = "(ar/sqrt(ar*ar+ai*ai)+br/sqrt(br*br+bi*bi))/sqrt(2+2*(ar*br+ai*bi)/sqrt(
 constrain = "true"
 res = stableAnalysis(variables, path, constrain)
 '''
+
+with open('../case/loop/loop.pth') as f:
+    data = json.load(f)
+
+loop = data['loops'][0]
+print (loop)
+print (generateLoop(loop, 'real'))
+
+

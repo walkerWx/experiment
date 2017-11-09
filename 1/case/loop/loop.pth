@@ -5,15 +5,16 @@
 	"variables" : [ "n", "y"],
 	"pathNum" : 1,
 	"constrains" : [ "true"],
-    "paths": ["y=0;loop1;loop2"]
-    "return": "y"
+    "paths": ["y=0;loop1;loop2"],
+    "return": "y",
     "loops": [
              {"id": "loop1",
               "variables":["i"],
+              "variablesType":["integer"],
               "initialize":[["i","0"]],
               "loopBody":[{
                            "constrain": "i<n",
-                           "path": [["y","y+i"], ["i","i+1"]]
+                           "path": [["y","y+i"], ["i","i+1"]],
                            "break": "false"
                           },
                           {
@@ -25,10 +26,11 @@
              },
              {"id": "loop2",
               "variables":["i"],
+              "variablesType":["integer"],
               "initialize":[["i","0"]],
               "loopBody":[{
                            "constrain": "i<n",
-                           "path": [["y","y-2*i"], ["i","i+1"]]
+                           "path": [["y","y-2*i"], ["i","i+1"]],
                            "break": "false"
                           },
                           {
