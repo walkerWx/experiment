@@ -7,6 +7,20 @@ from decimal import *
 
 import json
 
+getcontext().prec = 20
+
+# 待分析输入区间，每个输入都范围 [START, END]
+START = 1
+END = 2 
+
+# 区间拆分粒度，即划分小区间的大小 10^(-PREC)
+PREC = 2
+
+# 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
+TOLERANCE = 1e-15
+
+
+# 不同实现对应的不同类型的名称以及需要引入的头文件等
 FLOAT = {}
 REAL = {}
 
@@ -36,17 +50,6 @@ REALCPP = 'real.cpp'
 
 LOGFILE = open('LOG', 'w')
 
-getcontext().prec = 20
-
-# 待分析输入区间，每个输入都范围 [START, END]
-START = 1
-END = 2 
-
-# 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 2
-
-# 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
-TOLERANCE = 1e-15
 
 # 以step为步长对输入区间[start, end]进行划分，并将结果输出 
 def divideInputSpace(varNum, start, end, prec):
@@ -67,7 +70,6 @@ def divideInputSpace(varNum, start, end, prec):
             for j in d1:
                 dt.append(list(i) + j)
         dn = list(dt)
-
 
     '''
     output = {}
@@ -125,11 +127,11 @@ def generateLoop(loop, type):
         implement = REAL
 
     # 临时变量定义与初始化
-    cppcode = ''
+    cppcode = '{\n'
     for i in range(len(loop['variables'])):
         cppcode += implement[loop['variablesType'][i]] + ' ' + loop['variables'][i] + ';\n' 
     for i in loop['initialize']:
-        cppcode += i[0] + ' = ' + i[1] + '\n'
+        cppcode += i[0] + ' = ' + i[1] + ';\n'
     
     # 循环体
     cppcode += 'while(true) {\n'
@@ -144,80 +146,71 @@ def generateLoop(loop, type):
             cppcode += '\t\tbreak;\n'
 
         cppcode += '\t}\n'
-    cppcode +=  '}\n'
+    cppcode += '}\n'
+    cppcode += '}\n'
 
     return cppcode
 
 # generate runable cpp file according to path, constrain and type
-def generateCpp(variables, path, constrain, type = 'all'):
+def generateCpp(data, path, constrain, type = 'all'):
     
     if (type == 'all'):
-        generateCpp(variables, path, constrain, 'float')
-        generateCpp(variables, path, constrain, 'real')
+        generateCpp(data, path, constrain, 'float')
+        generateCpp(data, path, constrain, 'real')
         return
         
     # according to different implement type, we should include different header files and use different things
 
-    header = ''
-    declType = ''
-    inputStream = ''
-    outputStream = ''
     precisionSetting = ''
     mainFunc = ''
 
     if (type == 'float'):
 
-        header += '#include <iostream>\n'
-        header += '#include <iomanip>\n'
-        header += '#include <cmath>\n'
-        header += '#include <limits>\n'
-        header += 'using namespace std;\n'
+        implement = FLOAT
 
         mainFunc += 'int main(){\n'
 
-        declType = 'double'
-        inputStream = 'cin'
-        outputStream = 'cout'
-
-        precisionSetting = outputStream + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
+        precisionSetting = implement['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
 
     elif (type == 'real'):
 
-        header += '#include "iRRAM.h"\n'
-        header += 'using namespace iRRAM;\n'
+        implement = REAL
         
         mainFunc += 'void compute(){\n'
 
-        declType = 'REAL'
-        inputStream = 'cin'
-        outputStream = 'cout'
+        precisionSetting = implement['cout'] + ' << setRwidth(45);\n'
 
-        precisionSetting = outputStream + ' << setRwidth(45);\n'
-
-    elif (type == 'interval'):
-        # TODO
-        header += ''
-        declType = ''
 
     mainFunc += '\t' + precisionSetting
-    mainFunc += '\t' + declType + ' ' +  ','.join(variables) + ';\n'
-    mainFunc += '\t' + inputStream + ' >> ' + ' >> '.join(variables) + ';\n'
-    mainFunc += '\t' + declType + ' res;\n'
-    mainFunc += '\t' + 'res = ' + path + ';\n'
-    mainFunc += '\t' + outputStream + ' << res << "\\n";\n'
+
+    for i in range(len(data['variables'])):
+        mainFunc += '\t' + implement[data['variablesType'][i]] + ' ' + data['variables'][i]+ ';\n'
+    mainFunc += '\t' + implement['cin'] + ' >> ' + ' >> '.join(data['variables']) + ';\n'
+
+    statements = path.split(';')
+    for s in statements:
+        # loop statement
+        if (s[0] == '{' and s[-1] == '}'):
+            mainFunc += generateLoop(data['loops'][s[1:-1]], type)  
+        else:
+            mainFunc += s + ';\n'
+        mainFunc += '\n'
+
+    mainFunc += '\t' + implement['cout'] + ' << ' + data['return']  + ' << "\\n";\n'
     mainFunc += '}\n'
 
     outputFile = {}
     outputFile['float'] = FLOATCPP
     outputFile['real'] = REALCPP 
     f = open(outputFile[type], 'w')
-    print (header, file=f)
+    print (implement['header'], file=f)
     print (mainFunc, file=f)
 
 
 # 稳定性分析主逻辑
-def stableAnalysis(variables, path, constrain):
+def stableAnalysis(data, path, constrain):
 
+    variables = data['variables']
     print ('VARIABLES:\t', variables, file=LOGFILE)
     print ('PATH:\t', path, file=LOGFILE)
     print ('CONSTRAIN:\t', constrain, file=LOGFILE)
@@ -226,7 +219,7 @@ def stableAnalysis(variables, path, constrain):
     intervals = divideInputSpace(len(variables), START, END, PREC)
     points = [interval2Points(interval) for interval in intervals]
 
-    generateCpp(variables, path, constrain)
+    generateCpp(data, path, constrain)
     call(['make'], shell=True)
 
     stableInterval = []
@@ -319,8 +312,6 @@ res = stableAnalysis(variables, path, constrain)
 with open('../case/loop/loop.pth') as f:
     data = json.load(f)
 
-loop = data['loops'][0]
-print (loop)
-print (generateLoop(loop, 'real'))
+generateCpp(data, data['paths'][0], data['constrains'][0])
 
 

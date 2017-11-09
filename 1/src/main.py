@@ -63,7 +63,7 @@ def optimize(pthFile):
             paths[i] = hornerTransform(variables[0], paths[i])
 
         # analysis the stability of the path, divide the constrain into 3 parts: stable, unstable, unknown
-        res = stableAnalysis(variables, paths[i], constrains[i])  
+        res = stableAnalysis(data, paths[i], constrains[i])  
 
         if (res['stable'] != ''):
             optPaths.append(paths[i])
