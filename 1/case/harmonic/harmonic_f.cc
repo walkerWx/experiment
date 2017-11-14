@@ -10,12 +10,10 @@
 using namespace std;
 
 double evaluate(int n, double initval) {
-    int i=1;
-    double harresult=initval;
-    for (i=1; i<n; ++i) {
-        harresult += (1/((double)i*i));
+    for (int i=1; i<n; ++i) {
+        initval += (1/((double)i*i));
     }
-    return harresult;
+    return initval;
 }
 
 int main() {

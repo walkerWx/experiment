@@ -73,7 +73,7 @@ def optimize(pthFile):
         if (res['unstable'] != ''):
 
             # transform the path into an equvalent paths set
-            equalPaths = generateEqualPath(variables, paths[i])
+            equalPaths = generateEqualPath(data, paths[i])
             print (equalPaths)
 
             findStable = False
@@ -97,6 +97,7 @@ def optimize(pthFile):
     outputData['programName'] = data['programName']
     outputData['functionName'] = data['functionName']
     outputData['variables'] = data['variables']
+    outputData['loops'] = data['loops']
     outputData['pathNum'] = len(optPaths)
     outputData['constrains'] = optConstrains
     outputData['paths'] = optPaths
@@ -116,6 +117,9 @@ def optimize(pthFile):
 '''
 optimize('../case/midarc/midarc.pth')
 mergePath('../case/midarc/midarc.opt.pth')
-'''
 optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
+'''
+
+optimize('../case/harmonic/harmonic.pth')
+mergePath('../case/harmonic/harmonic.opt.pth')

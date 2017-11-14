@@ -335,28 +335,94 @@ def hornerTransform(v, e):
 def isStable(expr, interval):
     return True
 
-# 生成等价表达式
-def generateEqualPath(variables, path):
-
-    equalPaths = []
-    path = Path(variables, path)
-
-    # check the rule list to find whether there is a transform rule
-    for rule in rules:
-
+# 生成等价计算语句, stmt可以是一个赋值语句或者是一个由loopid所表示的循环
+def generateEqualStmt(data, stmt):
+    # loop
+    if (stmt[0] == '{' and stmt[-1] == '}'):
+        return generateEqualLoop(data, stmt[1:-1])
+    # assignment
+    elif ('=' in stmt):
         # TODO
-        # we should also shuffle the variables here, becasue maybe the sequence is different
-        rulePath = Path(rule['variables'], rule['originPath'])
+        return [stmt]
+    return []
 
-        if (isEqual(path, rulePath)):
-            equalPaths.append(convertPath(rule['equalPath'], rule['variables'], path.variables))
+# 生成等价计算路径
+def generateEqualPath(data, path):
 
-    # TODO
-    # we should also generate equvalent paths by some mathematic ways, like:
-    # equalPaths.append(transform(path), 100)
-        
-    return equalPaths
+    statements = path.split(';')
+    estatements = [generateEqualStmt(data, stmt) for stmt in statements]
 
+    epaths = ['']
+    for i in range(len(statements)):
+        t = []
+        for estatement in estatements[i]:
+            for j in range(len(epaths)):
+                t.append(epaths[j] + estatement + ';')
+        epaths = t
+    return epaths
+
+
+# 生成等价循环
+LOOPID = 0
+def generateEqualLoop(data, loopid):
+
+    global LOOPID
+    
+    # 规则1，针对类似于for(i=0;i<n;++i)这样的循环制定转化规则
+
+    eloops = []
+    eloops.append('{'+loopid+'}')
+
+    loop = data['loops'][loopid]
+
+    # 单循环变量
+    if (len(loop['variables']) == 1):
+        # 循环体中仅两条路径
+        if (len(loop['loopBody']) == 2):
+            # 两条路径约束互补
+            if (('!('+loop['loopBody'][0]['constrain']+')') == (loop['loopBody'][1]['constrain'])):
+                # 一条路径为循环体，另一条为循环退出条件 
+                if (loop['loopBody'][0]['break'] == 'false' and loop['loopBody'][1]['break'] == 'true'):
+                    # 循环体中变量更新方法为+1
+                    variable = loop['variables'][0]
+                    for p in loop['loopBody'][0]['path']:
+                        if (p[0] == variable):
+                            update = p[1]
+                    if (update == (variable+'+1')):
+                        # 判断其他变量是否为累加、累乘的更新形式 
+                        canTransform = True
+                        for update in loop['loopBody'][0]['path']:
+                            updateVar = update[0]
+                            updateExpr = update[1]
+                            if (not updateExpr.startswith(updateVar)):
+                                canTransform = False
+                                break
+                            if (updateExpr[len(updateVar)] not in "+-*/"):
+                                canTransform = False
+                                break
+                            if (updateVar in updateExpr[len(updateVar):]):
+                                canTransform = False
+                                break
+                        if (canTransform):
+                            newLoop = dict(loop) 
+                            vstart = loop['initialize'][0][1]
+                            vend = loop['loopBody'][0]['constrain'].split('<')[1]
+                            newLoop['initialize'][0][1] = vend + '-1'
+                            newLoop['loopBody'][0]['constrain'] = loop['variables'][0] + '>=' + vstart
+                            newLoop['loopBody'][1]['constrain'] = '!(' + loop['variables'][0] + '>=' + vstart + ')'
+                            for update in newLoop['loopBody'][0]['path']:
+                                if (update[0] == newLoop['variables'][0]):
+                                    update[1] = update[0] + '-1'
+                                    break
+
+                            newLoopId = 'eloop' + str(LOOPID)
+                            LOOPID += 1
+                            data['loops'][newLoopId] = newLoop
+                            eloops.append('{'+newLoopId+'}')
+
+    return eloops
+
+                            
 
 #variables = ['ar', 'ai', 'br', 'bi']
 '''
@@ -369,9 +435,12 @@ print path2
 
 '''
 
-x = 'x'
-e = 'x+x*x+x*x*x'
-print (hornerTransform(x, e))
- 
+with open('../case/loop/loop.pth') as f:
+    data = json.load(f)
+
+path = data['paths'][0]
+print (generateEqualPath(data, path))
+print (data)
+
 
 
