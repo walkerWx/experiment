@@ -164,7 +164,7 @@ def generateCpp(data, path, constrain, type = 'all'):
     precisionSetting = ''
     mainFunc = ''
 
-    if (type == 'float'):
+    if type == 'float':
 
         implement = FLOAT
 
@@ -172,7 +172,7 @@ def generateCpp(data, path, constrain, type = 'all'):
 
         precisionSetting = implement['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
 
-    elif (type == 'real'):
+    elif type == 'real':
 
         implement = REAL
         
@@ -180,32 +180,33 @@ def generateCpp(data, path, constrain, type = 'all'):
 
         precisionSetting = implement['cout'] + ' << setRwidth(45);\n'
 
-
     mainFunc += '\t' + precisionSetting
-
     for i in range(len(data['variables'])):
         mainFunc += '\t' + implement[data['variablesType'][i]] + ' ' + data['variables'][i]+ ';\n'
-    mainFunc += '\t' + implement['cin'] + ' >> ' + ' >> '.join(data['variables']) + ';\n'
+
+    # variables initialize
+    for i in range(len(data['variables'])):
+        if data['initialize'][i][1] == "{INPUT}":
+            mainFunc += '\t' + implement['cin'] + ' >> ' + data['variables'][i] + ';\n'
+        else:
+            mainFunc += '\t' + data['variables'][i] + ' = ' + data['initialize'][i][1] + ';\n'
 
     statements = path.split(';')
     for s in statements:
         # loop statement
-        if (s[0] == '{' and s[-1] == '}'):
+        if s[0] == '{' and s[-1] == '}':
             mainFunc += generateLoop(data['loops'][s[1:-1]], type)  
         else:
             mainFunc += s + ';\n'
         mainFunc += '\n'
 
-    mainFunc += '\t' + implement['cout'] + ' << ' + data['return']  + ' << "\\n";\n'
+    mainFunc += '\t' + implement['cout'] + ' << ' + data['return'] + ' << "\\n";\n'
     mainFunc += '}\n'
 
-    outputFile = {}
-    outputFile['float'] = FLOATCPP
-    outputFile['real'] = REALCPP 
+    outputFile = {'float': FLOATCPP, 'real': REALCPP}
     f = open(outputFile[type], 'w')
     print (implement['header'], file=f)
     print (mainFunc, file=f)
-
 
 # 稳定性分析主逻辑
 def stableAnalysis(data, path, constrain):

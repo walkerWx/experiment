@@ -23,7 +23,7 @@ def convertPath(originPath, originVars, newVars):
     newPath = ''
     i = 0
     while i < len(originPath):
-        if (not originPath[i].isalpha()):
+        if not originPath[i].isalpha():
             newPath += originPath[i]
             i += 1
         else:

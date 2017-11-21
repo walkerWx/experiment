@@ -4,6 +4,7 @@
 "variableNum" : 2,
 "variables" : [ "n", "initval"],
 "variablesType": ["integer", "decimal"],
+"initialize": [["n", "{INPUT}"], ["initval", "0"]],
 "pathNum" : 1,
 "constrains" : [ "true"],
 "paths": ["{loop1}"],
