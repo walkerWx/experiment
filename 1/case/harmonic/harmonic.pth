@@ -13,10 +13,10 @@
           "loop1": {
           "variables":["i"],
           "variablesType":["integer"],
-          "initialize":[["i","0"]],
+          "initialize":[["i","1"]],
           "loopBody":[{
                        "constrain": "i<n",
-                       "path": [["initval","initval+1/(i*i)"], ["i","i+1"]],
+                       "path": [["initval","initval+1.0/(i*i)"], ["i","i+1"]],
                        "break": "false"
                       },
                       {

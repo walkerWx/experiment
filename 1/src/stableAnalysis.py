@@ -6,18 +6,22 @@ from subprocess import call
 from decimal import *
 
 import json
+import itertools
 
 getcontext().prec = 20
 
-# 待分析输入区间，每个输入都范围 [START, END]
-START = 1
-END = 2 
+# 待分析输入区间，每个输入范围 [START, END]
+FLOATSTART = 1
+FLOATEND = 2 
+
+INTSTART = 10000
+INTEND = 10100
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 2
+PREC = 1
 
 # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
-TOLERANCE = 1e-15
+TOLERANCE = 1e-16
 
 
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
@@ -31,7 +35,7 @@ FLOAT['cout'] = 'cout'
 FLOAT['header'] = '''
 #include <iostream>
 #include <iomanip>
-#include <camth>
+#include <cmath>
 #include <limits>
 using namespace std;
 '''
@@ -52,53 +56,35 @@ LOGFILE = open('LOG', 'w')
 
 
 # 以step为步长对输入区间[start, end]进行划分，并将结果输出 
-def divideInputSpace(varNum, start, end, prec):
+def divideInputSpace(varNum, varType):
 
-    d1 = []
-    dn = []
+    li = range(INTSTART, INTEND)
 
+    ld = []
+    step = 10**(-PREC) 
     i = 0
-    step = 10**(-prec) 
-    while (start+i*step < end):
-        d1.append([[round(start+i*step, prec), round(start+(i+1)*step, prec)]])
+    while (FLOATSTART+i*step < FLOATEND):
+        ld.append([round(FLOATSTART+i*step, PREC), round(FLOATSTART+(i+1)*step, PREC)])
         i = i + 1
-        
-    dn = list(d1)
-    for _ in range(varNum-1):
-        dt = []
-        for i in dn:
-            for j in d1:
-                dt.append(list(i) + j)
-        dn = list(dt)
 
-    '''
-    output = {}
-    output['varNum'] = varNum 
-    output['intervals'] = dn
+    l = []
 
-    with open(outputFile, 'w') as f:
-        json.dump(output, f, indent=4)
-    '''
+    for t in varType:
+        if t == 'integer':
+            l.append(li) 
+        elif t == 'decimal':
+            l.append(ld)
 
-    return dn
-
+    return [list(x) for x in itertools.product(*l)]
 
 # 计算每个变量的范围表示的N维空间的所有顶点，例如 x = [1, 2], y = [2, 4] 对应二维空间中的4个顶点 (1, 2) (1, 4) (2, 2) (2, 4)
 def interval2Points(interval):
 
-    varNum = len(interval)
-    points = [[interval[0][0]], [interval[0][1]]]
-    i = 1
-    while (i < len(interval)):
-        t = []
-        for point in points:
-            t.append(point + [interval[i][0]])
-            t.append(point + [interval[i][1]])
-        points = list(t)
-        i += 1
+    for i in range(len(interval)):
+        if isinstance(interval[i], int):
+            interval[i] = [interval[i]]
         
-    return points
-
+    return [list(x) for x in itertools.product(*interval)]
 
 # 对拆分后的区间进行合并  
 def mergeInterval(intervals):
@@ -106,15 +92,18 @@ def mergeInterval(intervals):
     return intervals
 
 # 将变量的区间转化为能直接填写到程序中的约束的字符串 
-def interval2Constrain(variables, interval):
+def interval2Constrain(variables, variablesType, interval):
     constrain = []
     for i in range(len(interval)):
-        constrain.append((('%.'+str(PREC)+'f') % interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + (('%.'+str(PREC)+'f') % interval[i][1]))
+        if variablesType[i] == 'decimal':
+            constrain.append((('%.'+str(PREC)+'f') % interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + (('%.'+str(PREC)+'f') % interval[i][1]))
+        elif variablesType[i] == 'integer':
+            constrain.append(variables[i]+'=='+str(interval[i][0]))
     constrain = '(' + '&&'.join(constrain) + ')'
     return constrain
 
-def intervals2Constrain(variables, intervals):
-    constrain = [interval2Constrain(variables, interval) for interval in intervals]
+def intervals2Constrain(variables, variablesType, intervals):
+    constrain = [interval2Constrain(variables, variablesType, interval) for interval in intervals]
     constrain = '||'.join(constrain)
     return constrain
 
@@ -217,11 +206,11 @@ def stableAnalysis(data, path, constrain):
     print ('CONSTRAIN:\t', constrain, file=LOGFILE)
     
 
-    intervals = divideInputSpace(len(variables), START, END, PREC)
+    intervals = divideInputSpace(len(variables), data['variablesType'])
     points = [interval2Points(interval) for interval in intervals]
 
     generateCpp(data, path, constrain)
-    call(['make'], shell=True)
+    #call(['make'], shell=True)
 
     stableInterval = []
     unstableInterval = []
@@ -240,7 +229,11 @@ def stableAnalysis(data, path, constrain):
 
             pstable = True
             
-            point = [('%.'+str(PREC)+'f') % x for x in point]
+            for i in range(len(point)):
+                if isinstance(point[i], int):
+                    point[i] = str(point[i])
+                else:
+                    point[i] = ('%.'+str(PREC)+'f') % point[i] 
 
             print (' '.join(point), file = open('input', 'w'))
             
@@ -285,13 +278,13 @@ def stableAnalysis(data, path, constrain):
     print ('STABLE INTERVAL:\t', len(stableInterval), file=LOGFILE)
     print ('UNSTABLE INTERVAL:\t', len(unstableInterval), file=LOGFILE)
 
-    call(['make clean'], shell=True)
+    #call(['make clean'], shell=True)
 
     stableInterval = mergeInterval(stableInterval)
     unstableInterval = mergeInterval(unstableInterval)
 
-    stableInterval = intervals2Constrain(variables, stableInterval)
-    unstableInterval = intervals2Constrain(variables, unstableInterval)
+    stableInterval = intervals2Constrain(variables, data['variablesType'], stableInterval)
+    unstableInterval = intervals2Constrain(variables, data['variablesType'], unstableInterval)
 
     return {'stable': stableInterval, 'unstable': unstableInterval} 
 
@@ -310,9 +303,8 @@ constrain = "true"
 res = stableAnalysis(variables, path, constrain)
 '''
 
-with open('../case/loop/loop.pth') as f:
+with open('../case/harmonic/harmonic.pth') as f:
     data = json.load(f)
 
-generateCpp(data, data['paths'][0], data['constrains'][0])
-
+stableAnalysis(data, data['paths'][0], '')
 
