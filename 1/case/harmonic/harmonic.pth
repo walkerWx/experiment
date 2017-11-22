@@ -2,7 +2,7 @@
 "program_name": "harmonic",
 "function_name" : "evaluate",
 "variables" : { "n": "integer", "initval":"decimal"},
-"input_variables": ["n"]
+"input_variables": ["n"],
 "constrains" : [ "true"],
 "paths": ["initval=0;{loop1}"],
 "return": "initval",
