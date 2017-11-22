@@ -14,8 +14,8 @@ getcontext().prec = 20
 FLOATSTART = 1
 FLOATEND = 2 
 
-INTSTART = 10000
-INTEND = 10100
+INTSTART = 1
+INTEND = 500
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
 PREC = 1
@@ -204,9 +204,15 @@ def stableAnalysis(data, path, constrain):
     print ('VARIABLES:\t', variables, file=LOGFILE)
     print ('PATH:\t', path, file=LOGFILE)
     print ('CONSTRAIN:\t', constrain, file=LOGFILE)
-    
 
-    intervals = divideInputSpace(len(variables), data['variablesType'])
+    # 只关心用户输入的变量，进行变量的过滤
+    userinput_variables = []
+    userinput_variables_type = []
+    for i in range(len(variables)):
+        if data['initialize'][i][1] == "{INPUT}":
+            userinput_variables.append(data['variables'][i])
+            userinput_variables_type.append(data['variablesType'][i])
+    intervals = divideInputSpace(len(userinput_variables), userinput_variables_type)
     points = [interval2Points(interval) for interval in intervals]
 
     generateCpp(data, path, constrain)
@@ -217,8 +223,8 @@ def stableAnalysis(data, path, constrain):
 
     for i in range(len(intervals)):
 
-        stable = True # interval stable
-        pstable = True # point stable
+        stable = True   #interval stable
+        pstable = True  #point stable
 
         print ('', file=LOGFILE)
         print ('----------------------------------------------', file=LOGFILE)
@@ -235,7 +241,7 @@ def stableAnalysis(data, path, constrain):
                 else:
                     point[i] = ('%.'+str(PREC)+'f') % point[i] 
 
-            print (' '.join(point), file = open('input', 'w'))
+            print (' '.join(point), file=open('input', 'w'))
             
             call(['./float < input > float_output'], shell=True)
             call(['./real < input > real_output'], shell=True)
@@ -283,8 +289,8 @@ def stableAnalysis(data, path, constrain):
     stableInterval = mergeInterval(stableInterval)
     unstableInterval = mergeInterval(unstableInterval)
 
-    stableInterval = intervals2Constrain(variables, data['variablesType'], stableInterval)
-    unstableInterval = intervals2Constrain(variables, data['variablesType'], unstableInterval)
+    #stableInterval = intervals2Constrain(variables, data['variablesType'], stableInterval)
+    #unstableInterval = intervals2Constrain(variables, data['variablesType'], unstableInterval)
 
     return {'stable': stableInterval, 'unstable': unstableInterval} 
 
@@ -303,8 +309,8 @@ constrain = "true"
 res = stableAnalysis(variables, path, constrain)
 '''
 
-with open('../case/harmonic/harmonic.pth') as f:
+with open('../case/harmonic/harmonic.opt.pth') as f:
     data = json.load(f)
 
-stableAnalysis(data, data['paths'][0], '')
-
+res = stableAnalysis(data, data['paths'][0], '')
+print(res)
