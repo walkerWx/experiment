@@ -170,5 +170,9 @@ class Path:
             elif p.startswith('{loop') and p.endswith('}'):
                 self.path.append(path_data.get_loop(p[len('{loop:'):-len('}')]))
 
+    def set_implement(self, implement):
+        self.implement = implement
 
+    def add_constrain(self, constrain):
+        self.constrain = '(' + self.constrain + ')' + '&&' + '(' + constrain + ')'
 

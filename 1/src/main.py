@@ -2,117 +2,95 @@
 # -*- coding:utf-8 -*-
 
 import json
+import copy
 
 from mergePath import *
 from transform import *
 from stableAnalysis import *
+from path import *
 
+# 优化后程序两种不同的实现类型：浮点数实现、高精度实现
+FLOATTYPE = 'float'
+REALTYPE = 'real'
 
-def isEqualPathStable(path, constrain):
-    return True
 
 # 判断一个表达式在给定约束下是否稳定
-def isStable(path, constrain):
-    return False 
-
-# 判断一条路径在给定约束下是否在数学意义上不稳定
-def isMathUnstable(path, constrain):
+def is_stable(path):
     return False
 
+
+# 判断一条路径在给定约束下是否在数学意义上不稳定
+def is_unstable(path):
+    return False
+
+
 # 优化过程的主要逻辑
-def optimize(pthFile):
-    # 解析path文件，得到路径抽取所得到的路径与约束 
-    with open(pthFile) as f:
+def optimize(path_file):
 
-        data = json.load(f)
-        variableNum = data['variableNum']
-        variables = data['variables']
-        pathNum = data['pathNum']
-        paths = data['paths']
-        constrains = data['constrains']
+    path_data = PathData(path_file)
 
+    variables = path_data.get_variables()
 
-    # 优化后的路劲以及其对应的约束以及实现类型
-    optPaths = []
-    optConstrains = []
-    optType = []
+    # 优化后的path
+    opt_path_data = copy.deepcopy(path_data)
+    opt_path_data.clear_paths()
 
-    # 优化后程序两种不同的实现类型：浮点数实现、高精度实现
-    FLOATTYPE = 'float'
-    REALTYPE = 'real'
+    # horner形式总优于其原来的形式
+    horner_transform(path_data)
 
-    for i in range(pathNum):
+    for path_id, path in path_data.get_paths().items():
 
         # 路径计算稳定，无需进行优化 
-        if (isStable(paths[i], constrains[i])):
-            optPaths.append(paths[i])
-            optConstrains.append(constrains[i])
-            optType.append(FLOATTYPE)
+        if is_stable(path):
+            new_path = copy.deepcopy(path)
+            new_path.set_implement(FLOATTYPE)
+            opt_path_data.add_path(new_path)
             continue
      
         # 路径在数学意义上计算不稳定，无法进行优化，依然使用高精度实现
-        if (isMathUnstable(paths[i], constrains[i])):
-            optPaths.append(paths[i])
-            optConstrains.append(constrains[i])
-            optType.append(REALTYPE)
+        if is_unstable(path):
+            new_path = copy.deepcopy(path)
+            new_path.set_implement(REALTYPE)
+            opt_path_data.add_path(new_path)
             continue
 
-         
-        # 对于单变量的多项式计算，horner形式总优于其原来的形式 
-        if (len(variables) == 1):
-            paths[i] = hornerTransform(variables[0], paths[i])
+        # 不稳定分析
+        res = stable_analysis(path_data, path)
 
-        # analysis the stability of the path, divide the constrain into 3 parts: stable, unstable, unknown
-        res = stableAnalysis(data, paths[i], constrains[i])  
+        if res['stable'] != '':
+            new_path = copy.deepcopy(path)
+            new_path.add_constrain(res['stable'])
+            new_path.set_implement(FLOATTYPE)
+            opt_path_data.add_path(new_path)
 
-        if (res['stable'] != ''):
-            optPaths.append(paths[i])
-            optConstrains.append(res['stable'])
-            optType.append(FLOATTYPE)
+        if res['unstable'] != '':
 
-        if (res['unstable'] != ''):
+            unstable_path = copy.deepcopy(path)
+            unstable_path.add_constrain(res['unstable'])
 
-            # transform the path into an equvalent paths set
-            equalPaths = generateEqualPath(data, paths[i])
-            print (equalPaths)
+            # transform the path into an equivalent paths list
+            equal_paths = generate_equal_path(path_data, unstable_path)
 
-            findStable = False
-            for j in range(len(equalPaths)):
-                # find a stable path in the equvalent paths set
-                if (isEqualPathStable(equalPaths[j], res['unstable'])):
-                    findStable = True
-                    optPaths.append(equalPaths[j])
-                    optConstrains.append(constrains[i])
-                    optType.append(FLOATTYPE)
+            find_stable = False
+            for ep in equal_paths:
+                # find a stable path in the equivalent paths set
+                if is_stable(ep):
+                    find_stable = True
+                    ep.set_implement(FLOATTYPE)
+                    opt_path_data.add_path(ep)
                     break
             
             # if we can not find a stable path, we just keep the original multi-precision version
-            if (not findStable):
-                optPaths.append(paths[i])
-                optConstrains.append(constrains[i])
-                optType.append(REALTYPE)
+            if not find_stable:
+                unstable_path.set_implement(REALTYPE)
+                opt_path_data.add_path(unstable_path)
 
     # write optimized paths to file
-    outputData = {} 
-    outputData['programName'] = data['programName']
-    outputData['functionName'] = data['functionName']
-    outputData['variables'] = data['variables']
-    outputData['loops'] = data['loops']
-    outputData['pathNum'] = len(optPaths)
-    outputData['constrains'] = optConstrains
-    outputData['paths'] = optPaths
-    outputData['types'] = optType 
-    
-    outputDirectory = ''
-    if (pthFile.rfind('/') != -1):
-        outputDirectory = pthFile[:pthFile.rfind('/')+1]
-    outputFile = outputDirectory+data['programName']+'.opt.pth'
-    print (outputFile)
-    print (outputData)
-
-    with open(outputFile, 'w') as f:
-        json.dump(outputData, f, indent=4)
-
+    output_directory = ''
+    if path_file.rfind('/') != -1:
+        output_directory = path_file[:path_file.rfind('/')+1]
+    output_file = output_directory+path_data.get_program_name()+'.opt.pth'
+    opt_path_data.output_json(output_file)
 
 '''
 optimize('../case/midarc/midarc.pth')
