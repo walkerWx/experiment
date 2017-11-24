@@ -3,19 +3,18 @@
 "function_name" : "evaluate",
 "variables" : { "n": "integer", "initval":"decimal"},
 "input_variables": ["n"],
-"constrains" : [ "true"],
-"paths": ["initval=0;{loop1}"],
+"paths": [{"constrain": "true", "path":["procedure:p1", "loop:l1"]}],
 "return": "initval",
 "loops": {
-          "loop1": {
+          "l1": {
           "variables":{"i": "integer"},
           "initialize":{"i": "1"},
-          "loop_body":{
-                       "constrain": ["i<n", "!(i<n)"],
-                       "path": ["initval=initval+1.0/(i*i);i=i+1", ""],
-                       "break": ["false", "true"]
-                      }
+          "loop_body": [
+                            {"constrain": "i<n", "path": ["procedure:p2"], "break": "false"},
+                            {"constrain": "!(i<n)", "path": ["procedure:none"], "break": "true"}
+                       ]
                     }
          }
+"procedures": {"p1": {"initval": "0"}, "p2": {"initval": "initval+1.0/(i*i)", "i": "i+1"}, "none":{} }
  }
 
