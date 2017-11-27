@@ -14,7 +14,7 @@
                             {"constrain": "!(i<n)", "path": ["procedure:none"], "break": "true"}
                        ]
                     }
-         }
+         },
 "procedures": {"p1": {"initval": "0"}, "p2": {"initval": "initval+1.0/(i*i)", "i": "i+1"}, "none":{} }
  }
 

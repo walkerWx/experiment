@@ -29,8 +29,6 @@ def optimize(path_file):
 
     path_data = PathData(path_file)
 
-    variables = path_data.get_variables()
-
     # 优化后的path
     opt_path_data = copy.deepcopy(path_data)
     opt_path_data.clear_paths()
@@ -38,7 +36,7 @@ def optimize(path_file):
     # horner形式总优于其原来的形式
     horner_transform(path_data)
 
-    for path_id, path in path_data.get_paths().items():
+    for path in path_data.get_paths():
 
         # 路径计算稳定，无需进行优化 
         if is_stable(path):
