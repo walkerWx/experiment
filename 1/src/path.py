@@ -13,6 +13,8 @@ class PathData:
         with open(path_file) as f:
             data = json.load(f)
 
+        self.data = data
+
         self.program_name = data['program_name']
         self.function_name = data['function_name']
 
@@ -21,20 +23,32 @@ class PathData:
 
         self.return_expr = data['return']
 
-        # initialize loops
-        self.loops = dict()
-        for loop_id in data['loops'].keys():
-            self.loops[loop_id] = Loop(loop_id, data['loops'][loop_id])
-
         # initialize procedures
-        self .procedures = dict()
-        for procedure_id in data['procedures'].keys():
-            self.procedures[procedure_id] = Procedure(procedure_id, data['procedures'][procedure_id])
+        self.procedures = None
+        self.init_procedures()
+
+        # initialize loops
+        self.loops = None
+        self.init_loops()
 
         # initialize paths
         # must initialize loops and procedures first as when initialize paths we need loops and procedures information
+        self.paths = None
+        self.init_paths()
+
+    def init_procedures(self):
+        self .procedures = dict()
+        for procedure_id in self.data['procedures'].keys():
+            self.procedures[procedure_id] = self.get_procedure(procedure_id)
+
+    def init_loops(self):
+        self.loops = dict()
+        for loop_id in self.data['loops'].keys():
+            self.loops[loop_id] = self.get_loop(loop_id)
+
+    def init_paths(self):
         self.paths = list()
-        for path in data['paths']:
+        for path in self.data['paths']:
             self.paths.append(Path(path, self))
 
     def get_program_name(self):
@@ -62,13 +76,25 @@ class PathData:
         return self.loops
 
     def get_loop(self, loop_id):
-        return self.loops[loop_id]
+        if loop_id in self.loops.keys():
+            return self.loops[loop_id]
+        elif loop_id in self.data['loops'].keys():
+            self.loops[loop_id] = Loop(loop_id, self)
+            return self.loops[loop_id]
+        else:
+            return None
 
     def get_procedures(self):
         return self.procedures
 
     def get_procedure(self, procedure_id):
-        return self.procedures[procedure_id]
+        if procedure_id in self.procedures.keys():
+            return self.procedures[procedure_id]
+        elif procedure_id in self.data['procedures'].keys():
+            self.procedures[procedure_id] = Procedure(procedure_id, self)
+            return self.procedures[procedure_id]
+        else:
+            return None
 
     def clear_paths(self):
         self.paths = dict()
@@ -106,12 +132,18 @@ class Loop:
 
     """Loop封装类, 一个Loop指代一段循环的代码，包括了所涉及到的临时变量和它们的初始化，循环体等内容"""
 
-    def __init__(self, id, loop_json):
+    def __init__(self, id, path_data):
+
+        loop_json = path_data.data['loops'][id]
 
         self.id = id
         self.variables = loop_json['variables']
         self.initialize = loop_json['initialize']
-        self.loop_body = loop_json['loop_body']
+
+        # in fact, loop body is a list of path
+        self.loop_body = list()
+        for lb in loop_json['loop_body']:
+            self.loop_body.append(Path(lb, path_data))
 
     def get_id(self):
         return self.id
@@ -142,23 +174,37 @@ class Loop:
         data['loop_body'] = self.get_loop_body()
         return data
 
+    def to_cpp_code(self, indent=0):
+        code = indent*'\t'+'{\n'
+        # temporary variables initialize
+        for var, update_expr in self.get_initialize_list().items():
+            code += (indent+1)*'\t' + var + ' = ' + update_expr + ';\n'
+
+        code += (indent+1)*'\t'+'while(true) {\n'
+
+        # loop body
+        for lb in self.get_loop_body():
+            code += lb.to_cpp_code(indent+2)
+
+        code += (indent+1)*'\t'+'}\n'
+        code += indent*'\t'+'}\n'
+        return code
+
 
 class Procedure:
 
-    NOT_EXIST = "not exist"
-
     """Procedure封装类, 一个Procedure指代一段顺序执行的代码，我们用所涉及到的所有变量的更新式来记录这段代码所代表的语义"""
 
-    def __init__(self, id, procedure_json):
+    def __init__(self, id, path_data):
         self.id = id
-        self.procedure = procedure_json
+        self.procedure = path_data.data['procedures'][id]
 
     def get_id(self):
         return self.id
 
     def get_update_expr(self, var):
         if var not in self.procedure.keys():
-            return self.NOT_EXIST
+            return None
         else:
             return self.procedure[var]
 
@@ -168,6 +214,12 @@ class Procedure:
 
     def to_json(self):
         return self.procedure
+
+    def to_cpp_code(self, indent=0):
+        code = ''
+        for var, update_expr in self.procedure.items():
+            code += indent*'\t'+var + ' = ' + update_expr + ';\n'
+        return code
 
 
 class Path:
@@ -181,7 +233,12 @@ class Path:
         if 'implement' in path_json.keys():
             self.implement = path_json['implement']
         else:
-            self.implement = 'NONE'
+            self.implement = None
+
+        if 'break' in path_json.keys() and path_json['break'] == 'true':
+            self.loop_break = True
+        else:
+            self.loop_break = None
 
         self.path = []
         for p in path_json['path']:
@@ -204,13 +261,21 @@ class Path:
             data['path'].append(p.get_type() + ':' + p.get_id())
         return data
 
+    def to_cpp_code(self, indent=0):
+        code = ''
+        code += indent*'\t' + 'if(' + self.constrain + ') {\n'
+        for m in self.path:
+            code += m.to_cpp_code(indent+1)
+        if self.loop_break:
+            code += (indent+1)*'\t'+'break;\n'
+        code += indent*'\t'+'}\n'
+        return code
+
 
 # Unit test
+
 path_file = '../case/harmonic/harmonic.pth'
 pd = PathData(path_file)
 
-print(pd.to_json())
-
 for path in pd.get_paths():
-    print(path.to_json())
-
+    print(path.to_cpp_code())
