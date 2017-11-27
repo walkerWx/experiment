@@ -253,6 +253,9 @@ class Path:
     def add_constrain(self, constrain):
         self.constrain = '(' + self.constrain + ')' + '&&' + '(' + constrain + ')'
 
+    def get_path_list(self):
+        return self.path
+
     def to_json(self):
         data = dict()
         data['constrain'] = self.constrain

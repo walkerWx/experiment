@@ -4,6 +4,7 @@
 from __future__ import print_function
 from subprocess import call
 from decimal import *
+from path import *
 
 import json
 import itertools
@@ -23,10 +24,9 @@ PREC = 1
 # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
 TOLERANCE = 1e-16
 
-
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
-FLOAT = {}
-REAL = {}
+FLOAT = dict()
+REAL = dict()
 
 FLOAT['decimal'] = 'double'
 FLOAT['integer'] = 'int'
@@ -56,29 +56,30 @@ LOGFILE = open('LOG', 'w')
 
 
 # 以step为步长对输入区间[start, end]进行划分，并将结果输出 
-def divideInputSpace(varNum, varType):
+def divide_input_space(var_type):
 
     li = range(INTSTART, INTEND)
 
     ld = []
     step = 10**(-PREC) 
     i = 0
-    while (FLOATSTART+i*step < FLOATEND):
+    while FLOATSTART+i*step < FLOATEND:
         ld.append([round(FLOATSTART+i*step, PREC), round(FLOATSTART+(i+1)*step, PREC)])
         i = i + 1
 
-    l = []
+    lst = []
 
-    for t in varType:
+    for t in var_type:
         if t == 'integer':
-            l.append(li) 
+            lst.append(li)
         elif t == 'decimal':
-            l.append(ld)
+            lst.append(ld)
 
-    return [list(x) for x in itertools.product(*l)]
+    return [list(x) for x in itertools.product(*lst)]
+
 
 # 计算每个变量的范围表示的N维空间的所有顶点，例如 x = [1, 2], y = [2, 4] 对应二维空间中的4个顶点 (1, 2) (1, 4) (2, 2) (2, 4)
-def interval2Points(interval):
+def interval2points(interval):
 
     for i in range(len(interval)):
         if isinstance(interval[i], int):
@@ -86,145 +87,102 @@ def interval2Points(interval):
         
     return [list(x) for x in itertools.product(*interval)]
 
+
 # 对拆分后的区间进行合并  
-def mergeInterval(intervals):
+def merge_interval(intervals):
     # TODO
     return intervals
 
+
 # 将变量的区间转化为能直接填写到程序中的约束的字符串 
-def interval2Constrain(variables, variablesType, interval):
+def interval2constrain(variables, variables_type, interval):
     constrain = []
     for i in range(len(interval)):
-        if variablesType[i] == 'decimal':
+        if variables_type[i] == 'decimal':
             constrain.append((('%.'+str(PREC)+'f') % interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + (('%.'+str(PREC)+'f') % interval[i][1]))
-        elif variablesType[i] == 'integer':
+        elif variables_type[i] == 'integer':
             constrain.append(variables[i]+'=='+str(interval[i][0]))
     constrain = '(' + '&&'.join(constrain) + ')'
     return constrain
 
-def intervals2Constrain(variables, variablesType, intervals):
-    constrain = [interval2Constrain(variables, variablesType, interval) for interval in intervals]
+def intervals2constrain(variables, variables_type, intervals):
+    constrain = [interval2constrain(variables, variables_type, interval) for interval in intervals]
     constrain = '||'.join(constrain)
     return constrain
 
-# 生成循环cpp代码
-def generateLoop(loop, type):
-
-    if (type == 'float'):
-        implement = FLOAT
-    elif (type == 'real'):
-        implement = REAL
-
-    # 临时变量定义与初始化
-    cppcode = '{\n'
-    for i in range(len(loop['variables'])):
-        cppcode += implement[loop['variablesType'][i]] + ' ' + loop['variables'][i] + ';\n' 
-    for i in loop['initialize']:
-        cppcode += i[0] + ' = ' + i[1] + ';\n'
-    
-    # 循环体
-    cppcode += 'while(true) {\n'
-    for lb in loop['loopBody']:
-
-        cppcode += '\tif(' + lb['constrain'] + ') {\n'
-
-        for path in lb['path']:
-            cppcode += '\t\t' + path[0] + ' = ' + path[1] + ';\n'
-
-        if (lb['break'] == 'true'):
-            cppcode += '\t\tbreak;\n'
-
-        cppcode += '\t}\n'
-    cppcode += '}\n'
-    cppcode += '}\n'
-
-    return cppcode
-
 # generate runable cpp file according to path, constrain and type
-def generateCpp(data, path, constrain, type = 'all'):
+def generate_cpp(path_data, path, implement_type='all'):
     
-    if (type == 'all'):
-        generateCpp(data, path, constrain, 'float')
-        generateCpp(data, path, constrain, 'real')
+    if implement_type == 'all':
+        generate_cpp(path_data, path, 'float')
+        generate_cpp(path_data, path, 'real')
         return
         
     # according to different implement type, we should include different header files and use different things
 
-    precisionSetting = ''
-    mainFunc = ''
+    precision_setting = ''
+    main_func = ''
 
-    if type == 'float':
+    if implement_type == 'float':
 
         implement = FLOAT
 
-        mainFunc += 'int main(){\n'
+        main_func += 'int main(){\n'
 
-        precisionSetting = implement['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
+        precision_setting = implement['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
 
-    elif type == 'real':
+    elif implement_type == 'real':
 
         implement = REAL
         
-        mainFunc += 'void compute(){\n'
+        main_func += 'void compute(){\n'
 
-        precisionSetting = implement['cout'] + ' << setRwidth(45);\n'
+        precision_setting = implement['cout'] + ' << setRwidth(45);\n'
 
-    mainFunc += '\t' + precisionSetting
-    for i in range(len(data['variables'])):
-        mainFunc += '\t' + implement[data['variablesType'][i]] + ' ' + data['variables'][i]+ ';\n'
+    main_func += '\t' + precision_setting
+    for var in path_data.get_input_variables():
+        main_func += '\t' + implement[path_data.get_variable_type(var)] + ' ' + var + ';\n'
 
     # variables initialize
-    for i in range(len(data['variables'])):
-        if data['initialize'][i][1] == "{INPUT}":
-            mainFunc += '\t' + implement['cin'] + ' >> ' + data['variables'][i] + ';\n'
-        else:
-            mainFunc += '\t' + data['variables'][i] + ' = ' + data['initialize'][i][1] + ';\n'
+    for var in path_data.get_input_variables():
+        main_func += '\t' + implement['cin'] + ' >> ' + var + ';\n'
 
-    statements = path.split(';')
-    for s in statements:
-        # loop statement
-        if s[0] == '{' and s[-1] == '}':
-            mainFunc += generateLoop(data['loops'][s[1:-1]], type)  
-        else:
-            mainFunc += s + ';\n'
-        mainFunc += '\n'
+    for m in path.get_path_list():
+        main_func += m.to_cpp_code(indent=1)
 
-    mainFunc += '\t' + implement['cout'] + ' << ' + data['return'] + ' << "\\n";\n'
-    mainFunc += '}\n'
+    main_func += '\t' + implement['cout'] + ' << ' + path_data.get_return_expr() + ' << "\\n";\n'
+    main_func += '}\n'
 
-    outputFile = {'float': FLOATCPP, 'real': REALCPP}
-    f = open(outputFile[type], 'w')
+    output_file = {'float': FLOATCPP, 'real': REALCPP}
+    f = open(output_file[implement_type], 'w')
     print (implement['header'], file=f)
-    print (mainFunc, file=f)
+    print (main_func, file=f)
+
 
 # 稳定性分析主逻辑
-def stableAnalysis(data, path, constrain):
+def stable_analysis(path_data, path):
 
-    variables = data['variables']
+    variables = path_data.get_variables()
     print ('VARIABLES:\t', variables, file=LOGFILE)
     print ('PATH:\t', path, file=LOGFILE)
-    print ('CONSTRAIN:\t', constrain, file=LOGFILE)
+    print ('CONSTRAIN:\t',  file=LOGFILE)
 
-    # 只关心用户输入的变量，进行变量的过滤
-    userinput_variables = []
-    userinput_variables_type = []
-    for i in range(len(variables)):
-        if data['initialize'][i][1] == "{INPUT}":
-            userinput_variables.append(data['variables'][i])
-            userinput_variables_type.append(data['variablesType'][i])
-    intervals = divideInputSpace(len(userinput_variables), userinput_variables_type)
-    points = [interval2Points(interval) for interval in intervals]
+    # 只关心用户输入的变量
+    input_variables = path_data.get_input_variables()
+    input_variables_type = [path.get_variable_type(var) for var in input_variables]
+    intervals = divide_input_space(input_variables_type)
+    points = [interval2points(interval) for interval in intervals]
 
-    generateCpp(data, path, constrain)
-    #call(['make'], shell=True)
+    generate_cpp(path_data, path)
+    # call(['make'], shell=True)
 
-    stableInterval = []
-    unstableInterval = []
+    stable_interval = []
+    unstable_interval = []
 
     for i in range(len(intervals)):
 
-        stable = True   #interval stable
-        pstable = True  #point stable
+        stable = True   # interval stable
+        pstable = True  # point stable
 
         print ('', file=LOGFILE)
         print ('----------------------------------------------', file=LOGFILE)
@@ -246,53 +204,52 @@ def stableAnalysis(data, path, constrain):
             call(['./float < input > float_output'], shell=True)
             call(['./real < input > real_output'], shell=True)
 
-            floatRes = Decimal([line.rstrip('\n') for line in open('float_output')][0])
-            realRes = Decimal([line.rstrip('\n') for line in open('real_output')][0])
+            float_res = Decimal([line.rstrip('\n') for line in open('float_output')][0])
+            real_res = Decimal([line.rstrip('\n') for line in open('real_output')][0])
 
-            if (realRes == Decimal(0)):
-                relativeError = abs((floatRes-realRes)/Decimal(1))
+            if real_res == Decimal(0):
+                relative_error = abs((float_res-real_res)/Decimal(1))
             else:
-                relativeError = abs((floatRes-realRes)/realRes)
+                relative_error = abs((float_res-real_res)/real_res)
 
-            if (relativeError >= TOLERANCE):
+            if relative_error >= TOLERANCE:
                 pstable = False
                 stable = False
             
             print ('', file=LOGFILE)
             print ('POINT:\t', point, file=LOGFILE) 
-            print ('FLOAT RESUTL:\t', '%.20E' % floatRes, file=LOGFILE)
-            print ('REAL RESUTL:\t', '%.20E' % realRes, file=LOGFILE)
-            print ('RELATVIE ERROR:\t','%.20E' % relativeError, file=LOGFILE )
+            print ('FLOAT RESUTL:\t', '%.20E' % float_res, file=LOGFILE)
+            print ('REAL RESUTL:\t', '%.20E' % real_res, file=LOGFILE)
+            print ('RELATVIE ERROR:\t','%.20E' % relative_error, file=LOGFILE )
             print ('STABLE:\t', str(stable), file=LOGFILE )
 
             '''
             print ('')
             print ('POINT:\t', point) 
-            print ('FLOAT RESUTL:\t', '%.20E' % floatRes)
-            print ('REAL RESUTL:\t', '%.20E' % realRes)
-            print ('RELATVIE ERROR:\t','%.20E' % relativeError)
+            print ('FLOAT RESUTL:\t', '%.20E' % float_res)
+            print ('REAL RESUTL:\t', '%.20E' % real_res)
+            print ('RELATVIE ERROR:\t','%.20E' % relative_error)
             print ('STABLE:\t', str(stable))
             '''
-            
 
-        if (stable):
-            stableInterval.append(intervals[i])
+        if stable:
+            stable_interval.append(intervals[i])
         else:
-            unstableInterval.append(intervals[i])
+            unstable_interval.append(intervals[i])
 
     print (' ', file=LOGFILE)
-    print ('STABLE INTERVAL:\t', len(stableInterval), file=LOGFILE)
-    print ('UNSTABLE INTERVAL:\t', len(unstableInterval), file=LOGFILE)
+    print ('STABLE INTERVAL:\t', len(stable_interval), file=LOGFILE)
+    print ('UNSTABLE INTERVAL:\t', len(unstable_interval), file=LOGFILE)
 
-    #call(['make clean'], shell=True)
+    # call(['make clean'], shell=True)
 
-    stableInterval = mergeInterval(stableInterval)
-    unstableInterval = mergeInterval(unstableInterval)
+    stable_interval = merge_interval(stable_interval)
+    unstable_interval = merge_interval(unstable_interval)
 
-    #stableInterval = intervals2Constrain(variables, data['variablesType'], stableInterval)
-    #unstableInterval = intervals2Constrain(variables, data['variablesType'], unstableInterval)
+    # stable_interval = intervals2Constrain(variables, data['variables_type'], stable_interval)
+    # unstable_interval = intervals2Constrain(variables, data['variables_type'], unstable_interval)
 
-    return {'stable': stableInterval, 'unstable': unstableInterval} 
+    return {'stable': stable_interval, 'unstable': unstable_interval}
 
 '''
 variables = ['x']
@@ -309,8 +266,6 @@ constrain = "true"
 res = stableAnalysis(variables, path, constrain)
 '''
 
-with open('../case/harmonic/harmonic.opt.pth') as f:
-    data = json.load(f)
-
-res = stableAnalysis(data, data['paths'][0], '')
-print(res)
+pd = PathData('../case/harmonic/harmonic.pth')
+path = pd.get_paths()[0]
+generate_cpp(pd, path)
