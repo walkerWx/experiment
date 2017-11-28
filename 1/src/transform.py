@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from sage.all import *
-import json
+from path import *
 
+import json
 import random
 
 var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
@@ -325,11 +326,7 @@ def accumulationTransform(expr):
     expr = expr.expand()
     return expr
 
-# Horner form transformation
-def hornerTransform(v, e):
-    v = var(v)
-    exec 'expr = ' + e
-    return str(expr.horner(x))
+
 
 # 判断一个表达式在给定区间是否稳定
 def isStable(expr, interval):
@@ -346,8 +343,10 @@ def generateEqualStmt(data, stmt):
         return [stmt]
     return []
 
+
 # 生成等价计算路径
-def generateEqualPath(data, path):
+# TODO
+def generate_equal_path(path_data, path):
 
     statements = path.split(';')
     estatements = [generateEqualStmt(data, stmt) for stmt in statements]
@@ -422,10 +421,25 @@ def generateEqualLoop(data, loopid):
 
     return eloops
 
-                            
+# Horner form 转换，将path_data中所涉及到的所有的计算过程均进行转换
+def horner_transform(path_data):
 
-#variables = ['ar', 'ai', 'br', 'bi']
+    # 声明所涉及到的所有变量
+    for v in path_data.get_all_variables():
+        var(v)
+
+    # 对于所有的过程语句
+    for _, procedure in path_data.get_procedures().items():
+        # 对于所有的变量更新表达式
+        for variable, update_expr in procedure.get_procedure().items():
+            expr = update_expr
+            for v in path_data.get_all_variables():
+                exec 'expr = ' + expr
+                exec 'expr = str(expr.horner('+ v + '))'
+            procedure.set_update_expr(variable, expr)
+
 '''
+#variables = ['ar', 'ai', 'br', 'bi']
 variables = ['a', 'b', 'c', 'd']
 variables2 = ['s', 't', 'a', 'b']
 path1 = "(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))"
@@ -433,14 +447,15 @@ path2 = convertPath(path1, variables, variables2)
 print path1
 print path2
 
+var('x')
+var('y')
+var('z')
+
+f = x*x + x*x*x + y
+print(f.horner(x).horner(z))
 '''
 
-with open('../case/loop/loop.pth') as f:
-    data = json.load(f)
-
-path = data['paths'][0]
-print (generateEqualPath(data, path))
-print (data)
-
-
-
+path_file = '../case/analytic/analytic.pth'
+path_data = PathData(path_file)
+horner_transform(path_data)
+print (path_data.to_json())

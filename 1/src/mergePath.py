@@ -103,4 +103,3 @@ using namespace iRRAM;
     print (funcBody, file=outputFile)
 
 
-mergePath('../case/analytic/analytic.opt.pth')

@@ -95,7 +95,17 @@ optimize('../case/midarc/midarc.pth')
 mergePath('../case/midarc/midarc.opt.pth')
 optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
+
+optimize('../case/analytic/analytic.pth')
+mergePath('../case/analytic/analytic.opt.pth')
+
+path_file = '../case/analytic/analytic.pth'
+path_data = PathData(path_file)
+all_variables = path_data.get_all_variables()
+for v in all_variables:
+    print (v)
+# horner_transform(path_data)
+print(path_data.to_json())
 '''
 
-optimize('../case/harmonic/harmonic.pth')
-mergePath('../case/harmonic/harmonic.opt.pth')
+

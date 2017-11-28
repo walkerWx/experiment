@@ -66,6 +66,14 @@ class PathData:
     def get_input_variables(self):
         return self.input_variables
 
+    # 返回path文件中所包含的所有变量，包括全局变量以及循环中涉及到的临时变量
+    def get_all_variables(self):
+        all_variables = list()
+        all_variables.extend(self.get_variables())
+        for _, loop in self.get_loops():
+            all_variables.extend(loop.get_variables())
+        return all_variables
+
     def get_paths(self):
         return self.paths
 
@@ -207,6 +215,12 @@ class Procedure:
             return None
         else:
             return self.procedure[var]
+
+    def set_update_expr(self, var, update_expr):
+        self.procedure[var] = update_expr
+
+    def get_procedure(self):
+        return self.procedure
 
     @staticmethod
     def get_type():
