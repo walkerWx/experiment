@@ -254,12 +254,13 @@ class Path:
         else:
             self.loop_break = None
 
-        self.path = []
+        # path_list为一个Procedure与Loop的列表，代表了一条路径
+        self.path_list = []
         for p in path_json['path']:
             if p.startswith('procedure'):
-                self.path.append(path_data.get_procedure(p[len('procedure:'):]))
+                self.path_list.append(path_data.get_procedure(p[len('procedure:'):]))
             elif p.startswith('loop'):
-                self.path.append(path_data.get_loop(p[len('loop:'):]))
+                self.path_list.append(path_data.get_loop(p[len('loop:'):]))
 
     def set_implement(self, implement):
         self.implement = implement
@@ -268,13 +269,16 @@ class Path:
         self.constrain = '(' + self.constrain + ')' + '&&' + '(' + constrain + ')'
 
     def get_path_list(self):
-        return self.path
+        return self.path_list
+
+    def set_path_list(self, path_list):
+        self.path_list = path_list
 
     def to_json(self):
         data = dict()
         data['constrain'] = self.constrain
         data['path'] = list()
-        for p in self.path:
+        for p in self.get_path_list():
             data['path'].append(p.get_type() + ':' + p.get_id())
         return data
 
@@ -290,9 +294,10 @@ class Path:
 
 
 # Unit test
-
+'''
 path_file = '../case/harmonic/harmonic.pth'
 pd = PathData(path_file)
 
 for path in pd.get_paths():
     print(path.to_cpp_code())
+'''

@@ -6,6 +6,8 @@ from path import *
 
 import json
 import random
+import itertools
+from copy import deepcopy
 
 var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 
@@ -39,13 +41,6 @@ def convertPath(originPath, originVars, newVars):
             i = j
 
     return newPath
-
-class Path:
-
-    def __init__(self, variables, path):
-        self.varNum = len(variables)
-        self.variables = variables
-        self.path = path
 
 
 # 判断两个计算路径是否等价
@@ -89,14 +84,16 @@ def isEqual(path1, path2):
 
     return  True
 
-#输入一个分式。返回一个分式的随机拆分
+
+# 输入一个分式。返回一个分式的随机拆分
 def get_random_denominator(f):
     if(not is_simple(f.numerator())):
         return f
     length = f.numerator().number_of_operands()
     return denominator(f,get_random_list(length))
 
-#输入一个0-（length-1）的数组，返回一个该数组的随机拆分
+
+# 输入一个0-（length-1）的数组，返回一个该数组的随机拆分
 def get_random_list(length):
     if(length<=1):
         return [0]
@@ -132,7 +129,8 @@ def get_random_list(length):
         list.append(last_list)
     return list
 
-#根据list来随机拆分分式f
+
+# 根据list来随机拆分分式f
 def denominator(f,list):
     den = f.denominator()
     num = f.numerator()
@@ -144,7 +142,8 @@ def denominator(f,list):
         res = res + temp/den
     return res
 
-#主函数
+
+# 主函数
 def transform(f,num):
     res_list = []
     num_of_result = num
@@ -163,7 +162,8 @@ def transform(f,num):
         i = i + 1
     return res_list
 
-#判断是否是分式，是分式就对分式进行拆分后再变形
+
+# 判断是否是分式，是分式就对分式进行拆分后再变形
 def get_random_transform(f):
     #random divide first time
     if(is_simple(f)):
@@ -186,7 +186,8 @@ def get_random_transform(f):
     else:
         return transform_exp(f)
 
-#对一个非分式进行变形
+
+# 对一个非分式进行变形
 def transform_exp(f):
     if(not is_expression(f)):
         return transform_exp_implements(f)
@@ -205,7 +206,8 @@ def transform_exp(f):
     res = f1 + f2
     return res
 
-#随机选择变换规则
+
+# 随机选择变换规则
 def transform_exp_implements(f):
     #random rectfrom expression
     if(not bool(f.imag_part().rectform()==0)):
@@ -230,7 +232,8 @@ def transform_exp_implements(f):
         f = f.expand()
     return f
 
-#三角函数变换
+
+# 三角函数变换
 def random_expand_trig(f):
     randid_trig = random.randint(0,1)
     if(randid_trig == 0):
@@ -239,7 +242,8 @@ def random_expand_trig(f):
         f = f.expand_trig(full = true)
     return f
 
-#horner形式变换
+
+# horner形式变换
 def my_horner(f,times,variable = x):
     coef = f.coefficients(x,sparse = False)
     no_horner_part = coef[0]
@@ -251,7 +255,8 @@ def my_horner(f,times,variable = x):
     f = (f - no_horner_part).horner(variable) + no_horner_part
     return f
 
-#分子分母乘同一个因式
+
+# 分子分母乘同一个因式
 def random_dif_of_sqr(f):
     if(is_simple(f.numerator()) and len(f.numerator()) == 2):
         if(random.randint(0,1)==1):
@@ -262,6 +267,7 @@ def random_dif_of_sqr(f):
             f = (f.denominator()/f.numerator()).collect_common_factors()
     return f
 
+
 def dif_of_sqr_simple(f):
     temp = dif_of_sqr(f.numerator())
     numerator = f.numerator()*temp
@@ -271,16 +277,19 @@ def dif_of_sqr_simple(f):
     result = numerator/dinominator
     return result
 
+
 def dif_of_sqr(self):
     return self.op[0]-self.op[1]
 
-#随机选择一个变量
+
+# 随机选择一个变量
 def get_random_variable(f):
     variables = f.variables()
     randid = random.randint(0,len(variables)-1)
     return variables[randid]
 
-#将一个列表随机拆分成两个列表
+
+# 将一个列表随机拆分成两个列表
 def simple_get_random_list(length):
     if(length<=1):
         return [[0]]
@@ -300,65 +309,34 @@ def simple_get_random_list(length):
             list_2.append(i)
     return [list_1,list_2]
 
-#判断是一个符号还是表达式
+
+# 判断是一个符号还是表达式
 def is_expression(f):
     var('test_variable_a')
     if(f.operator()==test_variable_a.operator()):
         return False
     return True
 
-#判断一个表达式优先级最低的符号是不是+或者-
+
+# 判断一个表达式优先级最低的符号是不是+或者-
 def is_simple(f):
     var('test_variable_a,test_variable_b')
     if(f.operator()==(test_variable_a+test_variable_b).operator()):
         return True
     return False
 
-#判断一个表达式是不是分式
+
+# 判断一个表达式是不是分式
 def is_fraction(f):
     var('test_variable_a,test_variable_b')
     if(f.operator()==(test_variable_a/test_variable_b).operator()):
         return True
     return False
 
-# 
+
 def accumulationTransform(expr):
     expr = expr.expand()
     return expr
-
-
-
-# 判断一个表达式在给定区间是否稳定
-def isStable(expr, interval):
-    return True
-
-# 生成等价计算语句, stmt可以是一个赋值语句或者是一个由loopid所表示的循环
-def generateEqualStmt(data, stmt):
-    # loop
-    if (stmt[0] == '{' and stmt[-1] == '}'):
-        return generateEqualLoop(data, stmt[1:-1])
-    # assignment
-    elif ('=' in stmt):
-        # TODO
-        return [stmt]
-    return []
-
-
-# 生成等价计算路径
-# TODO
-def generate_equal_path(path_data, path):
-
-    statements = path.split(';')
-    estatements = [generateEqualStmt(data, stmt) for stmt in statements]
-
-    epaths = ['']
-    for i in range(len(statements)):
-        t = []
-        for estatement in estatements[i]:
-            for j in range(len(epaths)):
-                t.append(epaths[j] + estatement + ';')
-        epaths = t
-    return epaths
 
 
 # 生成等价循环
@@ -421,6 +399,7 @@ def generateEqualLoop(data, loopid):
 
     return eloops
 
+
 # Horner form 转换，将path_data中所涉及到的所有的计算过程均进行转换
 def horner_transform(path_data):
 
@@ -437,6 +416,47 @@ def horner_transform(path_data):
                 exec 'expr = ' + expr
                 exec 'expr = str(expr.horner('+ v + '))'
             procedure.set_update_expr(variable, expr)
+
+
+# 生成等价过程模块
+def generate_equal_procedure(procedure):
+    # TODO
+    # 现在先返回自己本身，后续针对midarc例子需要补充规则
+    equal_procedures = list()
+    ep = deepcopy(procedure)
+    equal_procedures.append(ep)
+    return equal_procedures
+
+
+# 生成等价循环模块
+def generate_equal_loop(loop):
+    # TODO
+    # 现在先返回自己本身，后续需要针对累加的例子补充规则
+    equal_loops = list()
+    el = deepcopy(loop)
+    equal_loops.append(el)
+    return equal_loops
+
+
+# 生成等价路径
+def generate_equal_path(path):
+
+    equal_paths = list()
+
+    equal_list = list()
+    for t in path.get_path_list():
+        if isinstance(t, Procedure):
+            equal_list.append(generate_equal_procedure(t))
+        elif isinstance(t, Loop):
+            equal_list.append(generate_equal_loop(t))
+
+    for t in [list(x) for x in itertools.product(*equal_list)]:
+        ep = deepcopy(path)
+        ep.set_path_list(t)
+        equal_paths.append(ep)
+
+    return equal_paths
+
 
 '''
 #variables = ['ar', 'ai', 'br', 'bi']
@@ -458,4 +478,9 @@ print(f.horner(x).horner(z))
 path_file = '../case/analytic/analytic.pth'
 path_data = PathData(path_file)
 horner_transform(path_data)
-print (path_data.to_json())
+
+path = path_data.get_paths()[0]
+
+eps = generate_equal_path(path)
+for ep in eps:
+    print (ep.to_json())

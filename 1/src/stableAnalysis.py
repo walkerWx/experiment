@@ -105,10 +105,12 @@ def interval2constrain(variables, variables_type, interval):
     constrain = '(' + '&&'.join(constrain) + ')'
     return constrain
 
+
 def intervals2constrain(variables, variables_type, intervals):
     constrain = [interval2constrain(variables, variables_type, interval) for interval in intervals]
     constrain = '||'.join(constrain)
     return constrain
+
 
 # generate runable cpp file according to path, constrain and type
 def generate_cpp(path_data, path, implement_type='all'):
@@ -140,7 +142,7 @@ def generate_cpp(path_data, path, implement_type='all'):
         precision_setting = implement['cout'] + ' << setRwidth(45);\n'
 
     main_func += '\t' + precision_setting
-    for var in path_data.get_input_variables():
+    for var in path_data.get_variables():
         main_func += '\t' + implement[path_data.get_variable_type(var)] + ' ' + var + ';\n'
 
     # variables initialize
@@ -169,12 +171,12 @@ def stable_analysis(path_data, path):
 
     # 只关心用户输入的变量
     input_variables = path_data.get_input_variables()
-    input_variables_type = [path.get_variable_type(var) for var in input_variables]
+    input_variables_type = [path_data.get_variable_type(var) for var in input_variables]
     intervals = divide_input_space(input_variables_type)
     points = [interval2points(interval) for interval in intervals]
 
     generate_cpp(path_data, path)
-    # call(['make'], shell=True)
+    call(['make'], shell=True)
 
     stable_interval = []
     unstable_interval = []
@@ -246,8 +248,8 @@ def stable_analysis(path_data, path):
     stable_interval = merge_interval(stable_interval)
     unstable_interval = merge_interval(unstable_interval)
 
-    # stable_interval = intervals2Constrain(variables, data['variables_type'], stable_interval)
-    # unstable_interval = intervals2Constrain(variables, data['variables_type'], unstable_interval)
+    stable_interval = intervals2constrain(input_variables, input_variables_type, stable_interval)
+    unstable_interval = intervals2constrain(input_variables, input_variables_type, unstable_interval)
 
     return {'stable': stable_interval, 'unstable': unstable_interval}
 

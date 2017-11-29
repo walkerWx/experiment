@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import json
-import copy
+from copy import deepcopy
 
 from mergePath import *
 from transform import *
@@ -30,7 +30,7 @@ def optimize(path_file):
     path_data = PathData(path_file)
 
     # 优化后的path
-    opt_path_data = copy.deepcopy(path_data)
+    opt_path_data = deepcopy(path_data)
     opt_path_data.clear_paths()
 
     # horner形式总优于其原来的形式
@@ -38,16 +38,9 @@ def optimize(path_file):
 
     for path in path_data.get_paths():
 
-        # 路径计算稳定，无需进行优化 
-        if is_stable(path):
-            new_path = copy.deepcopy(path)
-            new_path.set_implement(FLOATTYPE)
-            opt_path_data.add_path(new_path)
-            continue
-     
         # 路径在数学意义上计算不稳定，无法进行优化，依然使用高精度实现
         if is_unstable(path):
-            new_path = copy.deepcopy(path)
+            new_path = deepcopy(path)
             new_path.set_implement(REALTYPE)
             opt_path_data.add_path(new_path)
             continue
@@ -56,14 +49,14 @@ def optimize(path_file):
         res = stable_analysis(path_data, path)
 
         if res['stable'] != '':
-            new_path = copy.deepcopy(path)
+            new_path = deepcopy(path)
             new_path.add_constrain(res['stable'])
             new_path.set_implement(FLOATTYPE)
             opt_path_data.add_path(new_path)
 
         if res['unstable'] != '':
 
-            unstable_path = copy.deepcopy(path)
+            unstable_path = deepcopy(path)
             unstable_path.add_constrain(res['unstable'])
 
             # transform the path into an equivalent paths list
@@ -95,17 +88,9 @@ optimize('../case/midarc/midarc.pth')
 mergePath('../case/midarc/midarc.opt.pth')
 optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
+'''
 
 optimize('../case/analytic/analytic.pth')
-mergePath('../case/analytic/analytic.opt.pth')
-
-path_file = '../case/analytic/analytic.pth'
-path_data = PathData(path_file)
-all_variables = path_data.get_all_variables()
-for v in all_variables:
-    print (v)
-# horner_transform(path_data)
-print(path_data.to_json())
-'''
+# mergePath('../case/analytic/analytic.opt.pth')
 
 
