@@ -245,13 +245,14 @@ def stable_analysis(path_data, path):
 
     # call(['make clean'], shell=True)
 
-    stable_interval = merge_interval(stable_interval)
-    unstable_interval = merge_interval(unstable_interval)
+    # stable_interval = merge_interval(stable_interval)
+    # unstable_interval = merge_interval(unstable_interval)
 
-    stable_interval = intervals2constrain(input_variables, input_variables_type, stable_interval)
-    unstable_interval = intervals2constrain(input_variables, input_variables_type, unstable_interval)
+    # stable_interval = intervals2constrain(input_variables, input_variables_type, stable_interval)
+    # unstable_interval = intervals2constrain(input_variables, input_variables_type, unstable_interval)
 
     return {'stable': stable_interval, 'unstable': unstable_interval}
+
 
 '''
 variables = ['x']

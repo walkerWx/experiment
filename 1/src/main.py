@@ -15,7 +15,8 @@ REALTYPE = 'real'
 
 
 # 判断一个表达式在给定约束下是否稳定
-def is_stable(path):
+# TODO
+def is_stable(path, interval):
     return False
 
 
@@ -47,36 +48,49 @@ def optimize(path_file):
 
         # 不稳定分析
         res = stable_analysis(path_data, path)
+        stable_intervals = res['stable']
+        unstable_intervals = res['unstable']
 
-        if res['stable'] != '':
+        # 直接将稳定部分加入到结果中去
+        if stable_intervals:
             new_path = deepcopy(path)
-            new_path.add_constrain(res['stable'])
+            new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], stable_intervals))
             new_path.set_implement(FLOATTYPE)
             opt_path_data.add_path(new_path)
 
-        if res['unstable'] != '':
+        # 不稳定部分进行等价转化后寻找其稳定形式
+        if unstable_intervals:
 
-            unstable_path = deepcopy(path)
-            unstable_path.add_constrain(res['unstable'])
+            # 生成等价路径
+            equal_paths = generate_equal_path(path)
 
-            # transform the path into an equivalent paths list
-            equal_paths = generate_equal_path(path_data, unstable_path)
-
-            find_stable = False
             for ep in equal_paths:
-                # find a stable path in the equivalent paths set
-                if is_stable(ep):
-                    find_stable = True
-                    ep.set_implement(FLOATTYPE)
-                    opt_path_data.add_path(ep)
-                    break
-            
-            # if we can not find a stable path, we just keep the original multi-precision version
-            if not find_stable:
-                unstable_path.set_implement(REALTYPE)
-                opt_path_data.add_path(unstable_path)
 
-    # write optimized paths to file
+                # 筛选出等价路径下稳定的区间
+                ep_stable_intervals = [t for t in res['unstable'] if is_stable(ep, t)]
+
+                # 将该等价路径与稳定区间加入到结果中
+                if ep_stable_intervals:
+                    new_path = deepcopy(ep)
+                    new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], ep_stable_intervals))
+                    new_path.set_implement(FLOATTYPE)
+                    opt_path_data.add_path(new_path)
+
+                # 去掉已经稳定的区间
+                unstable_intervals = [t for t in unstable_intervals if t not in ep_stable_intervals]
+
+                if not unstable_intervals:
+                    break
+
+            # 未找到稳定的等价路径的区间，使用高精度实现
+            if unstable_intervals:
+                new_path = deepcopy(path)
+                new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], unstable_intervals))
+                new_path.set_implement(REALTYPE)
+                opt_path_data.add_path(new_path)
+
+    print(opt_path_data.to_json())
+    # 结果输出到文件
     output_directory = ''
     if path_file.rfind('/') != -1:
         output_directory = path_file[:path_file.rfind('/')+1]

@@ -105,10 +105,10 @@ class PathData:
             return None
 
     def clear_paths(self):
-        self.paths = dict()
+        self.paths = list()
 
-    def add_path(self, path_id, path):
-        self.paths[path_id] = path
+    def add_path(self, path):
+        self.paths.append(path)
 
     def to_json(self):
 
@@ -280,12 +280,16 @@ class Path:
         data['path'] = list()
         for p in self.get_path_list():
             data['path'].append(p.get_type() + ':' + p.get_id())
+
+        if self.implement:
+            data['implement'] = self.implement
+
         return data
 
     def to_cpp_code(self, indent=0):
         code = ''
         code += indent*'\t' + 'if(' + self.constrain + ') {\n'
-        for m in self.path:
+        for m in self.path_list:
             code += m.to_cpp_code(indent+1)
         if self.loop_break:
             code += (indent+1)*'\t'+'break;\n'
