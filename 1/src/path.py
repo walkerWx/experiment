@@ -104,6 +104,9 @@ class PathData:
         else:
             return None
 
+    def add_procedure(self, procedure):
+        self.procedures[procedure.get_id()] = procedure
+
     def clear_paths(self):
         self.paths = list()
 
@@ -209,6 +212,9 @@ class Procedure:
 
     def get_id(self):
         return self.id
+
+    def set_id(self, new_id):
+        self.id = new_id
 
     def get_update_expr(self, var):
         if var not in self.procedure.keys():

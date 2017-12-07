@@ -12,14 +12,14 @@ import itertools
 getcontext().prec = 20
 
 # 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 1
+FLOATSTART = 0
 FLOATEND = 2 
 
 INTSTART = 1
 INTEND = 500
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 1
+PREC = 2
 
 # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
 TOLERANCE = 1e-16
@@ -85,7 +85,17 @@ def interval2points(interval):
         if isinstance(interval[i], int):
             interval[i] = [interval[i]]
         
-    return [list(x) for x in itertools.product(*interval)]
+    points = [list(x) for x in itertools.product(*interval)]
+
+    # 格式化输入
+    for point in points:
+        for i in range(len(point)):
+            if isinstance(point[i], int):
+                point[i] = str(point[i])
+            else:
+                point[i] = ('%.'+str(PREC)+'f') % point[i]
+
+    return points
 
 
 # 对拆分后的区间进行合并  
@@ -114,7 +124,7 @@ def intervals2constrain(variables, variables_type, intervals):
 
 # generate runable cpp file according to path, constrain and type
 def generate_cpp(path_data, path, implement_type='all'):
-    
+
     if implement_type == 'all':
         generate_cpp(path_data, path, 'float')
         generate_cpp(path_data, path, 'real')
@@ -195,14 +205,7 @@ def stable_analysis(path_data, path):
 
             pstable = True
             
-            for i in range(len(point)):
-                if isinstance(point[i], int):
-                    point[i] = str(point[i])
-                else:
-                    point[i] = ('%.'+str(PREC)+'f') % point[i] 
-
             print (' '.join(point), file=open('input', 'w'))
-            
             call(['./float < input > float_output'], shell=True)
             call(['./real < input > real_output'], shell=True)
 
@@ -223,7 +226,7 @@ def stable_analysis(path_data, path):
             print ('FLOAT RESUTL:\t', '%.20E' % float_res, file=LOGFILE)
             print ('REAL RESUTL:\t', '%.20E' % real_res, file=LOGFILE)
             print ('RELATVIE ERROR:\t','%.20E' % relative_error, file=LOGFILE )
-            print ('STABLE:\t', str(stable), file=LOGFILE )
+            print ('STABLE:\t', str(pstable), file=LOGFILE )
 
             '''
             print ('')
@@ -245,13 +248,35 @@ def stable_analysis(path_data, path):
 
     # call(['make clean'], shell=True)
 
-    # stable_interval = merge_interval(stable_interval)
-    # unstable_interval = merge_interval(unstable_interval)
-
-    # stable_interval = intervals2constrain(input_variables, input_variables_type, stable_interval)
-    # unstable_interval = intervals2constrain(input_variables, input_variables_type, unstable_interval)
-
     return {'stable': stable_interval, 'unstable': unstable_interval}
+
+
+# 判断一条路径在给定区间上是否稳定
+def is_stable(path_data, path, interval):
+
+
+    # 输入区间对应边界点
+    points = interval2points(interval)
+
+    for point in points:
+
+        print (' '.join(point), file=open('input', 'w'))
+        call(['./float < input > float_output'], shell=True)
+        call(['./real < input > real_output'], shell=True)
+
+        float_res = Decimal([line.rstrip('\n') for line in open('float_output')][0])
+        real_res = Decimal([line.rstrip('\n') for line in open('real_output')][0])
+
+        if real_res == Decimal(0):
+            relative_error = abs((float_res-real_res)/Decimal(1))
+        else:
+            relative_error = abs((float_res-real_res)/real_res)
+
+        if relative_error >= TOLERANCE:
+            return False
+
+    return True
+
 
 
 '''

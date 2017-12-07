@@ -419,17 +419,38 @@ def horner_transform(path_data):
 
 
 # 生成等价过程模块
-def generate_equal_procedure(procedure):
-    # TODO
+def generate_equal_procedure(path_data, procedure):
+
     # 现在先返回自己本身，后续针对midarc例子需要补充规则
+    # TODO
     equal_procedures = list()
     ep = deepcopy(procedure)
     equal_procedures.append(ep)
+
+    # Horner规则
+    ep = deepcopy(procedure)
+
+    for v in path_data.get_all_variables():
+        var(v)
+
+    for variable, update_expr in procedure.get_procedure().items():
+        expr = update_expr
+        for v in path_data.get_all_variables():
+            exec 'expr = ' + expr
+            exec 'expr = str(expr.horner('+ v + '))'
+        ep.set_update_expr(variable, expr)
+
+    ep.set_id(ep.get_id() + '_HORNER')  # 设置新id
+    path_data.add_procedure(ep)         # 将新产生的procedure加入到path_data
+    equal_procedures.append(ep)
+
+    # midarc规则
+
     return equal_procedures
 
 
 # 生成等价循环模块
-def generate_equal_loop(loop):
+def generate_equal_loop(path_data, loop):
     # TODO
     # 现在先返回自己本身，后续需要针对累加的例子补充规则
     equal_loops = list()
@@ -439,16 +460,16 @@ def generate_equal_loop(loop):
 
 
 # 生成等价路径
-def generate_equal_path(path):
+def generate_equal_path(path_data, path):
 
     equal_paths = list()
 
     equal_list = list()
     for t in path.get_path_list():
         if isinstance(t, Procedure):
-            equal_list.append(generate_equal_procedure(t))
+            equal_list.append(generate_equal_procedure(path_data, t))
         elif isinstance(t, Loop):
-            equal_list.append(generate_equal_loop(t))
+            equal_list.append(generate_equal_loop(path_data, t))
 
     for t in [list(x) for x in itertools.product(*equal_list)]:
         ep = deepcopy(path)
@@ -473,7 +494,6 @@ var('z')
 
 f = x*x + x*x*x + y
 print(f.horner(x).horner(z))
-'''
 
 path_file = '../case/analytic/analytic.pth'
 path_data = PathData(path_file)
@@ -484,3 +504,4 @@ path = path_data.get_paths()[0]
 eps = generate_equal_path(path)
 for ep in eps:
     print (ep.to_json())
+'''

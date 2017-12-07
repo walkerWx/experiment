@@ -14,12 +14,6 @@ FLOATTYPE = 'float'
 REALTYPE = 'real'
 
 
-# 判断一个表达式在给定约束下是否稳定
-# TODO
-def is_stable(path, interval):
-    return False
-
-
 # 判断一条路径在给定约束下是否在数学意义上不稳定
 def is_unstable(path):
     return False
@@ -35,7 +29,7 @@ def optimize(path_file):
     opt_path_data.clear_paths()
 
     # horner形式总优于其原来的形式
-    horner_transform(path_data)
+    # horner_transform(path_data)
 
     for path in path_data.get_paths():
 
@@ -62,12 +56,19 @@ def optimize(path_file):
         if unstable_intervals:
 
             # 生成等价路径
-            equal_paths = generate_equal_path(path)
+            equal_paths = generate_equal_path(opt_path_data, path)
 
             for ep in equal_paths:
 
+                print(ep.to_json())
+
+                # 根据path生成对应可执行cpp文件并编译，后续分析路径稳定性时需要使用
+                generate_cpp(opt_path_data, ep)
+                call(['make'], shell=True)
+
                 # 筛选出等价路径下稳定的区间
-                ep_stable_intervals = [t for t in res['unstable'] if is_stable(ep, t)]
+                ep_stable_intervals = [t for t in res['unstable'] if is_stable(path_data, ep, t)]
+                print(len(ep_stable_intervals))
 
                 # 将该等价路径与稳定区间加入到结果中
                 if ep_stable_intervals:
@@ -89,13 +90,14 @@ def optimize(path_file):
                 new_path.set_implement(REALTYPE)
                 opt_path_data.add_path(new_path)
 
-    print(opt_path_data.to_json())
+    # print(opt_path_data.to_json())
     # 结果输出到文件
     output_directory = ''
     if path_file.rfind('/') != -1:
         output_directory = path_file[:path_file.rfind('/')+1]
     output_file = output_directory+path_data.get_program_name()+'.opt.pth'
     opt_path_data.output_json(output_file)
+
 
 '''
 optimize('../case/midarc/midarc.pth')
