@@ -55,7 +55,7 @@ REALCPP = 'real.cpp'
 LOGFILE = open('LOG', 'w')
 
 
-# 以step为步长对输入区间[start, end]进行划分，并将结果输出 
+# 以step为步长对输入区间[start, end]进行划分，并将结果输出
 def divide_input_space(var_type):
 
     li = range(INTSTART, INTEND)
@@ -100,8 +100,25 @@ def interval2points(interval):
 
 # 对拆分后的区间进行合并  
 def merge_interval(intervals):
-    # TODO
-    return intervals
+
+    merged = list()
+
+    # 单变量情况
+    dimension = len(intervals[0])
+    if dimension == 1:
+        t = [x[0] for x in intervals]
+        i = 0
+        while i < len(t):
+            start = t[i][0]
+            while i+1 < len(t):
+                if t[i][1] != t[i+1][0]:
+                    break
+                i = i + 1
+            end = t[i][1]
+            merged.append([[start, end]])
+            i = i + 1
+
+    return merged
 
 
 # 将变量的区间转化为能直接填写到程序中的约束的字符串 
@@ -117,6 +134,7 @@ def interval2constrain(variables, variables_type, interval):
 
 
 def intervals2constrain(variables, variables_type, intervals):
+    intervals = merge_interval(intervals)
     constrain = [interval2constrain(variables, variables_type, interval) for interval in intervals]
     constrain = '||'.join(constrain)
     return constrain
@@ -292,8 +310,10 @@ variables = [ "ar", "ai", "br", "bi"]
 path = "(ar/sqrt(ar*ar+ai*ai)+br/sqrt(br*br+bi*bi))/sqrt(2+2*(ar*br+ai*bi)/sqrt((ar*ar+ai*ai)*(br*br+bi*bi)))"
 constrain = "true"
 res = stableAnalysis(variables, path, constrain)
-'''
 
 pd = PathData('../case/harmonic/harmonic.pth')
 path = pd.get_paths()[0]
 generate_cpp(pd, path)
+'''
+intervals = [[[1,2]], [[2,3]], [[4,5]]]
+print(merge_interval(intervals))
