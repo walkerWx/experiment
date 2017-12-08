@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+from config import *
+
 import json
 
 
@@ -70,7 +72,7 @@ class PathData:
     def get_all_variables(self):
         all_variables = list()
         all_variables.extend(self.get_variables())
-        for _, loop in self.get_loops():
+        for loop_id, loop in self.get_loops().items():
             all_variables.extend(loop.get_variables())
         return all_variables
 
@@ -135,6 +137,7 @@ class PathData:
 
     def output_json(self, path_file):
         data = self.to_json()
+        print(data)
         with open(path_file, 'w') as f:
             json.dump(data, f, indent=4)
 
@@ -159,6 +162,9 @@ class Loop:
     def get_id(self):
         return self.id
 
+    def set_id(self, new_id):
+        self.id = new_id
+
     def get_variables(self):
         return self.variables.keys()
 
@@ -182,12 +188,23 @@ class Loop:
         data = dict()
         data['variables'] = self.variables
         data['initialize'] = self.initialize
-        data['loop_body'] = self.get_loop_body()
+        data['loop_body'] = [p.to_json() for p in self.get_loop_body()]
         return data
 
-    def to_cpp_code(self, indent=0):
+    def to_cpp_code(self, implement_type, indent=0):
+
         code = indent*'\t'+'{\n'
-        # temporary variables initialize
+
+        if implement_type == 'float':
+            implement = FLOAT
+        elif implement_type == 'real':
+            implement = REAL
+
+        # temporary variables declaration and initialize
+        for var in self.get_variables():
+            code += (indent+1)*'\t' + implement[self.get_variable_type(var)] + ' ' + var + ';\n'
+
+        # temporary variables declaration and initialize
         for var, update_expr in self.get_initialize_list().items():
             code += (indent+1)*'\t' + var + ' = ' + update_expr + ';\n'
 
@@ -195,7 +212,7 @@ class Loop:
 
         # loop body
         for lb in self.get_loop_body():
-            code += lb.to_cpp_code(indent+2)
+            code += lb.to_cpp_code(implement_type, indent+2)
 
         code += (indent+1)*'\t'+'}\n'
         code += indent*'\t'+'}\n'
@@ -209,6 +226,8 @@ class Procedure:
     def __init__(self, id, path_data):
         self.id = id
         self.procedure = path_data.data['procedures'][id]
+        for k, v in self.procedure.items():
+            self.procedure[k] = str(v)
 
     def get_id(self):
         return self.id
@@ -223,7 +242,7 @@ class Procedure:
             return self.procedure[var]
 
     def set_update_expr(self, var, update_expr):
-        self.procedure[var] = update_expr
+        self.procedure[var] = str(update_expr)
 
     def get_procedure(self):
         return self.procedure
@@ -235,7 +254,7 @@ class Procedure:
     def to_json(self):
         return self.procedure
 
-    def to_cpp_code(self, indent=0):
+    def to_cpp_code(self, implement_type, indent=0):
         code = ''
         for var, update_expr in self.procedure.items():
             code += indent*'\t'+var + ' = ' + update_expr + ';\n'
@@ -292,11 +311,11 @@ class Path:
 
         return data
 
-    def to_cpp_code(self, indent=0):
+    def to_cpp_code(self, implement_type, indent=0):
         code = ''
         code += indent*'\t' + 'if(' + self.constrain + ') {\n'
         for m in self.path_list:
-            code += m.to_cpp_code(indent+1)
+            code += m.to_cpp_code(implement_type, indent+1)
         if self.loop_break:
             code += (indent+1)*'\t'+'break;\n'
         code += indent*'\t'+'}\n'

@@ -4,21 +4,19 @@
 
 using namespace std;
 
-double e(double y) {
+double e(int n) {
     double z=2;
-    int i=2;
-    while (i <= 20) {
+    for (int i = 2, double y = 1.0; i < n; ++i) {
         y=y/i;
         z=z+y;
-        i+=1;
     }
     return z;
 }
 
 int main() {
 
-    double y = 1.0;
-    double res = e(y);
+    int n = 20;
+    double res = e(n);
     cout << setprecision(numeric_limits<double>::digits10) << res << endl;
 
 }

@@ -4,55 +4,11 @@
 from __future__ import print_function
 from subprocess import call
 from decimal import *
-from path import *
+from config import *
 
-import json
 import itertools
 
 getcontext().prec = 20
-
-# 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 0
-FLOATEND = 2 
-
-INTSTART = 1
-INTEND = 500
-
-# 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 2
-
-# 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
-TOLERANCE = 1e-16
-
-# 不同实现对应的不同类型的名称以及需要引入的头文件等
-FLOAT = dict()
-REAL = dict()
-
-FLOAT['decimal'] = 'double'
-FLOAT['integer'] = 'int'
-FLOAT['cin'] = 'cin'
-FLOAT['cout'] = 'cout'
-FLOAT['header'] = '''
-#include <iostream>
-#include <iomanip>
-#include <cmath>
-#include <limits>
-using namespace std;
-'''
-
-REAL['decimal'] = 'REAL'
-REAL['integer'] = 'INTEGER'
-REAL['cin'] = 'cin'
-REAL['cout'] = 'cout'
-REAL['header'] = '''
-#include "iRRAM.h"
-using namespace iRRAM;
-'''
-
-FLOATCPP = 'float.cpp'
-REALCPP = 'real.cpp'
-
-LOGFILE = open('LOG', 'w')
 
 
 # 以step为步长对输入区间[start, end]进行划分，并将结果输出
@@ -105,18 +61,34 @@ def merge_interval(intervals):
 
     # 单变量情况
     dimension = len(intervals[0])
+
     if dimension == 1:
-        t = [x[0] for x in intervals]
-        i = 0
-        while i < len(t):
-            start = t[i][0]
-            while i+1 < len(t):
-                if t[i][1] != t[i+1][0]:
-                    break
+        # 变量为浮点数
+        if len(intervals[0][0]) == 2:
+            t = [x[0] for x in intervals]
+            i = 0
+            while i < len(t):
+                start = t[i][0]
+                while i+1 < len(t):
+                    if t[i][1] != t[i+1][0]:
+                        break
+                    i = i + 1
+                end = t[i][1]
+                merged.append([[start, end]])
                 i = i + 1
-            end = t[i][1]
-            merged.append([[start, end]])
-            i = i + 1
+        # 变量为整数
+        elif len(intervals[0][0]) == 1:
+            t = [x[0] for x in intervals]
+            i = 0
+            while i < len(t):
+                start = t[i][0]
+                while i+1 < len(t):
+                    if t[i][0] + 1 != t[i+1][0]:
+                        break
+                    i = i + 1
+                end = t[i][0]
+                merged.append([[start, end]])
+                i = i + 1
 
     return merged
 
@@ -128,7 +100,7 @@ def interval2constrain(variables, variables_type, interval):
         if variables_type[i] == 'decimal':
             constrain.append((('%.'+str(PREC)+'f') % interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + (('%.'+str(PREC)+'f') % interval[i][1]))
         elif variables_type[i] == 'integer':
-            constrain.append(variables[i]+'=='+str(interval[i][0]))
+            constrain.append(str(interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + str(interval[i][1]))
     constrain = '(' + '&&'.join(constrain) + ')'
     return constrain
 
@@ -178,7 +150,7 @@ def generate_cpp(path_data, path, implement_type='all'):
         main_func += '\t' + implement['cin'] + ' >> ' + var + ';\n'
 
     for m in path.get_path_list():
-        main_func += m.to_cpp_code(indent=1)
+        main_func += m.to_cpp_code(implement_type, indent=1)
 
     main_func += '\t' + implement['cout'] + ' << ' + path_data.get_return_expr() + ' << "\\n";\n'
     main_func += '}\n'
@@ -315,5 +287,3 @@ pd = PathData('../case/harmonic/harmonic.pth')
 path = pd.get_paths()[0]
 generate_cpp(pd, path)
 '''
-intervals = [[[1,2]], [[2,3]], [[4,5]]]
-print(merge_interval(intervals))

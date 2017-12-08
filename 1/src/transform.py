@@ -413,8 +413,9 @@ def horner_transform(path_data):
         for variable, update_expr in procedure.get_procedure().items():
             expr = update_expr
             for v in path_data.get_all_variables():
-                exec 'expr = ' + expr
-                exec 'expr = str(expr.horner('+ v + '))'
+                exec 'expr = ' + str(expr)
+                if isinstance(expr, Expression):
+                    exec 'expr = str(expr.horner('+ v + '))'
             procedure.set_update_expr(variable, expr)
 
 
@@ -436,8 +437,9 @@ def generate_equal_procedure(path_data, procedure):
     for variable, update_expr in procedure.get_procedure().items():
         expr = update_expr
         for v in path_data.get_all_variables():
-            exec 'expr = ' + expr
-            exec 'expr = str(expr.horner('+ v + '))'
+            exec 'expr = ' + str(expr)
+            if isinstance(expr, Expression):
+                exec 'expr = str(expr.horner('+ v + '))'
         ep.set_update_expr(variable, expr)
 
     ep.set_id(ep.get_id() + '_HORNER')  # 设置新id
@@ -456,6 +458,15 @@ def generate_equal_loop(path_data, loop):
     equal_loops = list()
     el = deepcopy(loop)
     equal_loops.append(el)
+
+    # 规则1，针对类似于for(i=0;i<n;++i)这样的循环制定转化规则
+
+    # if len(loop.get_variables()) == 1:
+
+    el = deepcopy(loop)
+    el.set_id(el.get_id() + '_REVERSE')
+
+
     return equal_loops
 
 
