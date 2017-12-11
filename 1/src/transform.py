@@ -339,65 +339,6 @@ def accumulationTransform(expr):
     return expr
 
 
-# 生成等价循环
-LOOPID = 0
-def generateEqualLoop(data, loopid):
-
-    global LOOPID
-    
-    # 规则1，针对类似于for(i=0;i<n;++i)这样的循环制定转化规则
-
-    eloops = []
-    eloops.append('{'+loopid+'}')
-
-    loop = data['loops'][loopid]
-
-    # 单循环变量
-    if (len(loop['variables']) == 1):
-        # 循环体中仅两条路径
-        if (len(loop['loopBody']) == 2):
-            # 两条路径约束互补
-            if (('!('+loop['loopBody'][0]['constrain']+')') == (loop['loopBody'][1]['constrain'])):
-                # 一条路径为循环体，另一条为循环退出条件 
-                if (loop['loopBody'][0]['break'] == 'false' and loop['loopBody'][1]['break'] == 'true'):
-                    # 循环体中变量更新方法为+1
-                    variable = loop['variables'][0]
-                    for p in loop['loopBody'][0]['path']:
-                        if (p[0] == variable):
-                            update = p[1]
-                    if (update == (variable+'+1')):
-                        # 判断其他变量是否为累加、累乘的更新形式 
-                        canTransform = True
-                        for update in loop['loopBody'][0]['path']:
-                            updateVar = update[0]
-                            updateExpr = update[1]
-                            if (not updateExpr.startswith(updateVar)):
-                                canTransform = False
-                                break
-                            if (updateExpr[len(updateVar)] not in "+-*/"):
-                                canTransform = False
-                                break
-                            if (updateVar in updateExpr[len(updateVar):]):
-                                canTransform = False
-                                break
-                        if (canTransform):
-                            newLoop = dict(loop) 
-                            vstart = loop['initialize'][0][1]
-                            vend = loop['loopBody'][0]['constrain'].split('<')[1]
-                            newLoop['initialize'][0][1] = vend + '-1'
-                            newLoop['loopBody'][0]['constrain'] = loop['variables'][0] + '>=' + vstart
-                            newLoop['loopBody'][1]['constrain'] = '!(' + loop['variables'][0] + '>=' + vstart + ')'
-                            for update in newLoop['loopBody'][0]['path']:
-                                if (update[0] == newLoop['variables'][0]):
-                                    update[1] = update[0] + '-1'
-                                    break
-
-                            newLoopId = 'eloop' + str(LOOPID)
-                            LOOPID += 1
-                            data['loops'][newLoopId] = newLoop
-                            eloops.append('{'+newLoopId+'}')
-
-    return eloops
 
 
 # Horner form 转换，将path_data中所涉及到的所有的计算过程均进行转换
@@ -434,7 +375,9 @@ def generate_equal_procedure(path_data, procedure):
     for v in path_data.get_all_variables():
         var(v)
 
-    for variable, update_expr in procedure.get_procedure().items():
+    for i in range(len(procedure.get_procedure())):
+        variable = procedure.get_procedure()[i][0]
+        update_expr = procedure.get_procedure()[i][1]
         expr = update_expr
         for v in path_data.get_all_variables():
             exec 'expr = ' + str(expr)
@@ -459,13 +402,59 @@ def generate_equal_loop(path_data, loop):
     el = deepcopy(loop)
     equal_loops.append(el)
 
-    # 规则1，针对类似于for(i=0;i<n;++i)这样的循环制定转化规则
+    # 累加累乘规则，针对类似于for(i=0;i<n;++i)这样的循环判定是否为累加或者累乘，然后逆序操作
 
-    # if len(loop.get_variables()) == 1:
+    # 单循环变量
+    if len(loop.get_variables()) == 1:
+        # 循环体中仅两条路径
+        if len(loop.get_loop_body()) == 2:
+            # 两条路径约束互补
+            p1 = loop.get_loop_body()[0]
+            p2 = loop.get_loop_body()[1]
+            if ('!('+p1.get_constrain()+')' == p2.get_constrain()) or (p1.get_constrain()=='!('+p2.get_constrain()+')'):
+                # 循环体中临时变量更新方法为+1
+                tv = loop.get_variables()[0]
+                loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
+                if len(loop_body_path.get_path_list()) == 1:
+                    loop_body_procedure = loop_body_path.get_path_list()[0]
+                    if loop_body_procedure.get_update_expr(tv) == tv+'+1':
+                        # 判断其他变量是否为累加、累乘的更新形式
+                        can_transform = True
 
-    el = deepcopy(loop)
-    el.set_id(el.get_id() + '_REVERSE')
+                        for i in range(len(loop_body_procedure.get_procedure())):
+                            v = loop_body_procedure.get_procedure()[i][0]
+                            e = loop_body_procedure.get_procedure()[i][1]
+                            if not e.startswith(v):
+                                can_transform = False
+                                break
+                            if e[len(v)] not in "+*":
+                                can_transform = False
+                                break
+                            if v in e[len(v):]:
+                                can_transform = False
+                                break
 
+                        if can_transform:
+                            el = deepcopy(loop)
+                            el.set_id(el.get_id() + '_REVERSE')
+                            vstart =  el.get_initialize_expr(tv)
+                            vend = loop_body_path.get_constrain().split('<')[1]
+
+                            el.set_initialize_expr(tv, vend+'-1')
+
+                            p1 = el.get_loop_body()[0]
+                            p2 = el.get_loop_body()[1]
+                            loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
+                            loop_body_path.set_constrain(tv+'>='+vstart)
+                            loop_body_procedure = loop_body_path.get_path_list()[0]
+                            loop_body_procedure.set_id(loop_body_procedure.get_id()+'_SUM')
+                            loop_body_procedure.set_update_expr(tv, tv+'-1')
+                            path_data.add_procedure(loop_body_procedure)
+
+                            loop_body_path = p1 if len(p1.get_path_list()) == 0 else p2
+                            loop_body_path.set_constrain("!("+tv+">="+vstart+")")
+                            equal_loops.append(el)
+                            path_data.add_loop(el)
 
     return equal_loops
 

@@ -8,7 +8,7 @@ FLOATSTART = 0
 FLOATEND = 2
 
 INTSTART = 1
-INTEND = 500
+INTEND = 100
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
 PREC = 2

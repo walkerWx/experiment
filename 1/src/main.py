@@ -67,7 +67,7 @@ def optimize(path_file):
                 call(['make'], shell=True)
 
                 # 筛选出等价路径下稳定的区间
-                ep_stable_intervals = [t for t in res['unstable'] if is_stable(path_data, ep, t)]
+                ep_stable_intervals = [t for t in unstable_intervals if is_stable(path_data, ep, t)]
                 print(len(ep_stable_intervals))
 
                 # 将该等价路径与稳定区间加入到结果中
@@ -106,7 +106,8 @@ optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
 '''
 
-optimize('../case/e_example/e_example.pth')
+optimize('../case/harmonic/harmonic.pth')
+#optimize('../case/e_example/e_example.pth')
 # mergePath('../case/analytic/analytic.opt.pth')
 
 

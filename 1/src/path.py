@@ -4,6 +4,7 @@
 from config import *
 
 import json
+import  re
 
 
 class PathData:
@@ -94,6 +95,9 @@ class PathData:
         else:
             return None
 
+    def add_loop(self, loop):
+        self.loops[loop.get_id()] = loop
+
     def get_procedures(self):
         return self.procedures
 
@@ -137,7 +141,6 @@ class PathData:
 
     def output_json(self, path_file):
         data = self.to_json()
-        print(data)
         with open(path_file, 'w') as f:
             json.dump(data, f, indent=4)
 
@@ -173,6 +176,9 @@ class Loop:
 
     def get_initialize_expr(self, var):
         return self.initialize[var]
+
+    def set_initialize_expr(self, var, expr):
+        self.initialize[var] = expr
 
     def get_initialize_list(self):
         return self.initialize
@@ -226,8 +232,8 @@ class Procedure:
     def __init__(self, id, path_data):
         self.id = id
         self.procedure = path_data.data['procedures'][id]
-        for k, v in self.procedure.items():
-            self.procedure[k] = str(v)
+        for i in range(len(self.procedure)):
+            self.procedure[i][1] = str(self.procedure[i][1])
 
     def get_id(self):
         return self.id
@@ -236,13 +242,16 @@ class Procedure:
         self.id = new_id
 
     def get_update_expr(self, var):
-        if var not in self.procedure.keys():
-            return None
-        else:
-            return self.procedure[var]
+        for i in range(len(self.procedure)):
+            if self.procedure[i][0] == var:
+                return str(self.procedure[i][1])
+        return None
 
     def set_update_expr(self, var, update_expr):
-        self.procedure[var] = str(update_expr)
+        for i in range(len(self.procedure)):
+            if self.procedure[i][0] == var:
+                self.procedure[i][1] = update_expr
+                return
 
     def get_procedure(self):
         return self.procedure
@@ -254,10 +263,22 @@ class Procedure:
     def to_json(self):
         return self.procedure
 
+    # 将常数显示转换到REAL类型
+    @staticmethod
+    def to_real(matched):
+        s = matched.group("number");  # 123
+        return 'REAL(' + s + ')'
+
     def to_cpp_code(self, implement_type, indent=0):
         code = ''
-        for var, update_expr in self.procedure.items():
-            code += indent*'\t'+var + ' = ' + update_expr + ';\n'
+        for i in range(len(self.procedure)):
+            # 由于iRRAM未实现REAL类型与浮点类型的加减乘除的基本操作，因此需要对表达式中的常数进行类型的显示的转换
+            # e.g.   1.0/x -> REAL(1.0)/x
+            var = self.procedure[i][0]
+            update_expr = self.get_update_expr(var)
+            if implement_type == 'real':
+                update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
+            code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
         return code
 
 
@@ -292,6 +313,12 @@ class Path:
 
     def add_constrain(self, constrain):
         self.constrain = '(' + self.constrain + ')' + '&&' + '(' + constrain + ')'
+
+    def get_constrain(self):
+        return self.constrain
+
+    def set_constrain(self, cons):
+        self.constrain = cons
 
     def get_path_list(self):
         return self.path_list
