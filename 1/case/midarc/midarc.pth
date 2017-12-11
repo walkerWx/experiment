@@ -1,0 +1,9 @@
+{
+    "programName": "midarc",
+	"functionName" : "midarcReal",
+	"variableNum" : 4,
+	"variables" : [ "ar", "ai", "br", "bi"],
+	"pathNum" : 1,
+	"constrains" : [ "true"],
+	"paths" : ["(ar/sqrt(ar*ar+ai*ai)+br/sqrt(br*br+bi*bi))/sqrt(2+2*(ar*br+ai*bi)/sqrt((ar*ar+ai*ai)*(br*br+bi*bi)))"]
+}
