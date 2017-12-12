@@ -8,16 +8,18 @@ import json
 import random
 import itertools
 from copy import deepcopy
+from copy import copy
 
 var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 
 # load rules from file
-rulesFile = 'rules.json' 
-with open(rulesFile) as f:
+rules_file = 'rules.json'
+with open(rules_file) as f:
     rules = json.load(f)["rules"]
 
+
 # variables substitution in path. e.g x+y --> a+b
-def convertPath(originPath, originVars, newVars):
+def convert_expr(originPath, originVars, newVars):
 
     m = {}
     for i in range(len(originVars)):
@@ -44,45 +46,47 @@ def convertPath(originPath, originVars, newVars):
 
 
 # 判断两个计算路径是否等价
-def isEqual(path1, path2):
+def is_expr_equal(vars1, path1, vars2, path2):
 
     # 变量数量一致
-    if (path1.varNum != path2.varNum):
+    if len(vars1) != len(vars2):
         return False
 
-    var(' '.join(path1.variables))  
-    var(' '.join(path2.variables))  
+    var(' '.join(vars1))
+    var(' '.join(vars2))
 
-    exec 'expr1 = ' + path1.path
-    exec 'expr2 = ' + path2.path
+    exec 'expr1 = ' + path1
+    exec 'expr2 = ' + path2
 
     # substitute variables with random numbers, if the result of the paths are always the same, they are equal paths
-    TryNum = 10
-    for _ in range(TryNum):
-        randomNumbers = [] 
-        for _ in range(path1.varNum):
-            randomNumbers.append(random.uniform(-10, 10))
+    try_num = 10
+    for _ in range(try_num):
 
-        execStr1 = 'res1 = expr1.subs('
-        variables = list(path1.variables)
-        for j in range(len(variables)):
-            variables[j] += '=' + '{:.9f}'.format(randomNumbers[j])
-        execStr1 += ','.join(variables) + ')'
-        exec execStr1
+        # 初始化随机输入
+        random_nums = []
+        for _ in range(len(vars1)):
+            random_nums.append(random.uniform(-10, 10))
 
-        execStr2 = 'res2 = expr2.subs('
-        variables = list(path2.variables)
-        for j in range(len(variables)):
-            variables[j] += '=' + '{:.9f}'.format(randomNumbers[j])
-        execStr2 += ','.join(variables) + ')'
-        exec execStr2
+        exec_stmt1 = 'res1 = expr1.subs('
+        variables = copy(vars1)
+        for j in range(len(vars1)):
+            variables[j] += '=' + '{:.9f}'.format(random_nums[j])
+        exec_stmt1 += ','.join(variables) + ')'
+        exec exec_stmt1
+
+        exec_stmt2 = 'res2 = expr2.subs('
+        variables = copy(vars2)
+        for j in range(len(vars2)):
+            variables[j] += '=' + '{:.9f}'.format(random_nums[j])
+        exec_stmt2 += ','.join(variables) + ')'
+        exec exec_stmt2
 
         epsi = 1e-10
         print res1-res2
         if (abs(res1-res2) > epsi):
             return False
 
-    return  True
+    return True
 
 
 # 输入一个分式。返回一个分式的随机拆分
@@ -369,27 +373,55 @@ def generate_equal_procedure(path_data, procedure):
     ep = deepcopy(procedure)
     equal_procedures.append(ep)
 
-    # Horner规则
-    ep = deepcopy(procedure)
-
     for v in path_data.get_all_variables():
         var(v)
+
+    # Horner规则
+    ep = deepcopy(procedure)
+    ep.set_id(ep.get_id() + '_HORNER')  # 设置新id
 
     for i in range(len(procedure.get_procedure())):
         variable = procedure.get_procedure()[i][0]
         update_expr = procedure.get_procedure()[i][1]
         expr = update_expr
         for v in path_data.get_all_variables():
-            exec 'expr = ' + str(expr)
+
+            # 表达式字符串中指数标记为 '^' 会报错，需替换为'**'
+            expr = str(expr)
+            if '^' in expr:
+                expr = expr.replace('^', '**')
+            print(expr)
+            exec 'expr = ' + expr
             if isinstance(expr, Expression):
                 exec 'expr = str(expr.horner('+ v + '))'
         ep.set_update_expr(variable, expr)
 
-    ep.set_id(ep.get_id() + '_HORNER')  # 设置新id
-    path_data.add_procedure(ep)         # 将新产生的procedure加入到path_data
+    path_data.add_procedure(ep)         # 记得将新产生的procedure加入到path_data
     equal_procedures.append(ep)
 
-    # midarc规则
+    # 规则列表匹配规则
+    ep = deepcopy(procedure)
+
+    origin_vars = path_data.get_input_variables()
+    for i in range(len(procedure.get_procedure())):
+
+        # 这个procedure中被更新的变量
+        updated_var = procedure.get_procedure()[i][0]
+
+        # 更新表达式
+        update_expr = procedure.get_procedure()[i][1]
+
+        # 规则列表中去匹配是否为等价表达式，若发现匹配到了便转换
+        for j in range(len(rules)):
+            rule = rules[j]
+            if is_expr_equal(origin_vars, update_expr, rule['variables'], rule['origin_expr']):
+                update_expr = convert_expr(rule['equal_expr'], rule['variables'], origin_vars)
+                ep = deepcopy(ep)
+                ep.set_id(ep.get_id() + '_RULE_' + rule['name'])  # 设置新id
+                ep.set_update_expr(updated_var, update_expr)
+                equal_procedures.append(ep)
+                # 记得将生成的等价procedure加入到path_data中
+                path_data.add_procedure(ep)
 
     return equal_procedures
 
@@ -505,3 +537,25 @@ eps = generate_equal_path(path)
 for ep in eps:
     print (ep.to_json())
 '''
+
+# is_expr_equal() test cases
+vars1 = ['ar', 'ai', 'br', 'bi']
+path1 = '(ar/sqrt(ar*ar+ai*ai)+br/sqrt(br*br+bi*bi))/sqrt(2+2*(ar*br+ai*bi)/sqrt((ar*ar+ai*ai)*(br*br+bi*bi)))'
+
+vars2 = ["a", "b", "c", "d"]
+path2 = '(a/sqrt(a*a+b*b)+c/sqrt(c*c+d*d))/sqrt(2+2*(a*c+b*d)/sqrt((a*a+b*b)*(c*c+d*d)))'
+
+equal_path = '-sgn(abs(atan2(b,a)-atan2(d,c))-pi)*cos(0.5*(atan2(b,a)+atan2(d,c)))'
+
+print(is_expr_equal(vars1, path1, vars2, path2))
+print(convert_expr(equal_path, vars2, vars1))
+
+path_file = '../case/midarc/midarc.pth'
+path_data = PathData(path_file)
+
+p = path_data.get_procedure('p1')
+print (p.to_json())
+
+eps = generate_equal_procedure(path_data, p)
+
+print(path_data.to_json())
