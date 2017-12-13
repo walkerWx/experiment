@@ -1,10 +1,10 @@
 {
 "program_name": "float_extension",
 "function_name" : "evaluate",
-"variables" : { "n": "integer", "r":"decimal"},
+"variables" : { "n": "integer", "res":"decimal"},
 "input_variables": ["n"],
 "paths": [{"constrain": "true", "path":["procedure:p1", "loop:l1"]}],
-"return": "r",
+"return": "res",
 "loops": {
           "l1": {
           "variables":{"i": "integer"},
@@ -15,6 +15,6 @@
                        ]
                     }
          },
-"procedures": {"p1": [["r", "0"]], "p2": [["r", "r+1.0/sqrt(i)"], ["i", "i+1"]]}
+"procedures": {"p1": [["res", "0"]], "p2": [["res", "res+1.0/sqrt(i)"], ["i", "i+1"]]}
  }
 

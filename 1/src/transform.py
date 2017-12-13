@@ -438,24 +438,32 @@ def generate_equal_loop(path_data, loop):
 
     # 单循环变量
     if len(loop.get_variables()) == 1:
+        print("单")
         # 循环体中仅两条路径
         if len(loop.get_loop_body()) == 2:
-            # 两条路径约束互补
+            print("两")
             p1 = loop.get_loop_body()[0]
             p2 = loop.get_loop_body()[1]
+
+            # 两条路径约束互补
             if ('!('+p1.get_constrain()+')' == p2.get_constrain()) or (p1.get_constrain()=='!('+p2.get_constrain()+')'):
+                print("补")
                 # 循环体中临时变量更新方法为+1
                 tv = loop.get_variables()[0]
                 loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
                 if len(loop_body_path.get_path_list()) == 1:
                     loop_body_procedure = loop_body_path.get_path_list()[0]
                     if loop_body_procedure.get_update_expr(tv) == tv+'+1':
+                        print("+1")
                         # 判断其他变量是否为累加、累乘的更新形式
                         can_transform = True
 
                         for i in range(len(loop_body_procedure.get_procedure())):
                             v = loop_body_procedure.get_procedure()[i][0]
                             e = loop_body_procedure.get_procedure()[i][1]
+
+                            print(v, e)
+
                             if not e.startswith(v):
                                 can_transform = False
                                 break
@@ -536,7 +544,6 @@ path = path_data.get_paths()[0]
 eps = generate_equal_path(path)
 for ep in eps:
     print (ep.to_json())
-'''
 
 # is_expr_equal() test cases
 vars1 = ['ar', 'ai', 'br', 'bi']
@@ -559,3 +566,18 @@ print (p.to_json())
 eps = generate_equal_procedure(path_data, p)
 
 print(path_data.to_json())
+'''
+
+path_file = '../case/float_extension/float_extension.pth'
+path_data = PathData(path_file)
+
+l = path_data.get_loop('l1')
+
+els = generate_equal_loop(path_data, l)
+
+for t in els:
+    print t.to_json()
+
+
+
+

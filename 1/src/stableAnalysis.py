@@ -207,7 +207,7 @@ def stable_analysis(path_data, path):
 
             error = abs(int(float_res)-int(real_res))
 
-            if error >= 10:
+            if error >= TOLERANCE:
                 pstable = False
                 stable = False
             
@@ -244,7 +244,6 @@ def stable_analysis(path_data, path):
 # 判断一条路径在给定区间上是否稳定
 def is_stable(path_data, path, interval):
 
-
     # 输入区间对应边界点
     points = interval2points(interval)
 
@@ -257,12 +256,12 @@ def is_stable(path_data, path, interval):
         float_res = Decimal([line.rstrip('\n') for line in open('float_output')][0])
         real_res = Decimal([line.rstrip('\n') for line in open('real_output')][0])
 
-        if real_res == Decimal(0):
-            relative_error = abs((float_res-real_res)/Decimal(1))
-        else:
-            relative_error = abs((float_res-real_res)/real_res)
+        float_res = str(float_res).split('E')[0][:17].replace('.', '')
+        real_res = str(real_res).split('E')[0][:17].replace('.', '')
 
-        if relative_error >= TOLERANCE:
+        error = abs(int(float_res)-int(real_res))
+
+        if error >= TOLERANCE:
             return False
 
     return True

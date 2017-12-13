@@ -47,6 +47,8 @@ def optimize(path_file):
 
         # 直接将稳定部分加入到结果中去
         if stable_intervals:
+            print("STABLE INTERVALS")
+            print(stable_intervals)
             new_path = deepcopy(path)
             new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], stable_intervals))
             new_path.set_implement(FLOATTYPE)
@@ -54,6 +56,8 @@ def optimize(path_file):
 
         # 不稳定部分进行等价转化后寻找其稳定形式
         if unstable_intervals:
+            print("UNSTABLE INTERVALS")
+            print(unstable_intervals)
 
             # 生成等价路径
             equal_paths = generate_equal_path(opt_path_data, path)
@@ -106,10 +110,10 @@ optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
 '''
 
-optimize('../case/harmonic/harmonic.pth')
+# optimize('../case/harmonic/harmonic.pth')
 # optimize('../case/e_example/e_example.pth')
 # optimize('../case/analytic/analytic.pth')
 # optimize('../case/midarc/midarc.pth')
-# optimize('../case/float_extension/float_extension.pth')
+optimize('../case/float_extension/float_extension.pth')
 
 
