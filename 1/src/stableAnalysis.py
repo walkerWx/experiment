@@ -166,7 +166,7 @@ def stable_analysis(path_data, path):
 
     variables = path_data.get_variables()
     print ('VARIABLES:\t', variables, file=LOGFILE)
-    print ('PATH:\t', path, file=LOGFILE)
+    print ('PATH:\t', path.to_json(), file=LOGFILE)
     print ('CONSTRAIN:\t',  file=LOGFILE)
 
     # 只关心用户输入的变量
@@ -202,20 +202,20 @@ def stable_analysis(path_data, path):
             float_res = Decimal([line.rstrip('\n') for line in open('float_output')][0])
             real_res = Decimal([line.rstrip('\n') for line in open('real_output')][0])
 
-            if real_res == Decimal(0):
-                relative_error = abs((float_res-real_res)/Decimal(1))
-            else:
-                relative_error = abs((float_res-real_res)/real_res)
+            float_res = str(float_res).split('E')[0][:17].replace('.', '')
+            real_res = str(real_res).split('E')[0][:17].replace('.', '')
 
-            if relative_error >= TOLERANCE:
+            error = abs(int(float_res)-int(real_res))
+
+            if error >= 10:
                 pstable = False
                 stable = False
             
             print ('', file=LOGFILE)
             print ('POINT:\t', point, file=LOGFILE) 
-            print ('FLOAT RESUTL:\t', '%.20E' % float_res, file=LOGFILE)
-            print ('REAL RESUTL:\t', '%.20E' % real_res, file=LOGFILE)
-            print ('RELATVIE ERROR:\t','%.20E' % relative_error, file=LOGFILE )
+            print ('FLOAT RESUTL:\t', float_res, file=LOGFILE)
+            print ('REAL RESUTL:\t', real_res, file=LOGFILE)
+            print ('RELATVIE ERROR:\t', error, file=LOGFILE )
             print ('STABLE:\t', str(pstable), file=LOGFILE )
 
             '''

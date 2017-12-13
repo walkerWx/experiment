@@ -15,7 +15,7 @@ var('a b c d e f g h i j k l m n o p q r s t u v w x y z')
 # load rules from file
 rules_file = 'rules.json'
 with open(rules_file) as f:
-    rules = json.load(f)["rules"]
+    rules = json.load(f)["expr_rules"]
 
 
 # variables substitution in path. e.g x+y --> a+b

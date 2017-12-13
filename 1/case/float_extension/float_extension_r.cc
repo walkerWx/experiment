@@ -5,15 +5,14 @@
 
 using namespace iRRAM;
 
-REAL evaluate(const REAL& x) {
-    REAL r; 
-    r=x;
-    for (int i=1;i<100000;i++) r=r+REAL(1)/sqrt(REAL(i));
+REAL evaluate(const int& n) {
+    REAL r = 0;
+    for (int i=1;i<n;i++) r=r+REAL(1)/sqrt(REAL(i));
     return r;
 }
 
 void compute(){
-    REAL x = 0;
+    int n = 10000;
     REAL res = evaluate(x);
     cout << setRwidth(24) << res << "\n";
 }

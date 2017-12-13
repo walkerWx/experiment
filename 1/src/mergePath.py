@@ -1,6 +1,7 @@
 
 from __future__ import print_function
-from transform import convertPath
+
+from transform import convert_expr
 
 import json
 
@@ -69,7 +70,7 @@ using namespace iRRAM;
 
         # float implemention
         if (types[i] == 'float'):
-            funcBody += '\t\tres_double  = ' + convertPath(paths[i], variables, variables_double) + ';\n'
+            funcBody += '\t\tres_double  = ' + convert_expr(paths[i], variables, variables_double) + ';\n'
 
             # return statement
             if (returnType == 'double'):
@@ -79,7 +80,7 @@ using namespace iRRAM;
 
         # real implemention
         elif (types[i] == 'real'):
-            funcBody += '\t\tres_real = ' + convertPath(paths[i], variables, variables_real)  + ';\n'
+            funcBody += '\t\tres_real = ' + convert_expr(paths[i], variables, variables_real)  + ';\n'
 
             # return statement
             if (returnType == 'double'):

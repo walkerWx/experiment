@@ -11,17 +11,16 @@ int sqrt(int i) {
 
 using namespace std;
 
-int evaluate(const int& x) {
-    int r; 
-    r=x;
-    for (int i=1;i<100000;i++) r=r+int(1)/sqrt(int(i));
+int evaluate(const int& n) {
+    int r = 0;
+    for (int i=1;i<n;i++) r=r+int(1)/sqrt(int(i));
     return r;
 }
 
 int main(){
-    int x = 0;
-    klee_make_symbolic(&x, sizeof(x), "x");
-    int res = evaluate(x);
+    int n = 0;
+    klee_make_symbolic(&x, sizeof(n), "n");
+    int res = evaluate(n);
     klee_output("res", res);
     cout << scientific << setprecision(numeric_limits<int>::digits10) << res << endl;
 }

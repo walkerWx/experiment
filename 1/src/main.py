@@ -106,9 +106,10 @@ optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
 '''
 
-# optimize('../case/harmonic/harmonic.pth')
+optimize('../case/harmonic/harmonic.pth')
 # optimize('../case/e_example/e_example.pth')
 # optimize('../case/analytic/analytic.pth')
-optimize('../case/midarc/midarc.pth')
+# optimize('../case/midarc/midarc.pth')
+# optimize('../case/float_extension/float_extension.pth')
 
 
