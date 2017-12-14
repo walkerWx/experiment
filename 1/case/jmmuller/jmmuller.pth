@@ -1,0 +1,32 @@
+{
+"program_name": "jmmuller",
+"function_name" : "evaluate",
+"variables" : { "count": "integer", "a":"decimal", "b": "decimal", "c": "decimal"},
+"input_variables": ["count"],
+"paths": [{"constrain": "true", "path":["procedure:p1", "loop:l1", "loop:l2"]}],
+"return": "a",
+"loops": {
+          "l1": {
+            "variables":{"i": "integer"},
+            "initialize":{"i": "0"},
+            "loop_body":[
+                            {"constrain": "i<count", "path": ["procedure:p2"], "break": "false"},
+                            {"constrain": "!(i<count)", "path": [], "break": "true"}
+                        ]
+          },
+          "l2": {
+            "variables":{"i": "integer"},
+            "initialize":{"i": "0"},
+            "loop_body":[
+                            {"constrain": "i<count", "path": ["procedure:p3"], "break": "false"},
+                            {"constrain": "!(i<count)", "path": [], "break": "true"}
+                        ]
+          }
+         },
+"procedures": {
+        "p1": [["a", "11.0/2.0"], ["b", "61.0/11.0"]],
+        "p2": [["c", "111-(1130-3000/a)/b"], ["a", "b"], ["b", "c"], ["i", "i+1"]],
+        "p3": [[]]
+        }
+}
+
