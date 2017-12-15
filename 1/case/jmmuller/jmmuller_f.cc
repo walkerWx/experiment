@@ -14,6 +14,10 @@ double evaluate(int count){
     c=111-(1130-3000/a)/b;
     a=b; b=c;   
   }
+  for (long i=0;i<count;i++ ) {
+    c=3000/(1130-(111-b)*a);
+    b=a; a=c;
+  }
   return a;
 }
 
