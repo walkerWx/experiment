@@ -105,7 +105,7 @@ class PathData:
         if procedure_id in self.procedures.keys():
             return self.procedures[procedure_id]
         elif procedure_id in self.data['procedures'].keys():
-            self.procedures[procedure_id] = Procedure(procedure_id, self)
+            self.procedures[procedure_id] = Procedure(procedure_id, self.data['procedures'][procedure_id])
             return self.procedures[procedure_id]
         else:
             return None
@@ -120,6 +120,15 @@ class PathData:
         self.paths.append(path)
 
     def to_json(self):
+
+        # 最后输出时需要把中间生成的一些新的Procedure以及Loop添加进去
+        for path in self.paths:
+            pl = path.get_path_list()
+            for t in pl:
+                if isinstance(t, Loop) and not self.get_loop(t.get_id()):
+                    self.add_loop(t)
+                if isinstance(t, Procedure) and not self.get_procedure(t.get_id()):
+                    self.add_procedure(t)
 
         data = dict()
         data['program_name'] = self.get_program_name()
@@ -157,7 +166,7 @@ class Loop:
         self.variables = loop_json['variables']
         self.initialize = loop_json['initialize']
 
-        # in fact, loop body is a list of path
+        # 循环体是一个Path列表
         self.loop_body = list()
         for lb in loop_json['loop_body']:
             self.loop_body.append(Path(lb, path_data))
@@ -229,9 +238,19 @@ class Procedure:
 
     """Procedure封装类, 一个Procedure指代一段顺序执行的代码，我们用所涉及到的所有变量的更新式来记录这段代码所代表的语义"""
 
-    def __init__(self, id, path_data):
+    def __init__(self, id, procedure_data):
+
         self.id = id
-        self.procedure = path_data.data['procedures'][id]
+        self.procedure = procedure_data
+
+        '''
+        if path_data:
+            # self.procedure = path_data.data['procedures'][id]
+            self.procedure = procedure_data
+        else:
+            self.procedure = []
+        '''
+
         for i in range(len(self.procedure)):
             self.procedure[i][1] = str(self.procedure[i][1])
 

@@ -367,11 +367,7 @@ def horner_transform(path_data):
 # 生成等价过程模块
 def generate_equal_procedure(path_data, procedure):
 
-    # 现在先返回自己本身，后续针对midarc例子需要补充规则
-    # TODO
     equal_procedures = list()
-    ep = deepcopy(procedure)
-    equal_procedures.append(ep)
 
     for v in path_data.get_all_variables():
         var(v)
@@ -431,8 +427,6 @@ def generate_equal_loop(path_data, loop):
     # TODO
     # 现在先返回自己本身，后续需要针对累加的例子补充规则
     equal_loops = list()
-    el = deepcopy(loop)
-    equal_loops.append(el)
 
     # 累加累乘规则，针对类似于for(i=0;i<n;++i)这样的循环判定是否为累加或者累乘，然后逆序操作
 
@@ -499,11 +493,95 @@ def generate_equal_loop(path_data, loop):
     return equal_loops
 
 
+# 尝试将两个循环进行规约，成功则返回规约后的结果(一个Loop或者Procedure)，否则返回None
+def reduce_loop(l1, l2):
+
+    # 两个循环能够规约的必要条件是循环结构相同
+    if l1.get_variables() != l2.get_variables():
+        return None
+
+    l1_loop_body = l1.get_loop_body()
+    l2_loop_body = l2.get_loop_body()
+    if len(l1_loop_body) != len(l2_loop_body):
+        return None
+
+    for i in range(len(l1_loop_body)):
+        if l1_loop_body[i].get_constrain() != l2_loop_body[i].get_constrain():
+            return None
+        if l1_loop_body[i].get_constrain() != l2_loop_body[i].get_constrain():
+            return None
+
+    l1_path_list = list()
+    l2_path_list = list()
+    for i in range(len(l1_loop_body)):
+        l1_path_list = l1_loop_body[i].get_path_list()
+        if l1_path_list:
+            break
+
+    for i in range(len(l2_loop_body)):
+        l2_path_list = l2_loop_body[i].get_path_list()
+        if l2_path_list:
+            break
+
+    if len(l1_path_list) > 1 or len(l2_path_list) > 1:
+        return None
+
+    l1_procedure = l1_path_list[0].get_procedure()
+    l2_procedure = l2_path_list[0].get_procedure()
+
+    # 去掉循环临时变量
+    l1_procedure = [x for x in l1_procedure if x[0] not in l1.get_variables()]
+    l2_procedure = [x for x in l2_procedure if x[0] not in l2.get_variables()]
+
+    variables = list(set([x[0] for x in l1_procedure + l2_procedure]))
+
+    init_values = ['init_'+x for x in variables]
+
+    exec_stmts = list()
+    exec_stmts.append("var('" + ' '.join(init_values) + "')")
+    exec_stmts += [x+'=init_'+x for x in variables]
+    exec_stmts += [x[0]+'='+x[1] for x in l1_procedure+l2_procedure]
+
+    print (variables)
+
+    for x in exec_stmts:
+        exec x
+
+    exec_res = [[x, str(eval(str(x)))] for x in variables]
+    exec_res = [x for x in exec_res if str('init_'+x[0]) != x[1]]
+
+    if len(exec_res) == 0:
+        # 循环相当于啥都没做，返回一个空的Procedure
+        p = Procedure('empty_procedure', [])
+        return p
+    elif len(exec_res) == 1 and exec_res[0][1] in init_values:
+        # 循环在对一个变量不停的赋值，循环n次的效果与一次赋值相同
+        p = Procedure('REDUCE_'+l1.get_id()+'_'+l2.get_id(), [[exec_res[0][0], exec_res[0][1][5:]]])
+        return p
+
+    return None
+
+
 # 生成等价路径
 def generate_equal_path(path_data, path):
 
     equal_paths = list()
 
+    # 循环规约规则，连续的两个相互为逆过程的循环可规约
+    path_list = path.get_path_list()
+    i = 0
+    while i+1 < len(path_list):
+        if isinstance(path_list[i], Loop) and isinstance(path_list[i+1], Loop):
+            reduce_res = reduce_loop(path_list[i], path_list[i+1])
+            if reduce_res:
+                del path_list[i:i+2]
+                path_list.insert(i, reduce_res)
+        i += 1
+
+    path.set_path_list(path_list)
+    equal_paths.append(path)
+
+    # 生成等价的Loop以及Procedure后排列组合成新的path
     equal_list = list()
     for t in path.get_path_list():
         if isinstance(t, Procedure):
@@ -558,7 +636,7 @@ print(is_expr_equal(vars1, path1, vars2, path2))
 print(convert_expr(equal_path, vars2, vars1))
 
 path_file = '../case/midarc/midarc.pth'
-path_data = PathData(path_file)
+path_data = PathData(path_file5
 
 p = path_data.get_procedure('p1')
 print (p.to_json())
@@ -568,16 +646,10 @@ eps = generate_equal_procedure(path_data, p)
 print(path_data.to_json())
 '''
 
-path_file = '../case/float_extension/float_extension.pth'
+# reduce loop test case
+path_file = '../case/jmmuller/jmmuller.pth'
 path_data = PathData(path_file)
 
-l = path_data.get_loop('l1')
-
-els = generate_equal_loop(path_data, l)
-
-for t in els:
-    print t.to_json()
-
-
-
+l1 = path_data.get_loop('l1')
+l2 = path_data.get_loop('l2')
 
