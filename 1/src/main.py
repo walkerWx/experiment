@@ -9,9 +9,6 @@ from transform import *
 from stableAnalysis import *
 from path import *
 
-# 优化后程序两种不同的实现类型：浮点数实现、高精度实现
-FLOATTYPE = 'float'
-REALTYPE = 'real'
 
 
 # 判断一条路径在给定约束下是否在数学意义上不稳定
@@ -27,9 +24,6 @@ def optimize(path_file):
     # 优化后的path
     opt_path_data = deepcopy(path_data)
     opt_path_data.clear_paths()
-
-    # horner形式总优于其原来的形式
-    # horner_transform(path_data)
 
     for path in path_data.get_paths():
 
@@ -65,6 +59,10 @@ def optimize(path_file):
             for ep in equal_paths:
 
                 print(ep.to_json())
+
+                if ep.get_implement:
+                    new_path = deepcopy(ep)
+                    opt_path_data.add_path(new_path)
 
                 # 根据path生成对应可执行cpp文件并编译，后续分析路径稳定性时需要使用
                 generate_cpp(opt_path_data, ep)
@@ -112,9 +110,10 @@ mergePath('../case/analytic/analytic.opt.pth')
 
 # optimize('../case/harmonic/harmonic.pth')
 # optimize('../case/e_example/e_example.pth')
-# optimize('../case/analytic/analytic.pth')
+optimize('../case/analytic/analytic.pth')
 # optimize('../case/midarc/midarc.pth')
 # optimize('../case/float_extension/float_extension.pth')
-optimize('../case/jmmuller/jmmuller.pth')
+# optimize('../case/jmmuller/jmmuller.pth')
+# optimize('../case/gamma/gamma.pth')
 
 

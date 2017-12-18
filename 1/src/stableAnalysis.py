@@ -159,6 +159,7 @@ def generate_cpp(path_data, path, implement_type='all'):
     f = open(output_file[implement_type], 'w')
     print (implement['header'], file=f)
     print (main_func, file=f)
+    print (main_func)
 
 
 # 稳定性分析主逻辑

@@ -295,8 +295,13 @@ class Procedure:
             # e.g.   1.0/x -> REAL(1.0)/x
             var = self.procedure[i][0]
             update_expr = self.get_update_expr(var)
-            if implement_type == 'real':
+            if implement_type == REALTYPE:
                 update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
+
+            # gamma function rename as in c++ gamma is named tgamma
+            if implement_type == FLOATTYPE:
+                update_expr = re.sub('gamma\(', 'tgamma(', update_expr)
+
             code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
         return code
 
@@ -329,6 +334,9 @@ class Path:
 
     def set_implement(self, implement):
         self.implement = implement
+
+    def get_implement(self):
+        return self.implement
 
     def add_constrain(self, constrain):
         self.constrain = '(' + self.constrain + ')' + '&&' + '(' + constrain + ')'

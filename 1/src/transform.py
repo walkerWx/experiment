@@ -3,6 +3,7 @@
 
 from sage.all import *
 from path import *
+from config import *
 
 import json
 import random
@@ -87,6 +88,12 @@ def is_expr_equal(vars1, path1, vars2, path2):
             return False
 
     return True
+
+
+def generate_gamma_approx_expr(var_str):
+    up = '(8-4*euler_gamma+(3-2*euler_gamma)*('+var_str+'))'
+    down = '(8+4*('+var_str+'))'
+    return up+'/'+down
 
 
 # 输入一个分式。返回一个分式的随机拆分
@@ -386,7 +393,7 @@ def generate_equal_procedure(path_data, procedure):
             expr = str(expr)
             if '^' in expr:
                 expr = expr.replace('^', '**')
-            print(expr)
+
             exec 'expr = ' + expr
             if isinstance(expr, Expression):
                 exec 'expr = str(expr.horner('+ v + '))'
@@ -432,16 +439,13 @@ def generate_equal_loop(path_data, loop):
 
     # 单循环变量
     if len(loop.get_variables()) == 1:
-        print("单")
         # 循环体中仅两条路径
         if len(loop.get_loop_body()) == 2:
-            print("两")
             p1 = loop.get_loop_body()[0]
             p2 = loop.get_loop_body()[1]
 
             # 两条路径约束互补
             if ('!('+p1.get_constrain()+')' == p2.get_constrain()) or (p1.get_constrain()=='!('+p2.get_constrain()+')'):
-                print("补")
                 # 循环体中临时变量更新方法为+1
                 tv = loop.get_variables()[0]
                 loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
@@ -578,8 +582,24 @@ def generate_equal_path(path_data, path):
                 path_list.insert(i, reduce_res)
         i += 1
 
-    path.set_path_list(path_list)
-    equal_paths.append(path)
+    ep = deepcopy(path)
+    ep.set_path_list(path_list)
+    equal_paths.append(ep)
+
+    # gamma近似规则
+    path_list = path.get_path_list()
+    if len(path_list) == 1 and isinstance(path_list[0], Procedure) and len(path_list[0].get_procedure()) == 1:
+        update_var = path_list[0].get_procedure()[0][0]
+        update_expr = path_list[0].get_procedure()[0][1]
+        if update_expr.startswith('gamma(') and update_expr.endswith(')'):
+            gamma_input = update_expr[6:-1]
+            ep = deepcopy(path)
+            ep.add_constrain('abs(('+gamma_input+')+2)<1e-5')
+            gamma_procedure = Procedure(path_list[0].get_id()+'_GAMMA_APPROX', [[update_var, generate_gamma_approx_expr(gamma_input)]])
+            path_data.add_procedure(gamma_procedure)
+            ep.set_path_list([gamma_procedure])
+            ep.set_implement(REALTYPE)
+            equal_paths.append(ep)
 
     # 生成等价的Loop以及Procedure后排列组合成新的path
     equal_list = list()
@@ -644,7 +664,6 @@ print (p.to_json())
 eps = generate_equal_procedure(path_data, p)
 
 print(path_data.to_json())
-'''
 
 # reduce loop test case
 path_file = '../case/jmmuller/jmmuller.pth'
@@ -653,3 +672,15 @@ path_data = PathData(path_file)
 l1 = path_data.get_loop('l1')
 l2 = path_data.get_loop('l2')
 
+# gamma example test
+path_file = '../case/gamma/gamma.pth'
+path_data = PathData(path_file)
+
+path = path_data.get_paths()[0]
+eps = generate_equal_path(path_data, path)
+
+for ep in eps:
+    print(ep.to_json())
+
+print(path_data.to_json())
+'''

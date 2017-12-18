@@ -3,9 +3,13 @@
 
 # Configuration file
 
+# 优化后程序两种不同的实现类型：浮点数实现、高精度实现
+FLOATTYPE = 'float'
+REALTYPE = 'real'
+
 # 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 1
-FLOATEND = 2
+FLOATSTART = 100
+FLOATEND = 101
 
 INTSTART = 0
 INTEND = 100
@@ -29,6 +33,9 @@ FLOAT['header'] = '''
 #include <iomanip>
 #include <cmath>
 #include <limits>
+
+#define euler_gamma 0.57721566490
+
 using namespace std;
 '''
 
@@ -38,6 +45,10 @@ REAL['cin'] = 'cin'
 REAL['cout'] = 'cout'
 REAL['header'] = '''
 #include "iRRAM.h"
+#include "gamma.h"
+
+#define euler_gamma REAL(0.57721566490)
+
 using namespace iRRAM;
 '''
 

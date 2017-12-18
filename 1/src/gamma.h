@@ -13,9 +13,9 @@ using namespace iRRAM;
    B_4000 = 246 sec
    so the complexity of B_n seems to be about O(n^3.3) and
    B_20000 ~ 10 h
-     
+
    The values are evaluated only once, then cached... An implementaion with variable sized arrays would surely be
-   better than just using a fixed size array... 
+   better than just using a fixed size array...
 */
 
 /* Gamma function is just an approximation, not an exact value! */
@@ -32,7 +32,7 @@ unsigned int bernoulli_min_unknown=0;
 RATIONAL bernoulli(const unsigned int index)
 {
 if (index >= bernoulli_max ){ fprintf(stderr,"noch nicht implementiert\n"); exit(1); }
-  
+
   if ( index   == 1 ) return RATIONAL(-1,2);
   if ( index%2 == 1 ) return RATIONAL(0);
   if (bernoulli_min_unknown == 0){
@@ -41,9 +41,9 @@ if (index >= bernoulli_max ){ fprintf(stderr,"noch nicht implementiert\n"); exit
      binomial_saved[1]=2;
      binomial_saved[2]=1;
      bernoulli_min_unknown=2;
-  }  
+  }
   while ( bernoulli_min_unknown <= index ) {
-    INTEGER saved_value=1; 
+    INTEGER saved_value=1;
     INTEGER old_saved_value;
     for (unsigned int i = 1; i <= bernoulli_min_unknown; i++ ){
       old_saved_value=saved_value;
@@ -59,9 +59,9 @@ if (index >= bernoulli_max ){ fprintf(stderr,"noch nicht implementiert\n"); exit
         summe=summe + bernoulli_saved[i/2]*binomial_saved[i];
       }
       summe= -1*summe/binomial_saved[bernoulli_min_unknown];
-      bernoulli_saved[bernoulli_min_unknown/2]= summe;	    
+      bernoulli_saved[bernoulli_min_unknown/2]= summe;
     }
-    bernoulli_min_unknown++;  
+    bernoulli_min_unknown++;
   }
   return bernoulli_saved[index/2];
 }
@@ -73,7 +73,7 @@ if (index >= bernoulli_max ){ fprintf(stderr,"noch nicht implementiert\n"); exit
 REAL ln_gamma_approx(int max_index, const REAL& z)
 {
   REAL result= (z-REAL(1)/2)*log(z)-z+log(2*pi())/2;
-  
+
   REAL coefficient;
   REAL inv_power_z=1/z;
   REAL inv_square_z=1/(z*z);
@@ -86,7 +86,7 @@ REAL ln_gamma_approx(int max_index, const REAL& z)
 }
 
 // An experiment to compute the Gamma function
-// We make unproven(!) guesses on 
+// We make unproven(!) guesses on
 // - how to do the range reduction
 // - how to approximate the log_gamma function
 
@@ -104,7 +104,7 @@ REAL gamma_approx(int p, const REAL& x){
     {
       y_factorial *= y;
       y += 1;
-    }  
+    }
   return exp(ln_gamma_approx(-p/10, y))/y_factorial;
 }
 
@@ -112,27 +112,5 @@ REAL gamma(const REAL& x){
   return limit(gamma_approx,x);
 }
 
-REAL euler_constant = REAL(0.57721566490);
-
-REAL gamma_approx_2(const REAL& x) {
-    return (8-4*euler_constant+3*x-2*euler_constant*x)/(8+4*x);
-}
-
-void compute (){
-
-  cout << setRwidth(26);
-
-  REAL x;
-  cin >> x;
-  REAL res = gamma((2-euler_constant+x)/(euler_constant-1-x)-1);
-
-  cout << res <<"\n";
-
-  res = gamma_approx_2((2-euler_constant+x)/(euler_constant-1-x)-1);
-
-  cout << res <<"\n";
-
-
-}
 
 
