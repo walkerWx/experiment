@@ -19,32 +19,6 @@ with open(rules_file) as f:
     rules = json.load(f)["expr_rules"]
 
 
-# variables substitution in path. e.g x+y --> a+b
-def convert_expr(originPath, originVars, newVars):
-
-    m = {}
-    for i in range(len(originVars)):
-        m[originVars[i]] = newVars[i]
-
-    newPath = ''
-    i = 0
-    while i < len(originPath):
-        if not originPath[i].isalpha():
-            newPath += originPath[i]
-            i += 1
-        else:
-            j = i  
-            while (j < len(originPath) and originPath[j].isalpha()):
-                j += 1
-            var = originPath[i:j]
-            if (var in m):
-                newPath += m[var]
-            else:
-                newPath += var
-            i = j
-
-    return newPath
-
 
 # 判断两个计算路径是否等价
 def is_expr_equal(vars1, path1, vars2, path2):
@@ -348,8 +322,6 @@ def is_fraction(f):
 def accumulationTransform(expr):
     expr = expr.expand()
     return expr
-
-
 
 
 # Horner form 转换，将path_data中所涉及到的所有的计算过程均进行转换

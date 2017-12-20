@@ -24,6 +24,7 @@ def optimize(path_file):
     # 优化后的path
     opt_path_data = deepcopy(path_data)
     opt_path_data.clear_paths()
+    print (len(opt_path_data.get_paths()))
 
     for path in path_data.get_paths():
 
@@ -60,7 +61,7 @@ def optimize(path_file):
 
                 print(ep.to_json())
 
-                if ep.get_implement:
+                if ep.get_implement():
                     new_path = deepcopy(ep)
                     opt_path_data.add_path(new_path)
 
@@ -100,6 +101,8 @@ def optimize(path_file):
     output_file = output_directory+path_data.get_program_name()+'.opt.pth'
     opt_path_data.output_json(output_file)
 
+    merge_path(output_file)
+
 
 '''
 optimize('../case/midarc/midarc.pth')
@@ -108,9 +111,9 @@ optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
 '''
 
-# optimize('../case/harmonic/harmonic.pth')
+optimize('../case/harmonic/harmonic.pth')
 # optimize('../case/e_example/e_example.pth')
-optimize('../case/analytic/analytic.pth')
+# optimize('../case/analytic/analytic.pth')
 # optimize('../case/midarc/midarc.pth')
 # optimize('../case/float_extension/float_extension.pth')
 # optimize('../case/jmmuller/jmmuller.pth')

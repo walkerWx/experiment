@@ -8,17 +8,17 @@ FLOATTYPE = 'float'
 REALTYPE = 'real'
 
 # 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 100
-FLOATEND = 101
+FLOATSTART = 100000
+FLOATEND = 100001
 
-INTSTART = 0
-INTEND = 100
+INTSTART = 10000
+INTEND = 10100
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
 PREC = 1
 
 # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
-TOLERANCE = 2
+TOLERANCE = 5
 
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
 FLOAT = dict()
@@ -26,8 +26,8 @@ REAL = dict()
 
 FLOAT['decimal'] = 'double'
 FLOAT['integer'] = 'int'
-FLOAT['cin'] = 'cin'
-FLOAT['cout'] = 'cout'
+FLOAT['cin'] = 'std::cin'
+FLOAT['cout'] = 'std::cout'
 FLOAT['header'] = '''
 #include <iostream>
 #include <iomanip>
@@ -41,8 +41,8 @@ using namespace std;
 
 REAL['decimal'] = 'REAL'
 REAL['integer'] = 'int'
-REAL['cin'] = 'cin'
-REAL['cout'] = 'cout'
+REAL['cin'] = 'iRRAM::cin'
+REAL['cout'] = 'iRRAM::cout'
 REAL['header'] = '''
 #include "iRRAM.h"
 #include "gamma.h"
@@ -52,8 +52,10 @@ REAL['header'] = '''
 using namespace iRRAM;
 '''
 
+REAL['convert_func'] = {'decimal': 'as_double()', 'integer': 'as_double()'}
+
 FLOATCPP = 'float.cpp'
 REALCPP = 'real.cpp'
 
-LOGFILE = open('LOG', 'w')
+LOGFILE = open('LOG', 'a')
 

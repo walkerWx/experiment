@@ -1,5 +1,7 @@
 #include "iRRAM.h"
 
+#define euler_gamma REAL(0.57721566490)
+
 using namespace iRRAM;
 
 /* Experimental, treat with care  */

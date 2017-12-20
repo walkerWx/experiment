@@ -4,7 +4,34 @@
 from config import *
 
 import json
-import  re
+import re
+
+
+# variables substitution in path. e.g x+y --> a+b
+def convert_expr(originPath, originVars, newVars):
+
+    m = {}
+    for i in range(len(originVars)):
+        m[originVars[i]] = newVars[i]
+
+    newPath = ''
+    i = 0
+    while i < len(originPath):
+        if not originPath[i].isalpha():
+            newPath += originPath[i]
+            i += 1
+        else:
+            j = i
+            while (j < len(originPath) and originPath[j].isalpha()):
+                j += 1
+            var = originPath[i:j]
+            if var in m:
+                newPath += m[var]
+            else:
+                newPath += var
+            i = j
+
+    return newPath
 
 
 class PathData:
@@ -135,6 +162,7 @@ class PathData:
         data['function_name'] = self.get_function_name()
         data['variables'] = self.variables
         data['input_variables'] = self.input_variables
+        data['return'] = self.return_expr
 
         data['loops'] = dict()
         for loop_id, loop in self.get_loops().items():
@@ -219,7 +247,6 @@ class Loop:
         for var in self.get_variables():
             code += (indent+1)*'\t' + implement[self.get_variable_type(var)] + ' ' + var + ';\n'
 
-        # temporary variables declaration and initialize
         for var, update_expr in self.get_initialize_list().items():
             code += (indent+1)*'\t' + var + ' = ' + update_expr + ';\n'
 
@@ -233,6 +260,31 @@ class Loop:
         code += indent*'\t'+'}\n'
         return code
 
+    def to_mixed_code(self, path_data, indent=0):
+
+        code = indent*'\t' + '{\n'
+
+        origin_vars = path_data.get_variables()
+        real_vars = [x+'_real' for x in origin_vars]
+
+        # temporary variables declaration and initialize
+        for var in self.get_variables():
+            code += (indent+1)*'\t' + REAL[self.get_variable_type(var)] + ' ' + var + ';\n'
+
+        for var, update_expr in self.get_initialize_list().items():
+            code += (indent+1)*'\t' + var + ' = ' + convert_expr(update_expr, origin_vars, real_vars) + ';\n'
+
+        code += (indent+1)*'\t'+'while(true) {\n'
+
+        # loop body
+        for lb in self.get_loop_body():
+            code += lb.to_mixed_code(path_data, indent+2)
+
+        code += (indent+1)*'\t'+'}\n'
+
+        code += indent*'\t'+'}\n'
+
+        return code
 
 class Procedure:
 
@@ -305,6 +357,26 @@ class Procedure:
             code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
         return code
 
+    def to_mixed_code(self, path_data, indent=0):
+        code = ''
+        for i in range(len(self.procedure)):
+
+            # 由于iRRAM未实现REAL类型与浮点类型的加减乘除的基本操作，因此需要对表达式中的常数进行类型的显示的转换
+            # e.g.   1.0/x -> REAL(1.0)/x
+
+            origin_vars = path_data.get_variables()
+            real_vars = [x+'_real' for x in origin_vars]
+
+            var = convert_expr(self.procedure[i][0], origin_vars, real_vars)
+            update_expr = convert_expr(self.procedure[i][1], origin_vars, real_vars)
+
+            print('before:', update_expr)
+            update_expr = re.sub("(?P<number>\d+(?:\.\d+)?)", Procedure.to_real, update_expr);
+            print('after:', update_expr)
+
+            code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
+        return code
+
 
 class Path:
 
@@ -319,10 +391,11 @@ class Path:
         else:
             self.implement = None
 
-        if 'break' in path_json.keys() and path_json['break'] == 'true':
-            self.loop_break = True
-        else:
-            self.loop_break = None
+        if 'break' in path_json.keys():
+            if path_json['break'] == 'true':
+                self.loop_break = True
+            else:
+                self.loop_break = False
 
         # path_list为一个Procedure与Loop的列表，代表了一条路径
         self.path_list = []
@@ -363,6 +436,12 @@ class Path:
         if self.implement:
             data['implement'] = self.implement
 
+        if hasattr(self, 'loop_break'):
+            if self.loop_break:
+                data['break'] = 'true'
+            else:
+                data['break'] = 'false'
+
         return data
 
     def to_cpp_code(self, implement_type, indent=0):
@@ -370,10 +449,41 @@ class Path:
         code += indent*'\t' + 'if(' + self.constrain + ') {\n'
         for m in self.path_list:
             code += m.to_cpp_code(implement_type, indent+1)
-        if self.loop_break:
+        if hasattr(self, 'loop_break') and self.loop_break:
             code += (indent+1)*'\t'+'break;\n'
         code += indent*'\t'+'}\n'
         return code
+
+    # 生成最终优化后代码，可能既包含浮点精度又包含任意精度
+    def to_mixed_code(self, path_data, indent=0):
+
+        code = ''
+
+        code += indent*'\t' + 'if(' + self.constrain + ') {\n'
+
+        # 原浮点精度变量转换成为任意精度变量
+        origin_vars = path_data.get_variables()
+
+        for v in origin_vars:
+            code += (indent+1)*'\t' + 'iRRAM::' + REAL[path_data.get_variable_type(v)] + ' ' + v + '_real = iRRAM::' + REAL[path_data.get_variable_type(v)] + '(' + v + ');\n'
+
+        # 对Procedure以及Loop进行代码生成，并注意替换其中变量
+        for m in self.path_list:
+            code += m.to_mixed_code(path_data, indent+1)
+
+        # 计算过程结束后转换回去
+        for v in origin_vars:
+            code += (indent+1)*'\t' + v + ' = ' + v + '_real.' + REAL['convert_func'][path_data.get_variable_type(v)] + ';\n'
+
+        if hasattr(self, 'loop_break') and self.loop_break:
+            code += (indent+1)*'\t'+'break;\n'
+
+        code += indent*'\t'+'}\n'
+
+        return code
+
+
+
 
 
 # Unit test

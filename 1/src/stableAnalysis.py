@@ -159,7 +159,6 @@ def generate_cpp(path_data, path, implement_type='all'):
     f = open(output_file[implement_type], 'w')
     print (implement['header'], file=f)
     print (main_func, file=f)
-    print (main_func)
 
 
 # 稳定性分析主逻辑
@@ -200,18 +199,21 @@ def stable_analysis(path_data, path):
             call(['./float < input > float_output'], shell=True)
             call(['./real < input > real_output'], shell=True)
 
-            float_res = Decimal([line.rstrip('\n') for line in open('float_output')][0])
-            real_res = Decimal([line.rstrip('\n') for line in open('real_output')][0])
+            float_res = [line.rstrip('\n') for line in open('float_output')][0]
+            real_res = [line.rstrip('\n') for line in open('real_output')][0]
 
-            float_res = str(float_res).split('E')[0][:17].replace('.', '')
-            real_res = str(real_res).split('E')[0][:17].replace('.', '')
+            if float_res.startswith('-'):
+                float_res = str(float_res).split('e')[1][1:18].replace('.', '')
+            else:
+                float_res = str(float_res).split('e')[0][:17].replace('.', '')
+            real_res = str(real_res).split('E')[0][1:18].replace('.', '')
 
             error = abs(int(float_res)-int(real_res))
 
             if error >= TOLERANCE:
                 pstable = False
                 stable = False
-            
+
             print ('', file=LOGFILE)
             print ('POINT:\t', point, file=LOGFILE) 
             print ('FLOAT RESUTL:\t', float_res, file=LOGFILE)
@@ -254,11 +256,14 @@ def is_stable(path_data, path, interval):
         call(['./float < input > float_output'], shell=True)
         call(['./real < input > real_output'], shell=True)
 
-        float_res = Decimal([line.rstrip('\n') for line in open('float_output')][0])
-        real_res = Decimal([line.rstrip('\n') for line in open('real_output')][0])
+        float_res = [line.rstrip('\n') for line in open('float_output')][0]
+        real_res = [line.rstrip('\n') for line in open('real_output')][0]
 
-        float_res = str(float_res).split('E')[0][:17].replace('.', '')
-        real_res = str(real_res).split('E')[0][:17].replace('.', '')
+        if float_res.startswith('-'):
+            float_res = str(float_res).split('e')[1][1:18].replace('.', '')
+        else:
+            float_res = str(float_res).split('e')[0][:17].replace('.', '')
+        real_res = str(real_res).split('E')[0][1:18].replace('.', '')
 
         error = abs(int(float_res)-int(real_res))
 
@@ -266,7 +271,6 @@ def is_stable(path_data, path, interval):
             return False
 
     return True
-
 
 
 '''
