@@ -14,7 +14,8 @@ REAL evaluate(REAL x, int degree = 15) {
 }
 
 void compute() {
-    REAL x = 0.5;
+    REAL x;
+    cin >> x;
     REAL res = evaluate(x);
     cout << setRwidth(45) << res << "\n";
 }

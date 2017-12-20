@@ -9,7 +9,8 @@
 
 using namespace std;
 
-double evaluate(int n, double initval) {
+double evaluate(int n) {
+    double initval = 0;
     for (int i=1; i<n; ++i) {
         initval += (1/((double)i*i));
     }
@@ -17,8 +18,9 @@ double evaluate(int n, double initval) {
 }
 
 int main() {
-    int n=70712; double initval=0;
-    double res = evaluate(n, initval);
+    int n=70712;
+    cin >> n;
+    double res = evaluate(n);
     cout << scientific << setprecision(numeric_limits<double>::digits10) << res << endl;
 }
 

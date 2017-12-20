@@ -7,18 +7,19 @@
 
 using namespace iRRAM;
 
-REAL evaluate(int n, REAL x) {
+REAL evaluate(int n) {
     int i=1;
-    iRRAM::REAL harresult = 0;
+    iRRAM::REAL initval = 0;
     for(i=1;i<n;++i){
-        harresult += (x/((REAL)i*i));
+        initval += (REAL(1)/((REAL)i*i));
     }
-    return harresult;
+    return initval;
 }
 
 void compute() {
-    int n = 70712; iRRAM::REAL x=1;
-    REAL res = evaluate(n, x);
+    int n = 70712;
+    cin >> n;
+    REAL res = evaluate(n);
     cout << setRwidth(26) << res << "\n";
 }
 

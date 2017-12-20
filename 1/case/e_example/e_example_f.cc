@@ -6,7 +6,8 @@ using namespace std;
 
 double e(int n) {
     double z=2;
-    for (int i = 2, double y = 1.0; i < n; ++i) {
+    double y = 1.0;
+    for (int i = 2; i < n; ++i) {
         y=y/i;
         z=z+y;
     }
@@ -15,7 +16,8 @@ double e(int n) {
 
 int main() {
 
-    int n = 20;
+    int n;
+    cin >> n;
     double res = e(n);
     cout << setprecision(numeric_limits<double>::digits10) << res << endl;
 

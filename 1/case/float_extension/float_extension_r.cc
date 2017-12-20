@@ -12,7 +12,8 @@ REAL evaluate(const int& n) {
 }
 
 void compute(){
-    int n = 10000;
-    REAL res = evaluate(x);
+    int n;
+    cin >> n;
+    REAL res = evaluate(n);
     cout << setRwidth(24) << res << "\n";
 }

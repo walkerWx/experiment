@@ -16,7 +16,7 @@ double evaluate(double x, int degree = 15) {
 }
 
 int main() {
-    double x = 0.5;
+    double x = 100.5;
     double res = evaluate(x);
     cout << scientific << setprecision(numeric_limits<double>::digits10) << res << endl;
 }

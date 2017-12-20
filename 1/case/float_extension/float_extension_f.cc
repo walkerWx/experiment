@@ -12,7 +12,8 @@ double evaluate(const int& n) {
 }
 
 int main(){
-    double x = 0;
-    double res = evaluate(x);
+    int n;
+    cin >> n;
+    double res = evaluate(n);
     cout << scientific << setprecision(numeric_limits<double>::digits10) << res << endl;
 }
