@@ -87,6 +87,5 @@ using namespace iRRAM;
     print (code_body, file=output_file)
 
 
-merge_path('../case/gamma/gamma.opt.pth')
 
 

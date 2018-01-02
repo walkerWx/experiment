@@ -8,17 +8,20 @@ FLOATTYPE = 'float'
 REALTYPE = 'real'
 
 # 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 100000
-FLOATEND = 100001
+FLOATSTART = 0.4
+FLOATEND = 0.6
 
-INTSTART = 10000
-INTEND = 10100
+INTSTART = 1
+INTEND = 100
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 1
+PREC = 3
 
 # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
 TOLERANCE = 5
+
+# 使用规则进行等价转化尝试次数
+TRANSFORM_NUM = 1
 
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
 FLOAT = dict()

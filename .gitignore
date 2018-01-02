@@ -4,4 +4,5 @@ klee-last/
 *.pyc
 klee-expression.h
 LOG
-*.opt.pth
+*_o.pth.json
+*.sa.json

@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import json
-from copy import deepcopy
+import sys
+import random
 
 from mergePath import *
 from transform import *
@@ -28,17 +28,18 @@ def optimize(path_file):
 
     for path in path_data.get_paths():
 
-        # 路径在数学意义上计算不稳定，无法进行优化，依然使用高精度实现
-        if is_unstable(path):
-            new_path = deepcopy(path)
-            new_path.set_implement(REALTYPE)
-            opt_path_data.add_path(new_path)
-            continue
-
-        # 不稳定分析
+        # 稳定性分析
         res = stable_analysis(path_data, path)
         stable_intervals = res['stable']
         unstable_intervals = res['unstable']
+
+        # 将稳定性分析结果写入JSON文件，以sa结尾，代表stable analysis
+        output_directory = ''
+        if path_file.rfind('/') != -1:
+            output_directory = path_file[:path_file.rfind('/')+1]
+        output_file = output_directory + path_data.get_program_name() + '.sa.json'
+        with open(output_file, 'w') as f:
+            json.dump(res, f, indent=2)
 
         # 直接将稳定部分加入到结果中去
         if stable_intervals:
@@ -50,16 +51,22 @@ def optimize(path_file):
             opt_path_data.add_path(new_path)
 
         # 不稳定部分进行等价转化后寻找其稳定形式
-        if unstable_intervals:
-            print("UNSTABLE INTERVALS")
-            print(unstable_intervals)
+        transform_num = 0
+        equal_paths = [path]
+        while unstable_intervals and transform_num < TRANSFORM_NUM:
 
-            # 生成等价路径
-            equal_paths = generate_equal_path(opt_path_data, path)
+            # 随机选取一条等价路径运用规则进行等价变换
+            ep = random.choice(equal_paths)
+            eps = generate_equal_path(opt_path_data, ep)
 
-            for ep in equal_paths:
+            print('randomly chosen path:')
+            print(ep.to_json())
 
-                print(ep.to_json())
+            print('following equal paths are generated:')
+            for t in eps:
+                print (t.to_json())
+
+            for ep in eps:
 
                 if ep.get_implement():
                     new_path = deepcopy(ep)
@@ -86,19 +93,24 @@ def optimize(path_file):
                 if not unstable_intervals:
                     break
 
-            # 未找到稳定的等价路径的区间，使用高精度实现
-            if unstable_intervals:
-                new_path = deepcopy(path)
-                new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], unstable_intervals))
-                new_path.set_implement(REALTYPE)
-                opt_path_data.add_path(new_path)
+            # 变换后得到的等价形式依旧加入到等价计算形式的列表中
+            equal_paths.extend(eps)
+
+            transform_num += 1
+
+        # 未找到稳定的等价路径的区间，使用高精度实现
+        if unstable_intervals:
+            new_path = deepcopy(path)
+            new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], unstable_intervals))
+            new_path.set_implement(REALTYPE)
+            opt_path_data.add_path(new_path)
 
     # print(opt_path_data.to_json())
     # 结果输出到文件
     output_directory = ''
     if path_file.rfind('/') != -1:
         output_directory = path_file[:path_file.rfind('/')+1]
-    output_file = output_directory+path_data.get_program_name()+'.opt.pth'
+    output_file = output_directory+path_data.get_program_name()+'_o.pth.json'
     opt_path_data.output_json(output_file)
 
     merge_path(output_file)
@@ -111,7 +123,8 @@ optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
 '''
 
-optimize('../case/harmonic/harmonic.pth')
+path_file = sys.argv[1]
+optimize(path_file)
 # optimize('../case/e_example/e_example.pth')
 # optimize('../case/analytic/analytic.pth')
 # optimize('../case/midarc/midarc.pth')

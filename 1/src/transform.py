@@ -19,7 +19,6 @@ with open(rules_file) as f:
     rules = json.load(f)["expr_rules"]
 
 
-
 # 判断两个计算路径是否等价
 def is_expr_equal(vars1, path1, vars2, path2):
 
@@ -403,8 +402,7 @@ def generate_equal_procedure(path_data, procedure):
 
 # 生成等价循环模块
 def generate_equal_loop(path_data, loop):
-    # TODO
-    # 现在先返回自己本身，后续需要针对累加的例子补充规则
+
     equal_loops = list()
 
     # 累加累乘规则，针对类似于for(i=0;i<n;++i)这样的循环判定是否为累加或者累乘，然后逆序操作
@@ -417,7 +415,7 @@ def generate_equal_loop(path_data, loop):
             p2 = loop.get_loop_body()[1]
 
             # 两条路径约束互补
-            if ('!('+p1.get_constrain()+')' == p2.get_constrain()) or (p1.get_constrain()=='!('+p2.get_constrain()+')'):
+            if ('!('+p1.get_constrain()+')' == p2.get_constrain()) or (p1.get_constrain() == '!('+p2.get_constrain()+')'):
                 # 循环体中临时变量更新方法为+1
                 tv = loop.get_variables()[0]
                 loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
@@ -431,8 +429,6 @@ def generate_equal_loop(path_data, loop):
                         for i in range(len(loop_body_procedure.get_procedure())):
                             v = loop_body_procedure.get_procedure()[i][0]
                             e = loop_body_procedure.get_procedure()[i][1]
-
-                            print(v, e)
 
                             if not e.startswith(v):
                                 can_transform = False
@@ -544,7 +540,7 @@ def generate_equal_path(path_data, path):
     equal_paths = list()
 
     # 循环规约规则，连续的两个相互为逆过程的循环可规约
-    path_list = path.get_path_list()
+    path_list = deepcopy(path.get_path_list())
     i = 0
     while i+1 < len(path_list):
         if isinstance(path_list[i], Loop) and isinstance(path_list[i+1], Loop):
@@ -556,10 +552,12 @@ def generate_equal_path(path_data, path):
 
     ep = deepcopy(path)
     ep.set_path_list(path_list)
+    print ('reduce generate path')
+    print (ep.to_json())
     equal_paths.append(ep)
 
     # gamma近似规则
-    path_list = path.get_path_list()
+    path_list = deepcopy(path.get_path_list())
     if len(path_list) == 1 and isinstance(path_list[0], Procedure) and len(path_list[0].get_procedure()) == 1:
         update_var = path_list[0].get_procedure()[0][0]
         update_expr = path_list[0].get_procedure()[0][1]
@@ -581,9 +579,11 @@ def generate_equal_path(path_data, path):
         elif isinstance(t, Loop):
             equal_list.append(generate_equal_loop(path_data, t))
 
+    print('product generate path')
     for t in [list(x) for x in itertools.product(*equal_list)]:
         ep = deepcopy(path)
         ep.set_path_list(t)
+        print (ep.to_json())
         equal_paths.append(ep)
 
     return equal_paths

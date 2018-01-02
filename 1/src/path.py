@@ -370,9 +370,7 @@ class Procedure:
             var = convert_expr(self.procedure[i][0], origin_vars, real_vars)
             update_expr = convert_expr(self.procedure[i][1], origin_vars, real_vars)
 
-            print('before:', update_expr)
             update_expr = re.sub("(?P<number>\d+(?:\.\d+)?)", Procedure.to_real, update_expr);
-            print('after:', update_expr)
 
             code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
         return code
