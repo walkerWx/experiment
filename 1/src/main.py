@@ -8,6 +8,7 @@ from mergePath import *
 from transform import *
 from stableAnalysis import *
 from path import *
+from transform_rule import TransformationRule, apply_rule
 
 
 
@@ -55,16 +56,35 @@ def optimize(path_file):
         equal_paths = [path]
         while unstable_intervals and transform_num < TRANSFORM_NUM:
 
-            # 随机选取一条等价路径运用规则进行等价变换
-            ep = random.choice(equal_paths)
-            eps = generate_equal_path(opt_path_data, ep)
+            # 随机选取一条等价路径
+            p = random.choice(equal_paths)
 
-            print('randomly chosen path:')
-            print(ep.to_json())
+            # 随机选取一条规则
+            r = random.choice(list(TransformationRule))
 
-            print('following equal paths are generated:')
-            for t in eps:
-                print (t.to_json())
+            # 在路径是运用规则生成新的等价路径
+            ep = apply_rule(p, r)
+
+            if ep.get_implement():
+                new_path = deepcopy(ep)
+                opt_path_data.add_path(new_path)
+
+            # 筛选出等价路径下稳定的区间
+            ep_stable_intervals = [t for t in unstable_intervals if is_stable(path_data, ep, t)]
+            print(len(ep_stable_intervals))
+
+            # 将该等价路径与稳定区间加入到结果中
+            if ep_stable_intervals:
+                new_path = deepcopy(ep)
+                new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], ep_stable_intervals))
+                new_path.set_implement(FLOATTYPE)
+                opt_path_data.add_path(new_path)
+
+            # 去掉已经稳定的区间
+            unstable_intervals = [t for t in unstable_intervals if t not in ep_stable_intervals]
+
+            '''
+            eps = generate_equal_path(opt_path_data, p)
 
             for ep in eps:
 
@@ -95,6 +115,10 @@ def optimize(path_file):
 
             # 变换后得到的等价形式依旧加入到等价计算形式的列表中
             equal_paths.extend(eps)
+            '''
+
+            # 变换后得到的等价形式依旧加入到等价计算形式的列表中
+            equal_paths.append(ep)
 
             transform_num += 1
 
