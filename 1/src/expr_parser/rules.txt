@@ -1,0 +1,21 @@
+Negative : -A -> (-1)*A;
+
+Minus : A-B -> A+(-B);
+
+Divide : A/B -> A*(1/B);
+
+CommutationPlus : A+B -> B+A;
+CommutationMultiply : A*B -> B*A;
+
+AssociationPlus : A+B+C -> A+(B+C);
+AssociationMultiply : A*B*C -> A*(B*C);
+
+Distribution : A*(B+C) -> A*B+A*C;
+
+CommDenominator : A/B+C/D -> (A*D+B*C)/(B*D);
+
+FracReduction : A*N/(B*N) -> A/B;
+
+NumeratorForm : (A+B)/(C+D) -> (A+B)*(A-B)/((C+D)*(A-B));
+
+DenominatorForm : (A+B)/(C+D) -> (A+B)*(C-D)/((C+D)*(C-D));
