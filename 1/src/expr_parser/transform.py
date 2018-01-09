@@ -4,17 +4,33 @@ import random
 from exprLexer import *
 from exprParser import *
 
+from parseTree import *
 
 def main(argv):
-    expr_str = 'a*b/(c+d)*e*sin(a,b)+(a+b+c)'
-    print (trans_association(expr_str))
+
+    # expr_str = 'a*b/(c+d)*e*sin(a,b)+(a+b+c)'
+    # print (trans_association(expr_str))
+
+    expr_str = 'sin(a,b,c)+b+c+1.0'
+
+    data = codecs.decode(expr_str, 'ascii', 'strict')
+    input = InputStream(data)
+    lexer = exprLexer(input)
+    stream = CommonTokenStream(lexer)
+    parser = exprParser(stream)
+    tree = parser.expression()
+
+    pt = ParseTree(tree)
+    print(pt.getText())
 
 
-class ParseTreeNode:
+def dfs(node):
+    print(type(node))
+    if isinstance(node, antlr4.tree.Tree.TerminalNodeImpl):
+        return
+    for c in node.getChildren():
+        dfs(c)
 
-    def __init__(self, context):
-        self.children = []
-        self.type = ''
 
 def trans_negative(expr_str):
 

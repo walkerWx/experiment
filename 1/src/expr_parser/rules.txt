@@ -19,3 +19,15 @@ FracReduction : A*N/(B*N) -> A/B;
 NumeratorForm : (A+B)/(C+D) -> (A+B)*(A-B)/((C+D)*(A-B));
 
 DenominatorForm : (A+B)/(C+D) -> (A+B)*(C-D)/((C+D)*(C-D));
+
+Tan : tan(x) -> sin(x)/cos(x);
+
+Sec : sec(x) -> 1/cos(x);
+
+Csc : csc(x) -> 1/sin(x);
+
+Cot : cot(x) -> cos(x)/sin(x);
+
+SinPlus : sin(A+B) -> sin(A)*cos(B)+cos(A)*sin(B);
+
+cosPlus : cos(A+B) -> cos(A)*cos(B)-sin(A)*sin(B);

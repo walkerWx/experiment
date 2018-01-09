@@ -8,7 +8,7 @@ from mergePath import *
 from transform import *
 from stableAnalysis import *
 from path import *
-from transform_rule import TransformationRule, apply_rule
+from transformRule import TransformationRule, apply_rule
 
 
 

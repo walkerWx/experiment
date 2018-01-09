@@ -5,15 +5,21 @@ equation
    ;
 
 rules
-   : (variable COLON expression ARROW expression SEMICOLON)*
+   : (singleRule)*
+   ;
+
+singleRule
+   : variable COLON expression ARROW expression SEMICOLON
    ;
 
 expression
-   : multiplyingExpression ((PLUS | MINUS) multiplyingExpression)*
+   : expression (PLUS | MINUS) multiplyingExpression
+   | multiplyingExpression 
    ;
 
 multiplyingExpression
-   : powExpression ((TIMES | DIV) powExpression)*
+   : multiplyingExpression (TIMES | DIV) powExpression
+   | powExpression 
    ;
 
 powExpression
@@ -56,6 +62,9 @@ funcname
    : COS
    | TAN
    | SIN
+   | SEC
+   | CSC
+   | COT
    | ACOS
    | ATAN
    | ASIN
@@ -69,7 +78,6 @@ relop
    | GT
    | LT
    ;
-
 
 COS
    : 'cos'
@@ -85,6 +93,17 @@ TAN
    : 'tan'
    ;
 
+COT
+   : 'cot'
+   ;
+
+SEC
+   : 'sec'
+   ;
+
+CSC
+   : 'csc'
+   ;
 
 ACOS
    : 'acos'
