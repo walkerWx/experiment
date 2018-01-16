@@ -22,7 +22,7 @@ def convert_expr(originPath, originVars, newVars):
             i += 1
         else:
             j = i
-            while (j < len(originPath) and originPath[j].isalpha()):
+            while j < len(originPath) and originPath[j].isalpha():
                 j += 1
             var = originPath[i:j]
             if var in m:

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from sage.all import *
-from path import *
-from config import *
+from .path import *
+from .config import *
 
 import json
 import random

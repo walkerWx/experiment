@@ -9,7 +9,7 @@ rules
    ;
 
 singleRule
-   : variable COLON expression ARROW expression SEMICOLON
+   : variable COLON expression ARROW expression (AT equation)? SEMICOLON
    ;
 
 expression
@@ -71,6 +71,11 @@ funcname
    | LOG
    | LN
    | SQRT
+   | GAMMA
+   | BERNOULLI
+   | SUM
+   | ABS
+   | FACTORIAL
    ;
 
 relop
@@ -134,6 +139,25 @@ SQRT
    : 'sqrt'
    ;
 
+GAMMA
+   : 'gamma'
+   ;
+
+BERNOULLI
+   : 'bnl'
+   ;
+
+SUM
+   : 'sum'
+   ;
+
+ABS
+   : 'abs'
+   ;
+
+FACTORIAL
+   : 'fac'
+   ;
 
 LPAREN
    : '('
@@ -208,17 +232,21 @@ PI
 
 
 EULER
-   : E2
+   : 'r'
    ;
 
 
 I
-   : 'i'
+   : 'I'
    ;
 
 
 ARROW
    : '->'
+   ;
+
+AT
+   : '@'
    ;
 
 VARIABLE

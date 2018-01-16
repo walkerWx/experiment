@@ -10,11 +10,15 @@ CommutationMultiply : A*B -> B*A;
 AssociationPlus : A+B+C -> A+(B+C);
 AssociationMultiply : A*B*C -> A*(B*C);
 
-Distribution : A*(B+C) -> A*B+A*C;
+Distribution1 : A*(B+C) -> A*B+A*C;
+
+Distribution2 : (A+B)*C -> A*C+B*C;
+
+Distribution3 : (A+B)/C -> (A)/(C)+(B)/(C);
 
 CommDenominator : A/B+C/D -> (A*D+B*C)/(B*D);
 
-FracReduction : A*N/(B*N) -> A/B;
+FracReduction : (A*N)/(B*N) -> A/(B);
 
 NumeratorForm : (A+B)/(C+D) -> (A+B)*(A-B)/((C+D)*(A-B));
 
@@ -30,4 +34,26 @@ Cot : cot(x) -> cos(x)/sin(x);
 
 SinPlus : sin(A+B) -> sin(A)*cos(B)+cos(A)*sin(B);
 
-cosPlus : cos(A+B) -> cos(A)*cos(B)-sin(A)*sin(B);
+CosPlus : cos(A+B) -> cos(A)*cos(B)-sin(A)*sin(B);
+
+TaylorExp: sum(k, 0, n, x^k/fac(k)) -> e^x;
+
+TaylorLn: sum(k, 0, n, -x^k/k) -> ln(1-x) @ abs(x) < 1;
+
+TaylorSin: sum(k, 0, n, (-1)^k*x^(2*k+1)/fac(2*k+1)) -> sin(x);
+
+TaylorCos: sum(k, 0, n, (-1)^k*x^(2*k)/fac(3*k)) -> cos(x);
+
+PolarRepresentation: A+B*I -> sqrt(A^2+B^2)*e^(atan(B/A)*I);
+
+Midarc: (e^(I*a)+e^(I*b))/abs(e^(I*a)+e^(I*b)) -> e^(I*(a+b)/2);
+
+StirlingGamma: (X-0.5)*ln(X)-X+ln(2*pi)/2+sum(k, 1, n, bnl(2*k)/(2*k*(2*k-1)*X^(2*k-1))) -> ln(gamma(X));
+
+GammaTrans: gamma(X) -> X*gamma(X-1);
+
+Gamma_0: gamma(X) -> 1/X+r @ abs(X) < eps;
+
+Gamma_1: gamma(X) -> r-1-1/(X+1) @ abs(X+1) < eps;
+
+Gamma_2: gamma(X) -> (8-4*r+3*X-2*r*X)/(4*X+8) @ abs(x+2) < eps;

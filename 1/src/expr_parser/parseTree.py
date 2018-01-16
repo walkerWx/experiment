@@ -1,4 +1,4 @@
-from exprParser import *
+from .exprParser import *
 
 
 class ParseTreeNode(object):
@@ -87,7 +87,7 @@ class ParseTree:
                 children.append(self.build(node.getChild(i)))
             return FunctionNode(funcname, children)
 
-        if isinstance(node, exprParser.ExpressionContext) or isinstance(node, exprParser.MultiplyingExpressionContext):
+        if isinstance(node, exprParser.ExpressionContext) or isinstance(node, exprParser.MultiplyingExpressionContext) or isinstance(node, exprParser.EquationContext):
             if node.getChildCount() == 1:
                 return self.build(node.getChild(0))
             if node.getChildCount() == 3:
@@ -100,6 +100,12 @@ class ParseTree:
         if isinstance(node, exprParser.PowExpressionContext):
             if node.getChildCount() == 1:
                 return self.build(node.getChild(0))
+            if node.getChildCount() == 3:
+                operator = node.getChild(1).getText()
+                children = list()
+                children.append(self.build(node.getChild(0)))
+                children.append(self.build(node.getChild(2)))
+                return OperatorNode(operator, children)
 
         if isinstance(node, exprParser.SignedAtomContext):
             if node.getChildCount() == 1:
@@ -120,7 +126,7 @@ class ParseTree:
                 children.append(SymbolNode(node.getChild(2).getText()))
                 return AtomNode(children)
 
-        if isinstance(node, exprParser.ScientificContext):
+        if isinstance(node, exprParser.ScientificContext) or isinstance(node, exprParser.ConstantContext):
             if node.getChildCount() == 1:
                 return SymbolNode(node.getChild(0).getText())
 

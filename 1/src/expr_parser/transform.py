@@ -1,10 +1,9 @@
 import antlr4
 import codecs
 import random
-from exprLexer import *
-from exprParser import *
+from .exprLexer import *
+from .parseTree import *
 
-from parseTree import *
 
 def main(argv):
 
