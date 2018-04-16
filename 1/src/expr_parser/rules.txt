@@ -20,8 +20,11 @@ Distribution2 : (A+B)*C -> A*C+B*C;
 Distribution3 : (A+B)/C -> (A)/(C)+(B)/(C);
 
 CommDenominator : A/B+C/D -> (A*D+B*C)/(B*D);
+CommDenominator1 : A/B+C -> (A+B*C)/B;
+CommDenominator2 : A/B-C -> (A-B*C)/B;
 
 FracReduction : (A*N)/(B*N) -> A/(B);
+FracPartial : A/(A-B) -> 1+B/(A-B);
 
 NumeratorForm : (A+B)/(C+D) -> (A+B)*(A-B)/((C+D)*(A-B));
 
@@ -36,20 +39,35 @@ Csc : csc(x) -> 1/sin(x);
 Cot : cot(x) -> cos(x)/sin(x);
 
 SinPlus : sin(A+B) -> sin(A)*cos(B)+cos(A)*sin(B);
+SinMinus : sin(A-B) -> sin(A)*cos(B)-cos(A)*sin(B);
+CosPlus : cos(A+B) -> (cos(A)*cos(B)-sin(A)*sin(B));
+CosMinus : cos(A-B) -> cos(A)*cos(B)+sin(A)*sin(B);
+TanPlus : tan(A+B) -> (tan(A)+tan(B))/(1-tan(A)*tan(B));
+TanMinus : tan(A-B) -> (tan(A)-tan(B))/(1+tan(A)*tan(B));
 
-CosPlus : cos(A+B) -> cos(A)*cos(B)-sin(A)*sin(B);
+SinCos : sin(A)*cos(B) -> (sin(A+B)+sin(A-B))/2;
+CosSin : cos(A)*sin(B) -> (sin(A+B)-sin(A-B))/2;
+CosCos : cos(A)*cos(B) -> (cos(A+B)+cos(A-B))/2;
+SinSin : sin(A)*sin(B) -> (cos(A-B)-cos(A+B))/2;
 
-TaylorExp: sum(k, 0, n, x^k/fac(k)) -> e^x;
+SinCosR : sin(A)+sin(B) -> 2*sin((A+B)/2)*cos((A-B)/2);
+CosSinR : sin(A)-sin(B) -> 2*cos((A+B)/2)*sin((A-B)/2);
+CosCosR : cos(A)+cos(B) -> 2*cos((A+B)/2)*cos((A-B)/2);
+SinSinR : cos(A)-cos(B) -> -2*sin((A+B)/2)*sin((A-B)/2);
+
+ExpReduction : (exp(2*A)-1)/(exp(A)-1) -> 1+exp(A);
+
+TaylorExp: exp(x) -> (1+x+Pow(x,2)/2+Pow(x,3)/6+Pow(x,4)/24);
 
 TaylorLn: sum(k, 0, n, -x^k/k) -> ln(1-x) @ abs(x) < 1;
 
 TaylorLnPlusReverse : log(x+1) -> (x - (x)^2/2 + (x)^3/3 - (x)^4/4+(x)^5/5);
 TaylorLnMinusReverse : log(-x+1) -> (-x - x^2/2 - x^3/3 - x^4/4-x^5/5);
-TaylorLnDivide : log((x+1)/(-x+1)) -> 2*x*(1+1/x^2+1/5*x^4)
+TaylorLnDivide : log((x+1)/(-x+1)) -> 2*x*(1+1/x^2+1/5*x^4);
 
-TaylorSin: sum(k, 0, n, (-1)^k*x^(2*k+1)/fac(2*k+1)) -> sin(x);
-
-TaylorCos: sum(k, 0, n, (-1)^k*x^(2*k)/fac(3*k)) -> cos(x);
+TaylorSin: sin(x) -> (x-Pow(x,3)/6+Pow(x, 5)/120-Pow(x,7)/5040);
+TaylorCos: cos(x) -> (1-Pow(x,2)/2+Pow(x,4)/24-Pow(x,6)/720);
+TaylorTan: tan(x) -> (x+Pow(x,3)/3+Pow(x,5)*2/15+Pow(x,7)*17/315);
 
 PolarRepresentation: A+B*I -> sqrt(A^2+B^2)*e^(atan(B/A)*I);
 

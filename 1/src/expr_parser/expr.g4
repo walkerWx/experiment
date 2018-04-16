@@ -60,6 +60,8 @@ func
 
 funcname
    : COS
+   | POWF
+   | EXP
    | TAN
    | SIN
    | SEC
@@ -82,6 +84,14 @@ relop
    : EQ
    | GT
    | LT
+   ;
+
+POWF
+   : 'Pow'
+   ;
+
+EXP
+   : 'exp'
    ;
 
 COS

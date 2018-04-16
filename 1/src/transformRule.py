@@ -486,10 +486,10 @@ def generate_equal_path(path_data, path):
 
 
 # 使用给定的规则生成等价表达式集合
-def generate_equvalent_expressions(expr, rules):
+def generate_equivalent_expressions(expr, rules):
 
     expr_set = {expr}
-    for i in range(1000):
+    for i in range(200):
         rule = random.choice(rules)  #随机选取转换规则
         expr = random.sample(expr_set, 1)[0]  #随机选已经生成的等价表达式
         transformed_expr = apply_rule_expr(expr, rule)
@@ -500,6 +500,7 @@ def generate_equvalent_expressions(expr, rules):
     return expr_set
 
 
+'''
 # 从规则文件中加载规则
 rules = load_rules()
 rules_dict = dict()
@@ -516,25 +517,24 @@ rules_dict['Horner'] = SympyRule('Horner')
 
 rules = list()
 
-'''
 rules.append(rules_dict['LnDivide'])
 rules.append(rules_dict['Simplify'])
 rules.append(rules_dict['CommutationPlus'])
 
 rules.append(rules_dict['TaylorLnPlusReverse'])
 rules.append(rules_dict['TaylorLnMinusReverse'])
-'''
 
 rules.append(rules_dict['Simplify'])
-rules.append(rules_dict['TaylorLnPlusReverse'])
-rules.append(rules_dict['TaylorLnMinusReverse'])
-rules.append(rules_dict['LnDivide'])
 
-ln_expr = 'log((1-x)/(1+x))'
+rules.append(rules_dict['FracPartial'])
+rules.append(rules_dict['TaylorExp'])
 
-expr_set = generate_equvalent_expressions(ln_expr, rules)
+cos2_expr = 'exp(x)/(exp(x)-1)'
+
+expr_set = generate_equivalent_expressions(cos2_expr, rules)
 print(len(expr_set))
 for e in expr_set:
     print(e)
 
 
+'''
