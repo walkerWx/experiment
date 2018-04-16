@@ -8,11 +8,11 @@ FLOATTYPE = 'float'
 REALTYPE = 'real'
 
 # 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 0.4
-FLOATEND = 0.6
+FLOATSTART = 0.0
+FLOATEND = 1.0
 
 INTSTART = 1
-INTEND = 100
+INTEND = 10000
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
 PREC = 3

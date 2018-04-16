@@ -190,12 +190,11 @@ class Loop:
 
         loop_json = path_data.data['loops'][id]
 
-        self.id = id
-        self.variables = loop_json['variables']
-        self.initialize = loop_json['initialize']
+        self.id = id  # 标记该循环体的id
+        self.variables = loop_json['variables']  # 变量列表，字典结构{var:var_type;}，包含了循环涉及到的所有变量以及类型信息
+        self.initialize = loop_json['initialize']  # 变量初始化列表，字典结构{var: init_expr;}
+        self.loop_body = list()  # 循环体，为一个Path列表
 
-        # 循环体是一个Path列表
-        self.loop_body = list()
         for lb in loop_json['loop_body']:
             self.loop_body.append(Path(lb, path_data))
 
@@ -286,14 +285,15 @@ class Loop:
 
         return code
 
+
 class Procedure:
 
     """Procedure封装类, 一个Procedure指代一段顺序执行的代码，我们用所涉及到的所有变量的更新式来记录这段代码所代表的语义"""
 
     def __init__(self, id, procedure_data):
 
-        self.id = id
-        self.procedure = procedure_data
+        self.id = id  # 标记该procedure的id
+        self.procedure = procedure_data  # 一个 n x 2 大小的列表，对于列表中每一项procedure[i]，procedure[i][0]为更新的变量名，procedure[i][1]为更新式
 
         '''
         if path_data:
@@ -337,7 +337,7 @@ class Procedure:
     # 将常数显示转换到REAL类型
     @staticmethod
     def to_real(matched):
-        s = matched.group("number");  # 123
+        s = matched.group("number")
         return 'REAL(' + s + ')'
 
     def to_cpp_code(self, implement_type, indent=0):
@@ -381,6 +381,11 @@ class Path:
     """单条路径的封装类，包含了约束、实现类型以及对应的路径信息"""
 
     def __init__(self, path_json, path_data):
+
+        self.path_list = None  # Path 包含的具体信息，是一个Procedure与Loop的列表
+        self.constrain = None  # Path 对应的约束
+        self.implement = None  # Path 的实现方式
+        self.loop_break = None  # 若Path为循环中的一条路径时，标志其是否为退出循环的路径
 
         self.constrain = path_json['constrain']
 
@@ -479,8 +484,6 @@ class Path:
         code += indent*'\t'+'}\n'
 
         return code
-
-
 
 
 

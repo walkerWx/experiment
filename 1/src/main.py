@@ -3,9 +3,9 @@
 
 import sys
 import random
+from copy import deepcopy
 
 from mergePath import *
-from transform import *
 from stableAnalysis import *
 from path import *
 from transformRule import TransformationRule, apply_rule
@@ -25,7 +25,7 @@ def optimize(path_file):
     # 优化后的path
     opt_path_data = deepcopy(path_data)
     opt_path_data.clear_paths()
-    print (len(opt_path_data.get_paths()))
+    print(len(opt_path_data.get_paths()))
 
     for path in path_data.get_paths():
 
@@ -147,12 +147,12 @@ optimize('../case/analytic/analytic.pth')
 mergePath('../case/analytic/analytic.opt.pth')
 '''
 
-path_file = sys.argv[1]
-optimize(path_file)
+#path_file = sys.argv[1]
+#optimize(path_file)
 # optimize('../case/e_example/e_example.pth')
 # optimize('../case/analytic/analytic.pth')
 # optimize('../case/midarc/midarc.pth')
-# optimize('../case/float_extension/float_extension.pth')
+optimize('../case/float_extension/float_extension.pth')
 # optimize('../case/jmmuller/jmmuller.pth')
 # optimize('../case/gamma/gamma.pth')
 

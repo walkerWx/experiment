@@ -1,10 +1,13 @@
 Negative : -A -> (-1)*A;
 
-Minus : A-B -> A+(-B);
+Minus1 : A-B -> A+(-B);
+Minus2 : A+B -> A-(-B);
 
 Divide : A/B -> A*(1/B);
 
-CommutationPlus : A+B -> B+A;
+LnDivide : log(A/B) -> log(A) - log(B);
+
+CommutationPlus : A+B -> B+(A);
 CommutationMultiply : A*B -> B*A;
 
 AssociationPlus : A+B+C -> A+(B+C);
@@ -39,6 +42,10 @@ CosPlus : cos(A+B) -> cos(A)*cos(B)-sin(A)*sin(B);
 TaylorExp: sum(k, 0, n, x^k/fac(k)) -> e^x;
 
 TaylorLn: sum(k, 0, n, -x^k/k) -> ln(1-x) @ abs(x) < 1;
+
+TaylorLnPlusReverse : log(x+1) -> (x - (x)^2/2 + (x)^3/3 - (x)^4/4+(x)^5/5);
+TaylorLnMinusReverse : log(-x+1) -> (-x - x^2/2 - x^3/3 - x^4/4-x^5/5);
+TaylorLnDivide : log((x+1)/(-x+1)) -> 2*x*(1+1/x^2+1/5*x^4)
 
 TaylorSin: sum(k, 0, n, (-1)^k*x^(2*k+1)/fac(2*k+1)) -> sin(x);
 

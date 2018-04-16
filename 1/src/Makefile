@@ -1,7 +1,7 @@
 # Makefile for user_programs
 
 # PROJECTHOME = /home/walker/Projects
-PROJECTHOME = /Users/wangxie/Projects
+PROJECTHOME = /Users/walker/Projects
 
 prefix=$(PROJECTHOME)/iRRAM/installed
 exec_prefix=$(PROJECTHOME)/iRRAM/installed
