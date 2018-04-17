@@ -124,9 +124,53 @@ def apply_rule_expr(expr_str, rule):
             expr = str(expand(expr))
 
         if rule.rule_name == 'Horner':
-            expr = str(horner(expr))
+            try:
+                origin_expr = str(expr)
+                expr = str(horner(expr))
+            except sympy.polys.polyerrors.PolynomialError:
+                expr = origin_expr
+
+        if rule.rule_name.startswith('Taylor'):
+
+            func_name = rule.rule_name[6:].lower()
+
+            if func_name:
+                expr = expr_str
+                occurrances =  [m.start() for m in re.finditer(func_name, expr_str)]
+                if occurrances:
+
+                    func_var = 'x'
+                    func_series = str(series(func_name+'('+func_var+')', n=7))
+                    if func_series.rfind('O') >= 0:
+                        func_series = func_series[:func_series.rfind('O')-2]
+
+                    # randomly choose an occurrence of sin function
+                    func_loc = random.choice(occurrances)
+
+                    func_start = func_loc
+                    func_end = 0
+
+                    pnum = 1
+                    for i in range(func_start+len(func_name)+1, len(expr)):
+                        if expr[i] == '(':
+                            pnum = pnum+1
+                        if expr[i] == ')':
+                            pnum = pnum-1
+                        if pnum == 0:
+                            func_end = i
+                            break
+
+                    param = '('+expr[func_start+len(func_name)+1:func_end]+')'
+                    func_series = func_series.replace(func_var, param)
+                    expr = expr[:func_start] + '(' + func_series + ')' + expr[func_end+1:]
+
+            else: # Use Taylor as a whole
+                expr = str(series(expr_str, n=7))
+                if expr.rfind('O') >= 0:
+                    expr = expr[:expr.rfind('O')-2]
 
         expr = expr.replace('**', '^')
+        expr = expr.replace(' ', '')
         return expr
 
 
@@ -489,14 +533,20 @@ def generate_equal_path(path_data, path):
 def generate_equivalent_expressions(expr, rules):
 
     expr_set = {expr}
+    already_choosen = set()
     for i in range(200):
         rule = random.choice(rules)  #随机选取转换规则
         expr = random.sample(expr_set, 1)[0]  #随机选已经生成的等价表达式
+        if (rule.rule_name+'@'+expr) in already_choosen:
+            # print('#[INFO] Already apply rule { %s } on { %s }' % (rule.rule_name, expr))
+            continue
         transformed_expr = apply_rule_expr(expr, rule)
         if transformed_expr:
-            print('# Apply rule [ %s ] tranform [ %s ] -> [ %s ]' % (rule.rule_name, expr, transformed_expr))
-            expr_set.add(transformed_expr.replace(' ', ''))
+            print('#[RULE] { %s } tranform { %s } -> { %s }' % (rule.rule_name, expr, transformed_expr))
+            already_choosen.add(rule.rule_name+'@'+expr)
+            expr_set.add(transformed_expr)
 
+    print(already_choosen)
     return expr_set
 
 
@@ -536,5 +586,13 @@ print(len(expr_set))
 for e in expr_set:
     print(e)
 
-
 '''
+
+rule = SympyRule('Taylorexp')
+rulesimple = SympyRule('Simplify')
+expr = 'exp(x*a)'
+
+expr = apply_rule_expr(expr, rule)
+print(expr)
+expr = (apply_rule_expr(expr, rulesimple))
+print(expr)

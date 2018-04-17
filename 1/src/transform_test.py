@@ -15,6 +15,12 @@ class TestTransform(unittest.TestCase):
         self.rules['Simplify'] = SympyRule('Simplify')
         self.rules['Expand'] = SympyRule('Expand')
         self.rules['Horner'] = SympyRule('Horner')
+        self.rules['Taylor'] = SympyRule('Taylor')
+
+        math_functions = ['sin', 'cos', 'tan', 'exp']
+        for f in math_functions:
+            rule_name = 'Taylor'+f
+            self.rules[rule_name] = SympyRule(rule_name)
 
     def test_midarc(self):
 
@@ -60,11 +66,11 @@ class TestTransform(unittest.TestCase):
 
         self.assertTrue(target in equivalent_expr)
 
-    def test_cos2(self):
+    def test_2cos(self):
 
         expr = 'cos(x+e)-cos(x)'
 
-        target = ['cos(x)*cos(e)-sin(x)*sin(e)-cos(x)', '-2*sin(e/2)*sin(e/2+x)']
+        target = ['(cos(x)*cos(e)-sin(x)*sin(e))-cos(x)', '-2*sin(e/2)*sin(e/2+x)']
 
         rules = list()
         rules.append(self.rules['SinSinR'])
@@ -72,6 +78,10 @@ class TestTransform(unittest.TestCase):
         rules.append(self.rules['Simplify'])
 
         equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
 
         for te in target:
             self.assertTrue(te in equivalent_expr)
@@ -108,14 +118,13 @@ class TestTransform(unittest.TestCase):
 
         expr = 'sin(x+e)-sin(x)'
         target = ['sin(x)*cos(e)+cos(x)*sin(e)-sin(x)',
-                  '(-e^7/322560+e^5/1920-e^3/24+e)*cos(e/2+x)',
-                  '-e*(e^6-168*e^4+13440*e^2-322560)*cos(e/2+x)/322560']
+                  'e*(e^4-80*e^2+1920)*cos(e/2+x)/1920']
 
         rules = list()
         rules.append(self.rules['Simplify'])
         rules.append(self.rules['SinPlus'])
         rules.append(self.rules['CosSinR'])
-        rules.append(self.rules['TaylorSin'])
+        rules.append(self.rules['Taylorsin'])
 
         equivalent_expr = generate_equivalent_expressions(expr, rules)
         equivalent_expr = list(equivalent_expr)
@@ -152,7 +161,7 @@ class TestTransform(unittest.TestCase):
 
         rules = list()
         rules.append(self.rules['Simplify'])
-        rules.append(self.rules['TaylorCos'])
+        rules.append(self.rules['Taylorcos'])
 
         equivalent_expr = generate_equivalent_expressions(expr, rules)
         equivalent_expr = list(equivalent_expr)
@@ -168,12 +177,12 @@ class TestTransform(unittest.TestCase):
     def test_sintan(self):
 
         expr = '(x-sin(x))/(x-tan(x))'
-        target =['(-x^4+42*x^2-840)/(16*(17*x^4+42*x^2+105))']
+        target =['x^2*(x^2*(27*x^2/112000-27/2800)+9/40)-1/2']
 
         rules = list()
         rules.append(self.rules['Simplify'])
-        rules.append(self.rules['TaylorSin'])
-        rules.append(self.rules['TaylorTan'])
+        rules.append(self.rules['Taylor'])
+        rules.append(self.rules['Horner'])
 
         equivalent_expr = generate_equivalent_expressions(expr, rules)
         equivalent_expr = list(equivalent_expr)
@@ -193,6 +202,8 @@ class TestTransform(unittest.TestCase):
 
         rules = list()
         rules.append(self.rules['Simplify'])
+        rules.append(self.rules['Taylor'])
+        rules.append(self.rules['Horner'])
 
         equivalent_expr = generate_equivalent_expressions(expr, rules)
         equivalent_expr = list(equivalent_expr)
@@ -202,8 +213,68 @@ class TestTransform(unittest.TestCase):
         for te in target:
             self.assertTrue(te in equivalent_expr)
 
+
+    def test_logs(self):
+
+        expr = '(n+1)*ln(n+1)-n*ln(n)-1'
+        target = ['']
+
+
+
+    def test_expax(self):
+
+        expr = 'exp(a*x)-1'
+        target = ['a*x*(a*x*(a*x*(a*x*(a*x*(a*x+6)+30)+120)+360)+720)/720']
+
+        rules = list()
+        rules.append(self.rules['Simplify'])
+        rules.append(self.rules['Taylorexp'])
+        rules.append(self.rules['Horner'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
         for te in target:
             self.assertTrue(te in equivalent_expr)
+
+    def test_exp2(self):
+
+        expr = 'exp(e)-2+exp(-e)'
+        target = ['e^6/360+e^4/12+e^2']
+
+        rules = list()
+        rules.append(self.rules['Simplify'])
+        rules.append(self.rules['Taylor'])
+        rules.append(self.rules['Horner'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+    def test_2sqrt(self):
+
+        expr = 'sqrt(x+1)-sqrt(x)'
+        target = ['1/(sqrt(x+1)+sqrt(x))']
+
+        rules = list()
+        rules.append(self.rules['Simplify'])
+        rules.append(self.rules['Taylor'])
+        rules.append(self.rules['Horner'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
 
 
 if __name__ == '__main__':

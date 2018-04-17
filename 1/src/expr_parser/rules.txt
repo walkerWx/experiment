@@ -27,6 +27,8 @@ FracReduction : (A*N)/(B*N) -> A/(B);
 FracPartial : A/(A-B) -> 1+B/(A-B);
 
 NumeratorForm : (A+B)/(C+D) -> (A+B)*(A-B)/((C+D)*(A-B));
+NumeratorFrom1 : (A+B)/C -> (A*A-B*B)/(C*(A-B));
+NumeratorFrom2 : (A-B)/C -> (A*A-B*B)/(C*(A+B));
 
 DenominatorForm : (A+B)/(C+D) -> (A+B)*(C-D)/((C+D)*(C-D));
 
