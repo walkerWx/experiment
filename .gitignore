@@ -1,8 +1,9 @@
-klee-output-*/
-klee-last/
 *.bc
 *.pyc
 klee-expression.h
 LOG
 *_o.pth.json
 *.sa.json
+expr_parser/
+*.dSYM/
+.idea/
