@@ -1,4 +1,7 @@
-from .exprParser import *
+import expr_parser.exprParser as parser
+
+
+PRIORITY = {"+":0, "-":0, "*":1, "/":1, "^":2, "**":2}
 
 
 class ParseTreeNode(object):
@@ -21,8 +24,21 @@ class OperatorNode(ParseTreeNode):
 
         if len(self.children) < 2:
             return
+        else:
+            res = ''
+            left_child = self.children[0]
+            if isinstance(left_child, OperatorNode) and PRIORITY[self.operator] > PRIORITY[left_child.operator]:
+                res += '(' + left_child.getText() + ')'
+            else:
+                res += left_child.getText()
+            res += self.operator
 
-        return self.children[0].getText() + self.operator + self.children[1].getText()
+            right_child = self.children[1]
+            if isinstance(right_child, OperatorNode) and PRIORITY[self.operator] >= PRIORITY[right_child.operator]:
+                res += '(' + right_child.getText() + ')'
+            else:
+                res += right_child.getText()
+        return res
 
 
 class VariableNode(ParseTreeNode):
@@ -51,7 +67,11 @@ class AtomNode(ParseTreeNode):
         self.children = children
 
     def getText(self):
-        return ''.join([x.getText() for x in self.children])
+
+        if isinstance(self.children[1], OperatorNode) and PRIORITY[self.children[0].getText()] >= PRIORITY[self.children[1].operator]:
+            return self.children[0].getText() + '(' + self.children[1].getText() + ')'
+        else:
+            return self.children[0].getText() + self.children[1].getText()
 
 
 class SymbolNode(ParseTreeNode):
@@ -71,23 +91,23 @@ class ParseTree:
         self.root = self.build(tree)
 
         '''
-        Create a self defined parser tree according to ANTLR parser tree
+        Create a self defined parser tree by an ANTLR parser tree
         :param tree: ANTLR parser tree
         '''
 
     def build(self, node):
 
-        if isinstance(node, exprParser.VariableContext):
+        if isinstance(node, parser.exprParser.VariableContext):
             return VariableNode(node.getChild(0).getText())
 
-        if isinstance(node, exprParser.FuncContext):
+        if isinstance(node, parser.exprParser.FuncContext):
             funcname = node.getChild(0).getText()
             children = list()
             for i in range(2, node.getChildCount(), 2):
                 children.append(self.build(node.getChild(i)))
             return FunctionNode(funcname, children)
 
-        if isinstance(node, exprParser.ExpressionContext) or isinstance(node, exprParser.MultiplyingExpressionContext) or isinstance(node, exprParser.EquationContext):
+        if isinstance(node, parser.exprParser.ExpressionContext) or isinstance(node, parser.exprParser.MultiplyingExpressionContext) or isinstance(node, parser.exprParser.EquationContext):
             if node.getChildCount() == 1:
                 return self.build(node.getChild(0))
             if node.getChildCount() == 3:
@@ -97,7 +117,7 @@ class ParseTree:
                 children.append(self.build(node.getChild(2)))
                 return OperatorNode(operator, children)
 
-        if isinstance(node, exprParser.PowExpressionContext):
+        if isinstance(node, parser.exprParser.PowExpressionContext):
             if node.getChildCount() == 1:
                 return self.build(node.getChild(0))
             if node.getChildCount() == 3:
@@ -107,7 +127,7 @@ class ParseTree:
                 children.append(self.build(node.getChild(2)))
                 return OperatorNode(operator, children)
 
-        if isinstance(node, exprParser.SignedAtomContext):
+        if isinstance(node, parser.exprParser.SignedAtomContext):
             if node.getChildCount() == 1:
                 return self.build(node.getChild(0))
             if node.getChildCount() == 2:
@@ -116,17 +136,13 @@ class ParseTree:
                 children.append(self.build(node.getChild(1)))
                 return AtomNode(children)
 
-        if isinstance(node, exprParser.AtomContext):
+        if isinstance(node, parser.exprParser.AtomContext):
             if node.getChildCount() == 1:
                 return self.build(node.getChild(0))
             if node.getChildCount() == 3:
-                children = list()
-                children.append(SymbolNode(node.getChild(0).getText()))
-                children.append(self.build(node.getChild(1)))
-                children.append(SymbolNode(node.getChild(2).getText()))
-                return AtomNode(children)
+                return self.build(node.getChild(1))
 
-        if isinstance(node, exprParser.ScientificContext) or isinstance(node, exprParser.ConstantContext):
+        if isinstance(node, parser.exprParser.ScientificContext) or isinstance(node, parser.exprParser.ConstantContext):
             if node.getChildCount() == 1:
                 return SymbolNode(node.getChild(0).getText())
 
@@ -134,5 +150,6 @@ class ParseTree:
 
     def getText(self):
         return self.root.getText()
+
 
 
