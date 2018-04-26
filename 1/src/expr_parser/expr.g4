@@ -60,6 +60,7 @@ func
 
 funcname
    : COS
+   | COSH
    | POWF
    | EXP
    | TAN
@@ -98,6 +99,9 @@ COS
    : 'cos'
    ;
 
+COSH
+   : 'cosh'
+   ;
 
 SIN
    : 'sin'

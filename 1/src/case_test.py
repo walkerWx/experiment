@@ -264,5 +264,71 @@ class TestTransform(unittest.TestCase):
             self.assertTrue(te in equivalent_expr)
 
 
+
+
+    def test_logs(self):
+
+        expr = '(n+1)*ln(n+1)-n*ln(n)-1'
+        target = ['']
+
+
+
+    def test_expax(self):
+
+        expr = 'exp(x)-1'
+        target = ['x*(x*(x*(x*(x/120+1/24)+1/6)+1/2)+1)']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        rules.append(RULES['Taylor'])
+        rules.append(RULES['Horner'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+    def test_exp2(self):
+
+        expr = 'exp(x)-2+exp(-x)'
+        target = ['x**2*(x**2*(x**2/360+1/12)+1)']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        rules.append(RULES['Taylor'])
+        rules.append(RULES['Horner'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+    def test_2sqrt(self):
+
+        expr = 'sqrt(x+1)-sqrt(x)'
+        target = ['1/(sqrt(x)+sqrt(x+1))']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        #rules.append(RULES['Taylor'])
+        rules.append(RULES['NumeratorFrom3'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+
+
+
 if __name__ == '__main__':
     unittest.main()

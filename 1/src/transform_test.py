@@ -3,6 +3,7 @@ import unittest
 from rule import RULES
 from transform import *
 
+
 class TestTransform(unittest.TestCase):
 
     def test_apply_rule_node(self):
@@ -24,4 +25,6 @@ class TestTransform(unittest.TestCase):
         tranfromed_node = apply_rule_node(root, RULES['AssociationPlus'])
         print(tranfromed_node.getText())
         self.assertTrue(tranfromed_node.getText() == 'a+(b+c)')
+
+
 
