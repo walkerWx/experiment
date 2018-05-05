@@ -9,3 +9,4 @@ expr_parser/
 .idea/
 a.out
 herbie.cc
+.DS_Store
