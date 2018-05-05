@@ -7,3 +7,5 @@ LOG
 expr_parser/
 *.dSYM/
 .idea/
+a.out
+herbie.cc
