@@ -1,27 +1,22 @@
-# Makefile for user_programs
-
-#PROJECTHOME = /home/walker/Projects
-PROJECTHOME = /Users/wangxie/Projects
-
-prefix=$(PROJECTHOME)/iRRAM/installed
-exec_prefix=$(PROJECTHOME)/iRRAM/installed
-
-CC = clang -std=c11
-CFLAGS = -g -O2
-CPP = clang -E
 CXX = clang++ -std=c++11
-CXXCPP = clang++ -E -std=c++11
-CXXFLAGS = -g -O2
+CXXFLAGS = -g -O2 -I.
 
-EXAMPLES_BIN = points
+DEPS = points.h
+OBJS = points.o
 
-all: $(EXAMPLES_BIN)
+all: points
+
+%.o: %.cc $(DEPS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+
+points: $(OBJS) main.cc
+	$(CXX) -o $@ $^ $(CXXFLAGS)
 		
 maintainer-clean: distclean
 distclean: clean
 	rm -f Makefile
 
 clean:
-	rm -rf $(EXAMPLES_BIN) points.txt
+	rm -rf points points.txt $(OBJS) *.dSYM
 
 install:
