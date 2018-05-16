@@ -1,21 +1,5 @@
 #include "points.h"
-
-
-template<typename Out>
-void split(const std::string &s, char delim, Out result) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        *(result++) = item;
-    }
-}
-
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, std::back_inserter(elems));
-    return elems;
-}
-
+#include <limits>
 
 
 int main(int argc, char *argv[]) {
@@ -40,12 +24,22 @@ int main(int argc, char *argv[]) {
         } else if (v[0]== "--range") {
             range = true; 
             v[1] = v[1].substr(v[1].find("[")+1, v[1].find("]"));
-            begin = std::stod(split(v[1], ',')[0]);
-            end = std::stod(split(v[1], ',')[1]);
+
+            std::string begin_str = (split(v[1], ',')[0]);
+            std::string end_str = (split(v[1], ',')[1]);
+            if (begin_str == "-INF") {
+                begin = (-1)*std::numeric_limits<double>::max();
+            } else {
+                begin = std::stod(begin_str);
+            }
+            if (end_str == "INF") {
+                end = std::numeric_limits<double>::max();
+            } else {
+                end = std::stod(end_str);
+            }
         }
     }
 
-    std::cout << "Preparing points..." << std::endl;
     std::cout << "Generate [" << num << "] random double values" << std::endl;
     std::cout << "The input dimension is [" << dimension << "]" << std::endl;
     if (range) {
@@ -65,7 +59,6 @@ int main(int argc, char *argv[]) {
                 ofs << double2binary(d) << " ";
             } else {
                 double d = generate_random_double();
-                std::cout << d << std::endl;
                 ofs << double2binary(d) << " ";
             }
         }

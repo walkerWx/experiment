@@ -1,6 +1,22 @@
 import os
 import re
 
+case_input_range = {
+    '2log': {'begin': '0.0', 'end': 'INF'},
+    'exp2': {'begin': '-700', 'end': '700'},
+    'expax': {'begin': '-26', 'end': '26'},
+    'expm1': {'begin': '-700', 'end': '700'},
+    '2nthrt': {'begin': '1.0', 'end': 'INF'},
+    '2cbrt': {'begin': '0.0', 'end': 'INF'},
+    '2sqrt': {'begin': '0.0', 'end': 'INF'},
+    '2isqrt': {'begin': '0.0', 'end': 'INF'},
+    'sqrtexp': {'begin': '-1.0', 'end': '1.0'},
+    'qlog': {'begin': '-1.0', 'end': '1.0'},
+    'logq': {'begin': '-1.0', 'end': '1.0'},
+    'logs': {'begin': '0.0', 'end': 'INF'},
+
+}
+
 
 # 找到所有的compiled.c文件，也就是包含了Herbie优化后程序代码的文件，将其中优化后程序组成一个C++文件
 def generate_herbie_cc():
@@ -84,14 +100,14 @@ def save_irram_cc(execname, irram_code, file):
     main += "\tstd::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);\n"
     main += "\tiRRAM::cout << iRRAM::setRwidth(30);\n"
     main += "\tstd::string " + ",".join([x+"_str" for x in vars]) + ";\n"
-    main += "\tstd::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
+    main += "\tiRRAM::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
     for var in vars:
         main += "\tdouble " + var + "_double = binary2double(" + var + "_str);\n"
     for var in vars:
         main += "\tiRRAM::REAL " + var + "_irram(" + var + "_double);\n"
     main += "\tiRRAM::REAL r_irram = " + funcname + "(" + ", ".join([x+"_irram" for x in vars]) + ");\n"
     main += "\tdouble r_double = r_irram.as_double();\n"
-    main += "\tstd::cout << double2binary(r_double) << std::endl;\n"
+    main += '\tiRRAM::cout << double2binary(r_double) << "\\n";\n'
     main += "}\n"
 
     with open(file, 'w') as f:
@@ -128,6 +144,9 @@ def save_makefile(herbie_bin, irram_bin, file):
 
 def prepare(casename):
 
+    print("[INFO] Preparing for case :" + casename)
+
+    os.chdir("/Users/walker/PycharmProjects/experiment/2/src")
     casedir = "../case/" + casename
     os.makedirs(casedir, exist_ok=True)
 
@@ -160,20 +179,112 @@ def prepare(casename):
         content = [x for x in herbie_code if hb in x][0]
         save_herbie_cc(hb, content, hb_cc)
 
-
     # 生成irram的C++实现
     irram_cc = os.path.join(casedir, 'irram.cc')
     content = irram_code[0]
     save_irram_cc(irram_bin, content, irram_cc)
 
-
     # 生成Makefile
     make_file = os.path.join(casedir, 'Makefile')
     save_makefile(herbie_bin, irram_bin, make_file)
 
-    # 准备随机浮点数
+    # 生成随机浮点数
+    print("[INFO] Preparing random floating points..")
     points_file = os.path.join(casedir, 'points.txt')
+    params_num = len(herbie_code[0].split('\n')[0].split(','))
+    generate_points = './points --dimension=' + str(params_num) + " --file=" + points_file
+    if casename in case_input_range:
+        generate_points += ' --range=[' + case_input_range[casename]['begin'] + ',' + case_input_range[casename]['end'] + ']'
+
+    print("[INFO] Sample Point Command: " + generate_points)
+    os.system('make 2>/dev/null')
+    os.system(generate_points)
+
+    print("[INFO] Compiling herbie executables for " + casename)
+    os.chdir(casedir)
+    os.system('make')
+
+
+def run(casename):
+
+    print("[INFO] Running case " + casename + " ...")
+    os.chdir("/Users/walker/PycharmProjects/experiment/2/src")
+    casedir = "../case/" + casename
+
+    herbie_bin = list()  # Herbie可执行文件名称，实验中每个case会选取多个Herbie优化结果进行实验，因此这里是个list
+    irram_bin = "irram"  # iRRAM可执行文件名称
+
+    herbie_code_file = "herbie.cc"
+
+    # 获取herbie可执行文件
+    with open(herbie_code_file) as f:
+        content = f.read()
+        pattern = re.compile(r'^double (.*?' + casename + r'.*?)\(', re.M)
+        herbie_bin = pattern.findall(content)
+
+    points_file = "points.txt"
+
+    os.chdir(casedir)
+
+    # 删除旧文件
+    for hb in herbie_bin:
+        try:
+            os.remove(hb+"_result.txt")
+        except OSError:
+            pass
+
+    try:
+        os.remove(irram_bin+"_result.txt")
+    except OSError:
+        pass
+
+    with open(points_file) as f:
+        points = f.readlines()
+
+    for point in points:
+        print(point, file=open("point.txt", "w"))
+        print("[INFO] Executing herbie program with input :" + point.replace("\n", ""))
+        for hb in herbie_bin:
+            os.system("./" + hb + " < point.txt >> " + hb + "_result.txt")
+
+    for point in points:
+        print(point, file=open("point.txt", "w"))
+        print("[INFO] Executing irram program with input :" + point.replace("\n", ""))
+        os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt")
+
+
+def analysis(case):
+    print(case)
+    casedir = os.path.join("/Users/walker/PycharmProjects/experiment/2/case", case)
+    os.chdir(os.path.join(casedir))
+
+    result_files = [f for f in os.listdir(casedir) if os.path.isfile(os.path.join(casedir, f)) and f.endswith("result.txt")]
+
+    herbie_reuslt_files = list()
+    for f in result_files:
+        if f.startswith("irram"):
+            irram_result_file = f
+        if f.startswith("herbie"):
+            herbie_reuslt_files.append(f)
+
+    analysis_command = "../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files)
+    print(analysis_command)
+    os.system(analysis_command)
 
 
 if __name__ == "__main__":
-    prepare('cos2')
+
+    irram_code_file = "irram.cc"
+    with open(irram_code_file, "r") as f:
+        content = f.read()
+
+    pattern = re.compile(r'irram_(.*)\(')
+    cases = pattern.findall(content)
+    print(cases)
+
+    dont = ['expq2', 'expq3']
+    done = ['cos2', '2cos', 'invcot', 'sintan', '2atan', 'quadp', 'quadm', '2frac', 'quad2m', 'quad2p', 'tanhf', '3frac', '2tan', '2sin', '2log', 'exp2', 'expax', 'expm1', '2cbrt', '2nthrt', 'sqrtexp', 'qlog', 'logq', '2sqrt', 'logs', '2isqrt']
+    #for case in done:
+        #prepare(case)
+        #run(case)
+        #analysis(case)

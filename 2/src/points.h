@@ -31,4 +31,16 @@ double binary2double(std::string str);
 // 将一个double转换为64位长的01字符串
 std::string double2binary(double d);
 
+// 计算两个以二进制表示的双精度浮点数的相对误差
+double relative_error(std::string irram_res, std::string herbie_res);
+
+// Herbie定义的两个浮点数的误差
+int herbie_error(std::string irram_res, std::string herbie_res);
+
+// 对一个字符转以特定分隔符进行分割
+template<typename Out>
+void split(const std::string &s, char delim, Out result);
+
+std::vector<std::string> split(const std::string &s, char delim);
+
 #endif

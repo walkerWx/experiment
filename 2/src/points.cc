@@ -29,7 +29,8 @@ double generate_random_double() {
 // 统计[begin, end)之间双精度浮点数个数
 uint64_t double_num_between(double begin, double end) {
 
-    if (end <= begin) return 0;
+    if (end == begin) return 0;
+    if (end < begin) return double_num_between(end, begin);
 
     //uint64_t u_begin = *(uint64_t *)(&begin); 
     uint64_t u_end = *(uint64_t *)(&end);
@@ -117,3 +118,50 @@ std::string double2binary(double d) {
     std::bitset<64> bitset64(u);
     return bitset64.to_string();
 }
+
+
+// 计算两个以二进制表示的双精度浮点数的相对误差
+double relative_error(std::string irram_res, std::string herbie_res) {
+    double irram = binary2double(irram_res);
+    double herbie = binary2double(herbie_res);
+    if (irram == 0) {
+        return std::numeric_limits<double>::quiet_NaN(); 
+    }
+    return abs((irram-herbie)/irram);
+}
+
+int log2_64(uint64_t value) {
+    std::bitset<64> b(value); 
+    std::string s = b.to_string();
+    for (unsigned i = 0; i < b.size(); ++i) {
+        if (s[i] == '1') {
+            return 63 - i; 
+        }
+    }
+    return 0;
+}
+
+// Herbie定义的两个浮点数的误差
+int herbie_error(std::string irram_res, std::string herbie_res) {
+    uint64_t u = double_num_between(binary2double(irram_res), binary2double(herbie_res));
+    return log2_64(u);
+}
+
+// 对一个字符转以特定分隔符进行分割
+template<typename Out>
+void split(const std::string &s, char delim, Out result) {
+    std::stringstream ss(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        *(result++) = item;
+    }
+}
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, std::back_inserter(elems));
+    return elems;
+}
+
+
+

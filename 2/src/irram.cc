@@ -61,9 +61,7 @@ iRRAM::REAL irram_sintan(iRRAM::REAL x) {
 
 // Herbie case: sqrtexp
 iRRAM::REAL irram_sqrtexp(iRRAM::REAL x) {
-    iRRAM::REAL a = iRRAM::exp(2*x) - 1;
-    iRRAM::REAL b = iRRAM::exp(x) - 1;
-    return iRRAM::sqrt(a/b);
+    return iRRAM::sqrt(iRRAM::exp(x)+1);
 }
 
 // Herbie case: quad2p
@@ -105,8 +103,8 @@ iRRAM::REAL irram_tanhf(iRRAM::REAL x) {
 
 // Herbie case: qlog
 iRRAM::REAL irram_qlog(iRRAM::REAL x) {
-    iRRAM::REAL a = 1 - iRRAM::log(x);
-    iRRAM::REAL b = 1 + iRRAM::log(x);
+    iRRAM::REAL a = iRRAM::log(1-x);
+    iRRAM::REAL b = iRRAM::log(1+x);
     return a/b;
 }
 
