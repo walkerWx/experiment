@@ -14,12 +14,12 @@ points: $(OBJS) main.cc
 
 analysis: $(OBJS) analysis.cc
 	$(CXX) -o $@ $^ $(CXXFLAGS)
-		
+
 maintainer-clean: distclean
 distclean: clean
 	rm -f Makefile
 
 clean:
-	rm -rf points points.txt $(OBJS) *.dSYM
+	rm -rf points analysis $(OBJS) *.dSYM
 
 install:

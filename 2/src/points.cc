@@ -125,7 +125,10 @@ double relative_error(std::string irram_res, std::string herbie_res) {
     double irram = binary2double(irram_res);
     double herbie = binary2double(herbie_res);
     if (irram == 0) {
-        return std::numeric_limits<double>::quiet_NaN(); 
+        if (herbie == 0) {
+            return 0;
+        }
+        return std::numeric_limits<double>::infinity();
     }
     return abs((irram-herbie)/irram);
 }

@@ -1,3 +1,9 @@
+/*
+    随机浮点数生成程序，设置选项包括了输出的点数的个数，输出的点数的维度，输出文件以及输出范围，浮点数以二进制形式写入到文件
+    用法：point --num=[点数个数] --dimension=[维度] --file=[输出文件] --range=[start, end]
+    示例：point --num=100 --dimension=2 --file=points.txt --range=[0,1]
+*/
+
 #include "points.h"
 #include <limits>
 
