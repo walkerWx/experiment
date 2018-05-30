@@ -157,17 +157,17 @@ def generate_cpp(path_data, path, implement_type='all'):
 
     output_file = {'float': FLOATCPP, 'real': REALCPP}
     f = open(output_file[implement_type], 'w')
-    print (implement['header'], file=f)
-    print (main_func, file=f)
+    print(implement['header'], file=f)
+    print(main_func, file=f)
 
 
 # 稳定性分析主逻辑
 def stable_analysis(path_data, path):
 
     variables = path_data.get_variables()
-    print ('VARIABLES:\t', variables, file=LOGFILE)
-    print ('PATH:\t', path.to_json(), file=LOGFILE)
-    print ('CONSTRAIN:\t',  file=LOGFILE)
+    print('VARIABLES:\t', variables, file=LOGFILE)
+    print('PATH:\t', path.to_json(), file=LOGFILE)
+    print('CONSTRAIN:\t',  file=LOGFILE)
 
     # 只关心用户输入的变量
     input_variables = path_data.get_input_variables()
@@ -186,9 +186,9 @@ def stable_analysis(path_data, path):
         stable = True   # interval stable
         pstable = True  # point stable
 
-        print ('', file=LOGFILE)
-        print ('----------------------------------------------', file=LOGFILE)
-        print ('INTERVAL:\t', intervals[i], file=LOGFILE)
+        print('', file=LOGFILE)
+        print('----------------------------------------------', file=LOGFILE)
+        print('INTERVAL:\t', intervals[i], file=LOGFILE)
 
         # 对待分析区间中所有点，计算其相对误差   
         for point in points[i]:
@@ -214,12 +214,12 @@ def stable_analysis(path_data, path):
                 pstable = False
                 stable = False
 
-            print ('', file=LOGFILE)
-            print ('POINT:\t', point, file=LOGFILE) 
-            print ('FLOAT RESUTL:\t', float_res, file=LOGFILE)
-            print ('REAL RESUTL:\t', real_res, file=LOGFILE)
-            print ('RELATVIE ERROR:\t', error, file=LOGFILE )
-            print ('STABLE:\t', str(pstable), file=LOGFILE )
+            print('', file=LOGFILE)
+            print('POINT:\t', point, file=LOGFILE)
+            print('FLOAT RESUTL:\t', float_res, file=LOGFILE)
+            print('REAL RESUTL:\t', real_res, file=LOGFILE)
+            print('RELATVIE ERROR:\t', error, file=LOGFILE)
+            print('STABLE:\t', str(pstable), file=LOGFILE)
 
             '''
             print ('')
@@ -235,9 +235,9 @@ def stable_analysis(path_data, path):
         else:
             unstable_interval.append(intervals[i])
 
-    print (' ', file=LOGFILE)
-    print ('STABLE INTERVAL:\t', len(stable_interval), file=LOGFILE)
-    print ('UNSTABLE INTERVAL:\t', len(unstable_interval), file=LOGFILE)
+    print(' ', file=LOGFILE)
+    print('STABLE INTERVAL:\t', len(stable_interval), file=LOGFILE)
+    print('UNSTABLE INTERVAL:\t', len(unstable_interval), file=LOGFILE)
 
     # call(['make clean'], shell=True)
 
@@ -252,7 +252,7 @@ def is_stable(path_data, path, interval):
 
     for point in points:
 
-        print (' '.join(point), file=open('input', 'w'))
+        print(' '.join(point), file=open('input', 'w'))
         call(['./float < input > float_output'], shell=True)
         call(['./real < input > real_output'], shell=True)
 

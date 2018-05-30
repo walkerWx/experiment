@@ -8,14 +8,14 @@ FLOATTYPE = 'float'
 REALTYPE = 'real'
 
 # 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 0.0
-FLOATEND = 1.0
+FLOATSTART = 0.00001
+FLOATEND = 0.00002
 
 INTSTART = 1
 INTEND = 10000
 
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 3
+PREC = 7
 
 # 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
 TOLERANCE = 5

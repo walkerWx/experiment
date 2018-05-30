@@ -83,8 +83,8 @@ using namespace iRRAM;
 
     output_file = open(output_directory+path_data.get_program_name()+'_o.cc', 'w')
 
-    print (code_header, file=output_file)
-    print (code_body, file=output_file)
+    print(code_header, file=output_file)
+    print(code_body, file=output_file)
 
 
 

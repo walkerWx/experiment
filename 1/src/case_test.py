@@ -3,6 +3,7 @@ import unittest
 from rule import RULES
 from transform import generate_equivalent_expressions
 
+
 class TestTransform(unittest.TestCase):
 
     def setUp(self):

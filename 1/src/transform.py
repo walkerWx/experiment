@@ -3,6 +3,7 @@ import random
 import codecs
 import copy
 import antlr4
+import itertools
 
 from rule import TransformRule, SympyRule, RULES
 
@@ -14,9 +15,11 @@ from sympy import *
 from sympy.parsing.sympy_parser import *
 
 from expr import *
+from path import Procedure, Loop
+from config import *
 
-'''
-# 在路径上使用规则进行等价转换
+
+# 在路径上使用规则进行等价转换 TODO
 def apply_rule_path(path, rule):
 
     # 在Path中随机选取一个表达式，使用规则对其进行等价变换并返回
@@ -31,7 +34,6 @@ def apply_rule_path(path, rule):
         random_procedure = random.choice(random_procedure.get_path_list())  # 路径中递归地随机选
 
     return None
-'''
 
 
 # 根据表达式字符串构建表达式的解析树
@@ -335,9 +337,9 @@ def generate_equal_procedure(path_data, procedure):
             if '^' in expr:
                 expr = expr.replace('^', '**')
 
-            exec 'expr = ' + expr
+            exec('expr = ' + expr)
             if isinstance(expr, Expression):
-                exec 'expr = str(expr.horner('+ v + '))'
+                exec('expr = str(expr.horner('+ v + '))')
         ep.set_update_expr(variable, expr)
 
     path_data.add_procedure(ep)         # 记得将新产生的procedure加入到path_data
@@ -368,7 +370,7 @@ def generate_equal_procedure(path_data, procedure):
                 path_data.add_procedure(ep)
 
     return equal_procedures
-
+'''
 
 # 生成等价循环模块
 def generate_equal_loop(path_data, loop):
@@ -502,9 +504,8 @@ def reduce_loop(l1, l2):
         return p
 
     return None
-'''
 
-'''
+
 # 生成等价路径
 def generate_equal_path(path_data, path):
 
@@ -561,6 +562,7 @@ def generate_equal_path(path_data, path):
 
 
 
+'''
 # 使用给定的规则生成等价表达式集合
 def generate_equivalent_expressions(expr, rules):
 

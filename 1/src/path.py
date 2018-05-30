@@ -88,7 +88,7 @@ class PathData:
         return self.function_name
 
     def get_variables(self):
-        return self.variables.keys()
+        return list(self.variables.keys())
 
     def get_variable_type(self, var):
         return self.variables[var]
@@ -485,13 +485,3 @@ class Path:
 
         return code
 
-
-
-# Unit test
-'''
-path_file = '../case/harmonic/harmonic.pth'
-pd = PathData(path_file)
-
-for path in pd.get_paths():
-    print(path.to_cpp_code())
-'''
