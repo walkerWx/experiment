@@ -245,33 +245,47 @@ def stable_analysis(path_data, path):
 
 
 # 判断一条路径在给定区间上是否稳定
-def is_stable(path_data, path, interval):
+def shieve_stable_interval(path_data, original_path, opt_path, intervals):
 
-    # 输入区间对应边界点
-    points = interval2points(interval)
+    # 根据path生成可执行文件并编译
+    generate_cpp(path_data, original_path, implement_type='real')
+    generate_cpp(path_data, opt_path, implement_type='float')
+    call(['make'], shell=True)
 
-    for point in points:
+    stable_intevals = list()
+    for interval in intervals:
 
-        print(' '.join(point), file=open('input', 'w'))
-        call(['./float < input > float_output'], shell=True)
-        call(['./real < input > real_output'], shell=True)
+        # 输入区间对应边界点
+        points = interval2points(interval)
 
-        float_res = [line.rstrip('\n') for line in open('float_output')][0]
-        real_res = [line.rstrip('\n') for line in open('real_output')][0]
+        # TODO 判断输入域上的点是否均满足路径约束
 
-        if float_res.startswith('-'):
-            float_res = str(float_res).split('e')[1][1:18].replace('.', '')
-        else:
-            float_res = str(float_res).split('e')[0][:17].replace('.', '')
-        real_res = str(real_res).split('E')[0][1:18].replace('.', '')
+        pstable = True
+        for point in points:
 
-        error = abs(int(float_res)-int(real_res))
+            print(' '.join(point), file=open('input', 'w'))
+            call(['./float < input > float_output'], shell=True)
+            call(['./real < input > real_output'], shell=True)
 
-        if error >= TOLERANCE:
-            return False
+            float_res = [line.rstrip('\n') for line in open('float_output')][0]
+            real_res = [line.rstrip('\n') for line in open('real_output')][0]
 
-    return True
+            if float_res.startswith('-'):
+                float_res = str(float_res).split('e')[1][1:18].replace('.', '')
+            else:
+                float_res = str(float_res).split('e')[0][:17].replace('.', '')
+            real_res = str(real_res).split('E')[0][1:18].replace('.', '')
 
+            error = abs(int(float_res)-int(real_res))
+
+            if error >= TOLERANCE:
+                pstable = False
+                break
+
+        if pstable:
+            stable_intevals.append(interval)
+
+    return stable_intevals
 
 '''
 variables = ['x']

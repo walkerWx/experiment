@@ -4,10 +4,11 @@ import codecs
 import copy
 import antlr4
 import itertools
+import time
+import sympy
 
-from rule import TransformRule, SympyRule, RULES
+from rule import TransformRule, SympyRule, LoopRule, RULES
 
-from expr import *
 from expr_parser.exprParser import exprParser
 from expr_parser.exprLexer import exprLexer
 
@@ -20,19 +21,96 @@ from config import *
 
 
 # 对路径进行随机代数变换，生成等价路径
-def stochastic_transform(path):
+def generate_equal_paths(path, num=10):
 
-    # 在Path中随机选取一个表达式，使用规则对其进行等价变换并返回
+    # 等价路径集合
+    equal_paths = list()
+    equal_paths.append(path)
 
-    random_procedure = random.choice(path.get_path_list())
-    while not isinstance(random_procedure, Procedure):
+    start_ticks = time.time()
+    run_ticks = 0
+    while len(equal_paths) < num and not run_ticks > 5:  # 设置30秒的超时时间
 
-        if not isinstance(random_procedure, Loop):
-            raise TypeError
-        random_procedure = random.choice(random_procedure.get_loop_body())  # 在循环体中随机选取一条路径
-        random_procedure = random.choice(random_procedure.get_path_list())  # 路径中递归地随机选
+        run_ticks = time.time() - start_ticks
 
-    return None
+        # 随机选取规则 TODO: 按概率选取规则
+        # rule = random.choice(RULES)
+        rules = list()
+        rules.append(LoopRule('LoopReduce'))
+        rules.append(LoopRule('LoopReverse'))
+
+        rule = random.choice(rules)
+
+        # 随机选取等价路径
+        path = random.choice(equal_paths)
+
+        epath = apply_rule_path(path, rule)
+
+        if not epath:
+            continue
+
+        equal_paths.append(epath)
+
+    equal_paths.remove(path)
+    return equal_paths
+
+
+def apply_rule_path(path, rule):
+
+    epath = copy.deepcopy(path)
+
+    if isinstance(rule, LoopRule):
+
+        # 循环规约规则
+        if rule.rule_name == "LoopReduce":
+
+            pl = epath.get_path_list()
+
+            # 可运用规则的候选循环下标
+            candidate_index = list()
+            for i in range(len(pl) - 1):
+                if isinstance(pl[i], Loop) and isinstance(pl[i+1], Loop) and reduce_loop(pl[i], pl[i+1]):
+                    candidate_index.append(i)
+
+            # 无法运用该条规则
+            if not candidate_index:
+                return None
+
+            index = random.choice(candidate_index)
+            p = reduce_loop(pl[index], pl[index+1])
+
+            # 删除原有循环
+            del pl[index+1]
+            del pl[index]
+
+            # 添加规约后的procedure
+            pl.insert(index, p)
+
+        # 循环逆序规则
+        if rule.rule_name == "LoopReverse":
+
+            pl = epath.get_path_list()
+
+            # 可运用规则的候选循环下标
+            candidate_index = list()
+            for i in range(len(pl)):
+                if isinstance(pl[i], Loop) and generate_equal_loop(pl[i]):
+                    candidate_index.append(i)
+
+            # 无法运用该条规则
+            if not candidate_index:
+                return None
+
+            index = random.choice(candidate_index)
+            l = generate_equal_loop(pl[index])
+
+            # 删除原有循环
+            del pl[index]
+
+            # 添加规约后的procedure
+            pl.insert(index, l)
+
+    return epath
 
 
 # 根据表达式字符串构建表达式的解析树
@@ -371,10 +449,9 @@ def generate_equal_procedure(path_data, procedure):
     return equal_procedures
 '''
 
-# 生成等价循环模块
-def generate_equal_loop(path_data, loop):
 
-    equal_loops = list()
+# 生成等价循环模块
+def generate_equal_loop(loop):
 
     # 累加累乘规则，针对类似于for(i=0;i<n;++i)这样的循环判定是否为累加或者累乘，然后逆序操作
 
@@ -393,7 +470,7 @@ def generate_equal_loop(path_data, loop):
                 if len(loop_body_path.get_path_list()) == 1:
                     loop_body_procedure = loop_body_path.get_path_list()[0]
                     if loop_body_procedure.get_update_expr(tv) == tv+'+1':
-                        print("+1")
+
                         # 判断其他变量是否为累加、累乘的更新形式
                         can_transform = True
 
@@ -413,8 +490,8 @@ def generate_equal_loop(path_data, loop):
 
                         if can_transform:
                             el = copy.deepcopy(loop)
-                            el.set_id(el.get_id() + '_REVERSE')
-                            vstart =  el.get_initialize_expr(tv)
+
+                            vstart = el.get_initialize_expr(tv)
                             vend = loop_body_path.get_constrain().split('<')[1]
 
                             el.set_initialize_expr(tv, vend+'-1')
@@ -424,16 +501,14 @@ def generate_equal_loop(path_data, loop):
                             loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
                             loop_body_path.set_constrain(tv+'>='+vstart)
                             loop_body_procedure = loop_body_path.get_path_list()[0]
-                            loop_body_procedure.set_id(loop_body_procedure.get_id()+'_SUM')
                             loop_body_procedure.set_update_expr(tv, tv+'-1')
-                            path_data.add_procedure(loop_body_procedure)
 
                             loop_body_path = p1 if len(p1.get_path_list()) == 0 else p2
                             loop_body_path.set_constrain("!("+tv+">="+vstart+")")
-                            equal_loops.append(el)
-                            path_data.add_loop(el)
 
-    return equal_loops
+                            return el
+
+    return None
 
 
 # 尝试将两个循环进行规约，成功则返回规约后的结果(一个Loop或者Procedure)，否则返回None
@@ -478,28 +553,27 @@ def reduce_loop(l1, l2):
 
     variables = list(set([x[0] for x in l1_procedure + l2_procedure]))
 
-    init_values = ['init_'+x for x in variables]
-
     exec_stmts = list()
-    exec_stmts.append("var('" + ' '.join(init_values) + "')")
-    exec_stmts += [x+'=init_'+x for x in variables]
+    exec_stmts.append(",".join(variables) + " = sympy.symbols('" + ' '.join(variables) + "')")
     exec_stmts += [x[0]+'='+x[1] for x in l1_procedure+l2_procedure]
-
-    print (variables)
 
     for x in exec_stmts:
         exec(x)
 
-    exec_res = [[x, str(eval(str(x)))] for x in variables]
-    exec_res = [x for x in exec_res if str('init_'+x[0]) != x[1]]
+    exec_res = list()
+    for v in variables:
+        exec_res.append([v, str(eval(v))])
+
+    # 去除循环过程中不变的变量
+    exec_res = [x for x in exec_res if x[0] != x[1]]
 
     if len(exec_res) == 0:
         # 循环相当于啥都没做，返回一个空的Procedure
-        p = Procedure('empty_procedure', [])
+        p = Procedure([])
         return p
-    elif len(exec_res) == 1 and exec_res[0][1] in init_values:
+    elif len(exec_res) == 1 and exec_res[0][1] in variables:
         # 循环在对一个变量不停的赋值，循环n次的效果与一次赋值相同
-        p = Procedure('REDUCE_'+l1.get_id()+'_'+l2.get_id(), [[exec_res[0][0], exec_res[0][1][5:]]])
+        p = Procedure(exec_res)
         return p
 
     return None

@@ -6,6 +6,7 @@ import os
 
 from mergePath import *
 from stableAnalysis import *
+from transform import *
 
 
 # 将一个dict数据结构输出到文件
@@ -18,6 +19,7 @@ def output_json(content, file):
 def optimize(path_file):
 
     path_data = PathData(path_file)
+    print(path_data.to_json())
 
     # 实验用例所在路径
     casedir = ''
@@ -32,7 +34,7 @@ def optimize(path_file):
 
     for path in path_data.get_paths():
 
-        print(path.to_json())
+        # TODO 稳定性分析应该放在此循环外，首先将输入域根据路径划分，再进行优化
 
         # 稳定性分析
         res = stable_analysis(path_data, path)
@@ -50,20 +52,31 @@ def optimize(path_file):
             float_path.set_implement(FLOATTYPE)
             opt_path_data.add_path(float_path)
 
+        # 所有不稳定输入域均已经优化
+        if not unstable_intervals:
+            break
+
         # 不稳定部分进行等价转化形成等价计算路径集合
-        equal_paths = generate_equal_paths(path, num=10)
+        equal_paths = generate_equal_paths(path, num=2)
 
         for ep in equal_paths:
+
+            print(ep.to_json())
 
             # 所有不稳定输入域均已经优化
             if not unstable_intervals:
                 break
 
             # 在该等价计算路径下计算稳定的不稳定输入域
-            ep_stable_intervals = [t for t in unstable_intervals if is_stable(path_data, ep, t)]
+            ep_stable_intervals = shieve_stable_interval(path_data, path, ep, unstable_intervals)
 
             # 将该等价路径与稳定区间加入到结果中
             if ep_stable_intervals:
+
+                print("stable intervals on path")
+                print(ep_stable_intervals)
+                print(ep.to_json())
+
                 opt_path = copy.deepcopy(ep)
                 opt_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], ep_stable_intervals))
                 opt_path.set_implement(FLOATTYPE)
@@ -81,7 +94,7 @@ def optimize(path_file):
 
     # 结果输出到文件
     opt_path_file = os.path.join(casedir, opt_path_data.get_program_name()+'_o.pth.json')
-    output_json(opt_path_data, opt_path_file)
+    output_json(opt_path_data.to_json(), opt_path_file)
 
     # 路径合并
     merge_path(opt_path_file)

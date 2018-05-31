@@ -24,6 +24,12 @@ class SympyRule:
         self.rule_name = rule_name
 
 
+class LoopRule:
+
+    def __init__(self, rule_name):
+        self.rule_name = rule_name
+
+
 def initialize_transform_rules():
 
     # 文件中的自定义转换规则
@@ -53,13 +59,20 @@ def initialize_sympy_rules():
     return {SympyRule('Simplify'), SympyRule('Expand'), SympyRule('Horner'), SympyRule('Taylor')}
 
 
+def initialize_loop_rules():
+    return {LoopRule('LoopReduce'), LoopRule('LoopReverse')}
+
+
 TRANSFORM_RULES = initialize_transform_rules()
 SYMPY_RULES = initialize_sympy_rules()
+LOOP_RULES = initialize_loop_rules()
 
 RULES = dict()
 for r in TRANSFORM_RULES:
     RULES[r.rule_name] = r
 for r in SYMPY_RULES:
+    RULES[r.rule_name] = r
+for r in LOOP_RULES:
     RULES[r.rule_name] = r
 
 

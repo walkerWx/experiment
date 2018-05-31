@@ -1,29 +1,46 @@
-/**
- * From "Introduction to Numerical Ordinary and Partial Differential Equation Using" Chapter 5.3, Page 103
- * For computing HarmonicNumber[x, 2], the limitation is 6/pi
- */
 
 #include <iostream>
 #include <iomanip>
 #include <limits>
 #include <cmath>
 
+#include "iRRAM.h"
+#include "../../src/gamma.h"
+
+#define euler_gamma (0.57721566490)
+
 using namespace std;
+using namespace iRRAM;
 
-double evaluate(int n) {
-    double initval = 0;
-    for (int i=n-1; i>0; --i) {
-        initval += (1/((double)i*i));
-        //initval += (1/sqrt(i));
-    }
-    return initval;
+
+double evaluate(int n)
+{
+	double initval;
+
+	if((true)&&((10000<=n&&n<=10099))) {
+		initval = 0;
+		{
+			int i;
+			i = n-1;
+			while(true) {
+				if(i>=1) {
+					initval = initval+1.0/(i*i);
+					i = i-1;
+				}
+				if(!(i>=1)) {
+					break;
+				}
+			}
+		}
+	}
+
+	return initval;
 }
 
-int main() {
-    int n=70712;
-    cin >> n;
-    double res = evaluate(n);
-    cout << scientific << setprecision(numeric_limits<double>::digits10) << res << endl;
+void compute(){
+	int n;
+	std::cin >> n;
+	std::cout << scientific << setprecision(numeric_limits<double>::digits10);
+	std::cout << evaluate(n) << endl;
 }
-
 

@@ -123,7 +123,7 @@ class Loop:
             self.loop_body.append(Path(lb))
 
     def get_variables(self):
-        return self.variables.keys()
+        return list(self.variables.keys())
 
     def get_variable_type(self, var):
         return self.variables[var]
@@ -214,9 +214,6 @@ class Procedure:
 
         self.procedure = procedure_data  # 一个 n x 2 大小的列表，对于列表中每一项procedure[i]，procedure[i][0]为更新的变量名，procedure[i][1]为更新式
 
-        for i in range(len(self.procedure)):
-            self.procedure[i][1] = str(self.procedure[i][1])
-
     def get_update_expr(self, var):
         for i in range(len(self.procedure)):
             if self.procedure[i][0] == var:
@@ -277,6 +274,7 @@ class Procedure:
             origin_vars = path_data.get_variables()
             real_vars = [x+'_real' for x in origin_vars]
 
+            print(self.procedure)
             var = convert_expr(self.procedure[i][0], origin_vars, real_vars)
             update_expr = convert_expr(self.procedure[i][1], origin_vars, real_vars)
 
