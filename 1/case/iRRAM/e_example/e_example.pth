@@ -4,33 +4,45 @@
     "variables" : {"n": "integer", "z": "decimal"},
     "input_variables": ["n"],
     "return": "z",
-    "paths": [{"constrain": "true", "path": ["procedure:p1", "loop:l1"]}],
-    "loops": {
-              "l1": {
-              "variables":{"i": "integer", "y": "decimal"},
-              "initialize":{"i": "1", "y": "1.0"},
-              "loop_body":[{
-                           "constrain": "i<n",
-                           "path": ["procedure:p2"],
-                           "break": "false"
-                          },
-                          {
-                           "constrain": "!(i<n)",
-                           "path":[],
-                           "break": "true"
-                          }
-                         ]
-             }
-    },
-
-    "procedures": {
-        "p1": [
-["z", "1"]
-        ],
-        "p2": [
-            ["y", "y/i"],
-            ["z", "z+y"],
-            ["i", "i+1"]
-        ]
-    }
+    "paths": [
+                {
+                    "constrain": "true",
+                    "path": [
+                        {
+                            "type": "procedure",
+                            "content": [["z", "1"]]
+                        },
+                        {
+                            "type": "loop",
+                            "content": {
+                                "variables":{"i": "integer", "y": "decimal"},
+                                "initialize":{"i": "1", "y": "1.0"},
+                                "loop_body":
+                                [
+                                    {
+                                        "constrain": "i<n",
+                                        "path":
+                                        [
+                                            {
+                                                "type": "procedure",
+                                                "content": [
+                                                    ["y", "y/i"],
+                                                    ["z", "z+y"],
+                                                    ["i", "i+1"]
+                                                ]
+                                            }
+                                        ],
+                                        "break": "false"
+                                    },
+                                    {
+                                        "constrain": "!(i<n)",
+                                        "path":[],
+                                        "break": "true"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+             ]
 }

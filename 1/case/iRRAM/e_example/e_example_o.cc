@@ -17,7 +17,7 @@ double evaluate(int n)
 {
 	double z;
 
-	if((true)&&((1<=n&&n<=9999))) {
+	if((true)&&((100000<=n&&n<=100099))) {
 		z = 1;
 		{
 			int i;

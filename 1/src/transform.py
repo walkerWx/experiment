@@ -19,13 +19,12 @@ from path import Procedure, Loop
 from config import *
 
 
-# 在路径上使用规则进行等价转换 TODO
-def apply_rule_path(path, rule):
+# 对路径进行随机代数变换，生成等价路径
+def stochastic_transform(path):
 
     # 在Path中随机选取一个表达式，使用规则对其进行等价变换并返回
 
     random_procedure = random.choice(path.get_path_list())
-
     while not isinstance(random_procedure, Procedure):
 
         if not isinstance(random_procedure, Loop):

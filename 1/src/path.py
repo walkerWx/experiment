@@ -53,33 +53,15 @@ class PathData:
 
         self.return_expr = data['return']
 
-        # initialize procedures
-        self.procedures = None
-        self.init_procedures()
-
-        # initialize loops
-        self.loops = None
-        self.init_loops()
-
         # initialize paths
         # must initialize loops and procedures first as when initialize paths we need loops and procedures information
         self.paths = None
         self.init_paths()
 
-    def init_procedures(self):
-        self .procedures = dict()
-        for procedure_id in self.data['procedures'].keys():
-            self.procedures[procedure_id] = self.get_procedure(procedure_id)
-
-    def init_loops(self):
-        self.loops = dict()
-        for loop_id in self.data['loops'].keys():
-            self.loops[loop_id] = self.get_loop(loop_id)
-
     def init_paths(self):
         self.paths = list()
         for path in self.data['paths']:
-            self.paths.append(Path(path, self))
+            self.paths.append(Path(path))
 
     def get_program_name(self):
         return self.program_name
@@ -96,49 +78,11 @@ class PathData:
     def get_input_variables(self):
         return self.input_variables
 
-    # 返回path文件中所包含的所有变量，包括全局变量以及循环中涉及到的临时变量
-    def get_all_variables(self):
-        all_variables = list()
-        all_variables.extend(self.get_variables())
-        for loop_id, loop in self.get_loops().items():
-            all_variables.extend(loop.get_variables())
-        return all_variables
-
     def get_paths(self):
         return self.paths
 
     def get_return_expr(self):
         return self.return_expr
-
-    def get_loops(self):
-        return self.loops
-
-    def get_loop(self, loop_id):
-        if loop_id in self.loops.keys():
-            return self.loops[loop_id]
-        elif loop_id in self.data['loops'].keys():
-            self.loops[loop_id] = Loop(loop_id, self)
-            return self.loops[loop_id]
-        else:
-            return None
-
-    def add_loop(self, loop):
-        self.loops[loop.get_id()] = loop
-
-    def get_procedures(self):
-        return self.procedures
-
-    def get_procedure(self, procedure_id):
-        if procedure_id in self.procedures.keys():
-            return self.procedures[procedure_id]
-        elif procedure_id in self.data['procedures'].keys():
-            self.procedures[procedure_id] = Procedure(procedure_id, self.data['procedures'][procedure_id])
-            return self.procedures[procedure_id]
-        else:
-            return None
-
-    def add_procedure(self, procedure):
-        self.procedures[procedure.get_id()] = procedure
 
     def clear_paths(self):
         self.paths = list()
@@ -148,29 +92,12 @@ class PathData:
 
     def to_json(self):
 
-        # 最后输出时需要把中间生成的一些新的Procedure以及Loop添加进去
-        for path in self.paths:
-            pl = path.get_path_list()
-            for t in pl:
-                if isinstance(t, Loop) and not self.get_loop(t.get_id()):
-                    self.add_loop(t)
-                if isinstance(t, Procedure) and not self.get_procedure(t.get_id()):
-                    self.add_procedure(t)
-
         data = dict()
         data['program_name'] = self.get_program_name()
         data['function_name'] = self.get_function_name()
         data['variables'] = self.variables
         data['input_variables'] = self.input_variables
         data['return'] = self.return_expr
-
-        data['loops'] = dict()
-        for loop_id, loop in self.get_loops().items():
-            data['loops'][loop_id] = loop.to_json()
-
-        data['procedures'] = dict()
-        for procedure_id, procedure in self.get_procedures().items():
-            data['procedures'][procedure_id] = procedure.to_json()
 
         data['paths'] = [path.to_json() for path in self.paths]
 
@@ -186,23 +113,14 @@ class Loop:
 
     """Loop封装类, 一个Loop指代一段循环的代码，包括了所涉及到的临时变量和它们的初始化，循环体等内容"""
 
-    def __init__(self, id, path_data):
+    def __init__(self, loop_json):
 
-        loop_json = path_data.data['loops'][id]
-
-        self.id = id  # 标记该循环体的id
         self.variables = loop_json['variables']  # 变量列表，字典结构{var:var_type;}，包含了循环涉及到的所有变量以及类型信息
         self.initialize = loop_json['initialize']  # 变量初始化列表，字典结构{var: init_expr;}
         self.loop_body = list()  # 循环体，为一个Path列表
 
         for lb in loop_json['loop_body']:
-            self.loop_body.append(Path(lb, path_data))
-
-    def get_id(self):
-        return self.id
-
-    def set_id(self, new_id):
-        self.id = new_id
+            self.loop_body.append(Path(lb))
 
     def get_variables(self):
         return self.variables.keys()
@@ -228,9 +146,11 @@ class Loop:
 
     def to_json(self):
         data = dict()
-        data['variables'] = self.variables
-        data['initialize'] = self.initialize
-        data['loop_body'] = [p.to_json() for p in self.get_loop_body()]
+        data["type"] = "loop"
+        data["content"] = dict()
+        data["content"]['variables'] = self.variables
+        data["content"]['initialize'] = self.initialize
+        data["content"]['loop_body'] = [p.to_json() for p in self.get_loop_body()]
         return data
 
     def to_cpp_code(self, implement_type, indent=0):
@@ -290,27 +210,12 @@ class Procedure:
 
     """Procedure封装类, 一个Procedure指代一段顺序执行的代码，我们用所涉及到的所有变量的更新式来记录这段代码所代表的语义"""
 
-    def __init__(self, id, procedure_data):
+    def __init__(self, procedure_data):
 
-        self.id = id  # 标记该procedure的id
         self.procedure = procedure_data  # 一个 n x 2 大小的列表，对于列表中每一项procedure[i]，procedure[i][0]为更新的变量名，procedure[i][1]为更新式
-
-        '''
-        if path_data:
-            # self.procedure = path_data.data['procedures'][id]
-            self.procedure = procedure_data
-        else:
-            self.procedure = []
-        '''
 
         for i in range(len(self.procedure)):
             self.procedure[i][1] = str(self.procedure[i][1])
-
-    def get_id(self):
-        return self.id
-
-    def set_id(self, new_id):
-        self.id = new_id
 
     def get_update_expr(self, var):
         for i in range(len(self.procedure)):
@@ -332,7 +237,12 @@ class Procedure:
         return 'procedure'
 
     def to_json(self):
-        return self.procedure
+
+        data = dict()
+        data["type"] = "procedure"
+        data["content"] = self.procedure
+
+        return data
 
     # 将常数显示转换到REAL类型
     @staticmethod
@@ -380,7 +290,7 @@ class Path:
 
     """单条路径的封装类，包含了约束、实现类型以及对应的路径信息"""
 
-    def __init__(self, path_json, path_data):
+    def __init__(self, path_json):
 
         self.path_list = None  # Path 包含的具体信息，是一个Procedure与Loop的列表
         self.constrain = None  # Path 对应的约束
@@ -403,10 +313,10 @@ class Path:
         # path_list为一个Procedure与Loop的列表，代表了一条路径
         self.path_list = []
         for p in path_json['path']:
-            if p.startswith('procedure'):
-                self.path_list.append(path_data.get_procedure(p[len('procedure:'):]))
-            elif p.startswith('loop'):
-                self.path_list.append(path_data.get_loop(p[len('loop:'):]))
+            if p["type"] == "procedure":
+                self.path_list.append(Procedure(p["content"]))
+            elif p["type"] == "loop":
+                self.path_list.append(Loop(p["content"]))
 
     def set_implement(self, implement):
         self.implement = implement
@@ -434,7 +344,7 @@ class Path:
         data['constrain'] = self.constrain
         data['path'] = list()
         for p in self.get_path_list():
-            data['path'].append(p.get_type() + ':' + p.get_id())
+            data['path'].append(p.to_json())
 
         if self.implement:
             data['implement'] = self.implement

@@ -1,16 +1,11 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import sys
-import random
 import copy
+import os
 
 from mergePath import *
 from stableAnalysis import *
-from path import *
-
-from rule import RULES
-from transform import apply_rule_path
 
 
 # 将一个dict数据结构输出到文件
@@ -37,82 +32,63 @@ def optimize(path_file):
 
     for path in path_data.get_paths():
 
+        print(path.to_json())
+
         # 稳定性分析
         res = stable_analysis(path_data, path)
         stable_intervals = res['stable']
         unstable_intervals = res['unstable']
 
-        # 将稳定性分析结果写入JSON文件，以sa结尾，代表stable analysis
+        # 将稳定性分析结果写入文件
         sa_file = os.path.join(casedir, path_data.get_program_name() + '.sa.json')
         output_json(res, sa_file)
 
         # 直接将稳定部分使用浮点精度实现加入到优化后路径文件中
         if stable_intervals:
-            new_path = copy.deepcopy(path)
-            new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], stable_intervals))
-            new_path.set_implement(FLOATTYPE)
-            opt_path_data.add_path(new_path)
+            float_path = copy.deepcopy(path)
+            float_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], stable_intervals))
+            float_path.set_implement(FLOATTYPE)
+            opt_path_data.add_path(float_path)
 
-        # 不稳定部分进行等价转化后寻找其稳定形式
-        transform_num = 0
-        equal_paths = [path]
+        # 不稳定部分进行等价转化形成等价计算路径集合
+        equal_paths = generate_equal_paths(path, num=10)
 
-        while unstable_intervals and transform_num < TRANSFORM_NUM:
+        for ep in equal_paths:
 
-            transform_num += 1
+            # 所有不稳定输入域均已经优化
+            if not unstable_intervals:
+                break
 
-            # 随机选取一条等价路径
-            p = random.choice(equal_paths)
-
-            # 随机选取一条规则
-            r = random.choice(list(RULES))
-
-            # 在路径是运用规则生成新的等价路径
-            ep = apply_rule_path(p, r)
-
-            if not ep:
-                continue
-
-            if ep.get_implement():
-                new_path = copy.deepcopy(ep)
-                opt_path_data.add_path(new_path)
-
-            # 筛选出等价路径下稳定的区间
+            # 在该等价计算路径下计算稳定的不稳定输入域
             ep_stable_intervals = [t for t in unstable_intervals if is_stable(path_data, ep, t)]
 
             # 将该等价路径与稳定区间加入到结果中
             if ep_stable_intervals:
-                new_path = copy.deepcopy(ep)
-                new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], ep_stable_intervals))
-                new_path.set_implement(FLOATTYPE)
-                opt_path_data.add_path(new_path)
+                opt_path = copy.deepcopy(ep)
+                opt_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], ep_stable_intervals))
+                opt_path.set_implement(FLOATTYPE)
+                opt_path_data.add_path(opt_path)
 
             # 去掉已经稳定的区间
             unstable_intervals = [t for t in unstable_intervals if t not in ep_stable_intervals]
 
-            #  变换后得到的等价形式依旧加入到等价计算形式的列表中
-            equal_paths.append(ep)
-
         # 未找到稳定的等价路径的区间，使用高精度实现
         if unstable_intervals:
-            new_path = copy.deepcopy(path)
-            new_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], unstable_intervals))
-            new_path.set_implement(REALTYPE)
-            opt_path_data.add_path(new_path)
+            real_path = copy.deepcopy(path)
+            real_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], unstable_intervals))
+            real_path.set_implement(REALTYPE)
+            opt_path_data.add_path(real_path)
 
-    # print(opt_path_data.to_json())
     # 结果输出到文件
-    output_directory = ''
-    if path_file.rfind('/') != -1:
-        output_directory = path_file[:path_file.rfind('/')+1]
-    output_file = output_directory+path_data.get_program_name()+'_o.pth.json'
-    opt_path_data.output_json(output_file)
+    opt_path_file = os.path.join(casedir, opt_path_data.get_program_name()+'_o.pth.json')
+    output_json(opt_path_data, opt_path_file)
 
-    merge_path(output_file)
+    # 路径合并
+    merge_path(opt_path_file)
 
 
 if __name__ == "__main__":
-    optimize('../case/herbie/cos2/cos2.pth')
+    optimize('../case/iRRAM/jmmuller/jmmuller.pth')
 
 '''
 mergePath('../case/midarc/midarc.opt.pth')
