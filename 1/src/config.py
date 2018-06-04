@@ -17,8 +17,8 @@ INTEND = 100
 # 区间拆分粒度，即划分小区间的大小 10^(-PREC)
 PREC = 7
 
-# 浮点精度与高精度程序的容许的相对误差，容许误差范围内认为是稳定的
-TOLERANCE = 5
+# 浮点精度与高精度程序的容许的比特误差，容许误差范围内认为是稳定的
+TOLERANCE = 4
 
 # 使用规则进行等价转化尝试次数
 TRANSFORM_NUM = 1
@@ -32,6 +32,7 @@ FLOAT['integer'] = 'int'
 FLOAT['cin'] = 'std::cin'
 FLOAT['cout'] = 'std::cout'
 FLOAT['header'] = '''
+#include "points.h"
 #include <iostream>
 #include <iomanip>
 #include <cmath>
@@ -47,6 +48,7 @@ REAL['integer'] = 'int'
 REAL['cin'] = 'iRRAM::cin'
 REAL['cout'] = 'iRRAM::cout'
 REAL['header'] = '''
+#include "points.h"
 #include "iRRAM.h"
 #include "gamma.h"
 

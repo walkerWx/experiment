@@ -17,10 +17,3 @@ REAL evaluate(int n) {
     return initval;
 }
 
-void compute() {
-    int n = 70712;
-    cin >> n;
-    REAL res = evaluate(n);
-    cout << setRwidth(26) << res << "\n";
-}
-

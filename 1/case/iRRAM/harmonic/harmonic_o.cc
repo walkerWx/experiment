@@ -17,17 +17,17 @@ double evaluate(int n)
 {
 	double initval;
 
-	if((true)&&((10000<=n&&n<=10099))) {
+	if((true)&&((1000<=n&&n<=1099))) {
 		initval = 0;
 		{
 			int i;
-			i = n-1;
+			i = 1;
 			while(true) {
-				if(i>=1) {
+				if(i<n) {
 					initval = initval+1.0/(i*i);
-					i = i-1;
+					i = i+1;
 				}
-				if(!(i>=1)) {
+				if(!(i<n)) {
 					break;
 				}
 			}

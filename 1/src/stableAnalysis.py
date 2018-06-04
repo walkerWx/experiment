@@ -7,6 +7,7 @@ from decimal import *
 from config import *
 
 import itertools
+import subprocess
 
 getcontext().prec = 20
 
@@ -152,7 +153,11 @@ def generate_cpp(path_data, path, implement_type='all'):
     for m in path.get_path_list():
         main_func += m.to_cpp_code(implement_type, indent=1)
 
-    main_func += '\t' + implement['cout'] + ' << ' + path_data.get_return_expr() + ' << "\\n";\n'
+    if implement == FLOAT:
+        main_func += '\t' + implement['cout'] + ' << double2binary(' + path_data.get_return_expr() + ') << "\\n";\n'
+    elif implement == REAL:
+        main_func += '\t' + implement['cout'] + ' << double2binary(' + path_data.get_return_expr() + '.as_double()) << "\\n";\n'
+
     main_func += '}\n'
 
     output_file = {'float': FLOATCPP, 'real': REALCPP}
@@ -190,45 +195,25 @@ def stable_analysis(path_data, path):
         print('----------------------------------------------', file=LOGFILE)
         print('INTERVAL:\t', intervals[i], file=LOGFILE)
 
-        # 对待分析区间中所有点，计算其相对误差   
+        # 对待分析区间中所有点，计算其比特误差
         for point in points[i]:
 
             pstable = True
-            
-            print (' '.join(point), file=open('input', 'w'))
-            call(['./float < input > float_output'], shell=True)
-            call(['./real < input > real_output'], shell=True)
 
-            float_res = [line.rstrip('\n') for line in open('float_output')][0]
-            real_res = [line.rstrip('\n') for line in open('real_output')][0]
+            float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
+            real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
+            bits_error = int(subprocess.run(['./bits_error'], stdout=subprocess.PIPE, input=float_res+' '+real_res, encoding='ascii').stdout)
 
-            if float_res.startswith('-'):
-                float_res = str(float_res).split('e')[1][1:18].replace('.', '')
-            else:
-                float_res = str(float_res).split('e')[0][:17].replace('.', '')
-            real_res = str(real_res).split('E')[0][1:18].replace('.', '')
-
-            error = abs(int(float_res)-int(real_res))
-
-            if error >= TOLERANCE:
+            if bits_error >= TOLERANCE:
                 pstable = False
                 stable = False
 
             print('', file=LOGFILE)
             print('POINT:\t', point, file=LOGFILE)
-            print('FLOAT RESUTL:\t', float_res, file=LOGFILE)
-            print('REAL RESUTL:\t', real_res, file=LOGFILE)
-            print('RELATVIE ERROR:\t', error, file=LOGFILE)
+            print('FLOAT RESULT:\t', float_res, file=LOGFILE)
+            print('REAL RESULT:\t', real_res, file=LOGFILE)
+            print('BITS ERROR:\t', bits_error, file=LOGFILE)
             print('STABLE:\t', str(pstable), file=LOGFILE)
-
-            '''
-            print ('')
-            print ('POINT:\t', point) 
-            print ('FLOAT RESUTL:\t', '%.20E' % float_res)
-            print ('REAL RESUTL:\t', '%.20E' % real_res)
-            print ('RELATVIE ERROR:\t','%.20E' % relative_error)
-            print ('STABLE:\t', str(stable))
-            '''
 
         if stable:
             stable_interval.append(intervals[i])
@@ -239,20 +224,18 @@ def stable_analysis(path_data, path):
     print('STABLE INTERVAL:\t', len(stable_interval), file=LOGFILE)
     print('UNSTABLE INTERVAL:\t', len(unstable_interval), file=LOGFILE)
 
-    # call(['make clean'], shell=True)
-
     return {'stable': stable_interval, 'unstable': unstable_interval}
 
 
 # 判断一条路径在给定区间上是否稳定
-def shieve_stable_interval(path_data, original_path, opt_path, intervals):
+def filter_stable_interval(path_data, original_path, opt_path, intervals):
 
     # 根据path生成可执行文件并编译
     generate_cpp(path_data, original_path, implement_type='real')
     generate_cpp(path_data, opt_path, implement_type='float')
     call(['make'], shell=True)
 
-    stable_intevals = list()
+    stable_intervals = list()
     for interval in intervals:
 
         # 输入区间对应边界点
@@ -263,29 +246,18 @@ def shieve_stable_interval(path_data, original_path, opt_path, intervals):
         pstable = True
         for point in points:
 
-            print(' '.join(point), file=open('input', 'w'))
-            call(['./float < input > float_output'], shell=True)
-            call(['./real < input > real_output'], shell=True)
+            float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
+            real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
+            bits_error = int(subprocess.run(['./bits_error'], stdout=subprocess.PIPE, input=float_res+' '+real_res, encoding='ascii').stdout)
 
-            float_res = [line.rstrip('\n') for line in open('float_output')][0]
-            real_res = [line.rstrip('\n') for line in open('real_output')][0]
-
-            if float_res.startswith('-'):
-                float_res = str(float_res).split('e')[1][1:18].replace('.', '')
-            else:
-                float_res = str(float_res).split('e')[0][:17].replace('.', '')
-            real_res = str(real_res).split('E')[0][1:18].replace('.', '')
-
-            error = abs(int(float_res)-int(real_res))
-
-            if error >= TOLERANCE:
+            if bits_error >= TOLERANCE:
                 pstable = False
                 break
 
         if pstable:
-            stable_intevals.append(interval)
+            stable_intervals.append(interval)
 
-    return stable_intevals
+    return stable_intervals
 
 '''
 variables = ['x']

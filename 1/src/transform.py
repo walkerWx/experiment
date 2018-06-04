@@ -32,10 +32,12 @@ def generate_equal_paths(path, num=10):
 
     # 规则集合
     rules = list()
-    rules.append(LoopRule('LoopReduce'))
-    rules.append(LoopRule('LoopReverse'))
+    rules.append(RULES['LoopReduce'])
+    rules.append(RULES['LoopReverse'])
     rules.append(RULES['TaylorCos'])
+    rules.append(RULES['Taylor'])
     rules.append(RULES['Simplify'])
+    rules.append(RULES['Horner'])
 
     # 记录待应用的规则与已经应用的规则
     to_transform = set()
@@ -62,9 +64,18 @@ def generate_equal_paths(path, num=10):
         rp = rp.split("@", 1)
 
         rule = RULES[rp[0]]
+        print(json.loads(rp[1]))
         path = Path(json.loads(rp[1]))
 
+        print("In apply_rule_path:")
+        print("chosen rule:\t" + rule.rule_name)
+        print("chosen path:")
+        print(path.to_json())
         epath = apply_rule_path(path, rule)
+        if epath:
+            print("After transform:")
+            print(epath.to_json())
+        print("")
 
         if not epath:
             continue
@@ -84,11 +95,6 @@ def generate_equal_paths(path, num=10):
 
 
 def apply_rule_path(path, rule):
-
-    print("In apply_rule_path:")
-    print("chosen rule:\t" + rule.rule_name)
-    print("chosen path:")
-    print(path.to_json())
 
     epath = copy.deepcopy(path)
 
@@ -172,20 +178,32 @@ def apply_rule_path(path, rule):
 
         if rule.rule_name == 'Simplify':
             str_expr = str(simplify(sympy_expr))
-            str_expr = starstar2pow(str_expr)  # sympy默认使用**表示幂，还原会cpp代码是无法编译，故进行一次**到pow函数的转换
+            str_expr = starstar2pow(str_expr)  # sympy默认使用**表示幂，还原回cpp代码是无法编译，故进行一次**到pow函数的转换
         if rule.rule_name == 'Expand':
             str_expr = str(expand(sympy_expr))
             str_expr = starstar2pow(str_expr)
         if rule.rule_name == 'Horner':
-            str_expr = str(horner(sympy_expr))
-            str_expr = starstar2pow(str_expr)
+            try:
+                str_expr = str(horner(sympy_expr))
+                str_expr = starstar2pow(str_expr)
+            except sympy.polys.polyerrors.PolynomialError:
+                str_expr = str_expr  # 啥也不做，返回原表达式
         if rule.rule_name == 'Taylor':
-            str_expr = str(series(sympy_expr, n=8))
+            try:
+                str_expr = str(series(sympy_expr, n=8))
+            except ValueError:
+                str_expr = chosen[1]  # 泰勒展开报错，返回原表达式
+
+            # 泰勒展开失败，返回原计算式
+            if 'Derivative' in str_expr:
+                str_expr = chosen[1]
+
             # sympy泰勒展开式会附带大O标记，这里要做一次字符串处理
             Opos = str_expr.rfind('O')
             if Opos > 0:
                 str_expr = str_expr[:Opos - 2]
                 print(str_expr)
+            str_expr = starstar2pow(str_expr)
 
         chosen[1] = str_expr
 
@@ -218,9 +236,6 @@ def apply_rule_path(path, rule):
             chosen = random.choice(candidates)
             chosen[1] = apply_rule_expr(chosen[1], rule)
 
-    print("After transform:")
-    print(epath.to_json())
-    print("")
     return epath
 
 

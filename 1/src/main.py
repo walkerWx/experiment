@@ -3,6 +3,7 @@
 
 import copy
 import os
+import subprocess
 
 from mergePath import *
 from stableAnalysis import *
@@ -68,7 +69,7 @@ def optimize(path_file):
                 break
 
             # 在该等价计算路径下计算稳定的不稳定输入域
-            ep_stable_intervals = shieve_stable_interval(path_data, path, ep, unstable_intervals)
+            ep_stable_intervals = filter_stable_interval(path_data, path, ep, unstable_intervals)
 
             # 将该等价路径与稳定区间加入到结果中
             if ep_stable_intervals:
@@ -101,7 +102,8 @@ def optimize(path_file):
 
 
 if __name__ == "__main__":
-    optimize('../case/herbie/cos2/cos2.pth')
+    optimize('../case/iRRAM/jmmuller/jmmuller.pth')
+
 
 '''
 mergePath('../case/midarc/midarc.opt.pth')

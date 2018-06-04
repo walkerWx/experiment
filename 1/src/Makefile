@@ -16,13 +16,17 @@ CXXFLAGS = -g -O2
 LDFLAGS = -Xlinker -rpath -Xlinker $(PROJECTHOME)/iRRAM/installed/lib
 LDLIBS =  -L$(PROJECTHOME)/iRRAM/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread
 
-KLEEEXEC = $(PROJECTHOME)/build_klee_dir/Release+Asserts/bin/klee
-KLEEFLAGS = -I$(PROJECTHOME)/klee-expression/include/klee -emit-llvm -c -g
+all: float real bits_error
 
+float: points.o 
 
-all: float real
+real: points.o
+
+bits_error: points.o
+
+points.o: points.cc points.h
 
 clean:
-	rm -rf $(EXAMPLES_BIN) float.cpp real.cpp input output float real float_output real_output
+	rm -rf $(EXAMPLES_BIN) float.cpp real.cpp input output float real float_output real_output points.o
 
 install:
