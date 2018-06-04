@@ -1,0 +1,8 @@
+{
+    "program_name": "2cos",
+    "function_name" : "irram_2cos",
+    "variables" : {"x": "decimal", "e": "decimal", "r": "decimal"},
+    "input_variables":["x", "e"],
+    "return": "r",
+	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "cos(x+e)-cos(x)"]]}]}]
+}

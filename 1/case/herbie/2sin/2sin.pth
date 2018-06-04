@@ -1,0 +1,8 @@
+{
+    "program_name": "2sin",
+    "function_name" : "irram_2sin",
+    "variables" : {"x": "decimal", "e": "decimal", "r": "decimal"},
+    "input_variables":["x", "e"],
+    "return": "r",
+	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "sin(x+e)-sin(x)"]]}]}]
+}
