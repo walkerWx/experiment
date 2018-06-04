@@ -48,7 +48,6 @@ using namespace iRRAM;
 
     for p in path_data.get_paths():
 
-        print(p.to_json())
 
         if p.get_implement() == FLOATTYPE:
             code_body += p.to_cpp_code(FLOATTYPE, indent=1)

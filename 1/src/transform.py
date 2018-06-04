@@ -5,9 +5,12 @@ import copy
 import antlr4
 import itertools
 import time
+import json
+import pickle
 import sympy
 
 from rule import TransformRule, SympyRule, LoopRule, RULES
+from path import Path
 
 from expr_parser.exprParser import exprParser
 from expr_parser.exprLexer import exprLexer
@@ -24,38 +27,68 @@ from config import *
 def generate_equal_paths(path, num=10):
 
     # 等价路径集合
-    equal_paths = list()
-    equal_paths.append(path)
+    equal_paths = set()
+    equal_paths.add(path)
+
+    # 规则集合
+    rules = list()
+    rules.append(LoopRule('LoopReduce'))
+    rules.append(LoopRule('LoopReverse'))
+    rules.append(RULES['TaylorCos'])
+    rules.append(RULES['Simplify'])
+
+    # 记录待应用的规则与已经应用的规则
+    to_transform = set()
+    done_transform = set()
+    for rule in rules:
+        to_transform.add(rule.rule_name + '@' + json.dumps(path.to_json()))
 
     start_ticks = time.time()
     run_ticks = 0
-    while len(equal_paths) < num and not run_ticks > 5:  # 设置30秒的超时时间
+    while len(equal_paths) < num and not run_ticks > 10:  # 设置30秒的超时时间
+
+        # to_transform为空，说明已经全部应用完成
+        if not to_transform:
+            break
 
         run_ticks = time.time() - start_ticks
 
-        # 随机选取规则 TODO: 按概率选取规则
-        # rule = random.choice(RULES)
-        rules = list()
-        rules.append(LoopRule('LoopReduce'))
-        rules.append(LoopRule('LoopReverse'))
+        # 随机选取待应用规则与表达式 TODO: 按概率选取
+        rp = random.sample(to_transform, 1)[0]
+        to_transform.remove(rp)
+        done_transform.add(rp)
 
-        rule = random.choice(rules)
+        print(rp)
+        rp = rp.split("@", 1)
 
-        # 随机选取等价路径
-        path = random.choice(equal_paths)
+        rule = RULES[rp[0]]
+        path = Path(json.loads(rp[1]))
 
         epath = apply_rule_path(path, rule)
 
         if not epath:
             continue
 
-        equal_paths.append(epath)
+        equal_paths.add(epath)
+
+        # 将新产生的路径与规则组合加入到to_transform
+        for rule in rules:
+            rp = rule.rule_name + '@' + json.dumps(epath.to_json())
+            if rp in done_transform:
+                continue
+            to_transform.add(rp)
 
     equal_paths.remove(path)
+
     return equal_paths
 
 
 def apply_rule_path(path, rule):
+
+    print("In apply_rule_path:")
+    print("chosen rule:\t" + rule.rule_name)
+    print("chosen path:")
+    print(path.to_json())
 
     epath = copy.deepcopy(path)
 
@@ -110,6 +143,84 @@ def apply_rule_path(path, rule):
             # 添加规约后的procedure
             pl.insert(index, l)
 
+    if isinstance(rule, SympyRule):
+
+        # 首先收集所有可用规则的计算式，广度优先遍历路径上所有procedure的update_expr
+        candidates = list()
+
+        stk = list()
+        stk.extend(epath.get_path_list())
+
+        while stk:
+
+            t = stk.pop()
+
+            if isinstance(t, Procedure):
+                candidates.extend(t.get_procedure())
+
+            if isinstance(t, Loop):
+                lb = t.get_loop_body()
+                for p in lb:
+                    stk.extend(p.get_path_list())
+
+        chosen = random.choice(candidates)
+
+        str_expr = chosen[1]
+
+        transformations = standard_transformations + (convert_xor,)
+        sympy_expr = parse_expr(str_expr, transformations=transformations)
+
+        if rule.rule_name == 'Simplify':
+            str_expr = str(simplify(sympy_expr))
+            str_expr = starstar2pow(str_expr)  # sympy默认使用**表示幂，还原会cpp代码是无法编译，故进行一次**到pow函数的转换
+        if rule.rule_name == 'Expand':
+            str_expr = str(expand(sympy_expr))
+            str_expr = starstar2pow(str_expr)
+        if rule.rule_name == 'Horner':
+            str_expr = str(horner(sympy_expr))
+            str_expr = starstar2pow(str_expr)
+        if rule.rule_name == 'Taylor':
+            str_expr = str(series(sympy_expr, n=8))
+            # sympy泰勒展开式会附带大O标记，这里要做一次字符串处理
+            Opos = str_expr.rfind('O')
+            if Opos > 0:
+                str_expr = str_expr[:Opos - 2]
+                print(str_expr)
+
+        chosen[1] = str_expr
+
+    if isinstance(rule, TransformRule):
+
+        # 在路径中随机选取一个可运用规则的计算过程进行规则的运用
+
+        # 首先收集所有可用规则的计算式，广度优先遍历路径上所有procedure的update_expr
+        candidates = list()
+
+        stk = list()
+        stk.extend(epath.get_path_list())
+
+        while stk:
+
+            t = stk.pop()
+
+            if isinstance(t, Procedure):
+                candidates.extend(t.get_procedure())
+
+            if isinstance(t, Loop):
+                lb = t.get_loop_body()
+                for p in lb:
+                    stk.extend(p.get_path_list())
+
+        # 筛选掉无法应用规则的表达式
+        candidates = [x for x in candidates if apply_rule_expr(x[1], rule)]
+
+        if candidates:
+            chosen = random.choice(candidates)
+            chosen[1] = apply_rule_expr(chosen[1], rule)
+
+    print("After transform:")
+    print(epath.to_json())
+    print("")
     return epath
 
 
@@ -390,6 +501,10 @@ def generate_equivalent_expressions(expr, rules):
     return expr_set
 
 
+def starstar2pow(expr):
+    return re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
+
+
 '''
 # 生成等价过程模块
 def generate_equal_procedure(path_data, procedure):
@@ -632,7 +747,6 @@ def generate_equal_path(path_data, path):
         equal_paths.append(ep)
 
     return equal_paths
-
 
 
 '''

@@ -88,7 +88,7 @@ relop
    ;
 
 POWF
-   : 'Pow'
+   : 'pow'
    ;
 
 EXP

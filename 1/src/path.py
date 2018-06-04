@@ -122,6 +122,20 @@ class Loop:
         for lb in loop_json['loop_body']:
             self.loop_body.append(Path(lb))
 
+    def __hash__(self):
+        return hash(json.dumps(self.to_json()))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if not self.get_variables() == other.get_variables():
+            return False
+        if not self.get_initialize_list() == other.get_initialize_list():
+            return False
+        if not self.get_loop_body() == other.get_loop_body():
+            return False
+        return True
+
     def get_variables(self):
         return list(self.variables.keys())
 
@@ -213,6 +227,16 @@ class Procedure:
     def __init__(self, procedure_data):
 
         self.procedure = procedure_data  # 一个 n x 2 大小的列表，对于列表中每一项procedure[i]，procedure[i][0]为更新的变量名，procedure[i][1]为更新式
+
+    def __hash__(self):
+        return hash(json.dumps(self.to_json()))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if not self.procedure == other.get_procedure():
+            return False
+        return True
 
     def get_update_expr(self, var):
         for i in range(len(self.procedure)):
@@ -315,6 +339,18 @@ class Path:
                 self.path_list.append(Procedure(p["content"]))
             elif p["type"] == "loop":
                 self.path_list.append(Loop(p["content"]))
+
+    def __hash__(self):
+        return hash(json.dumps(self.to_json()))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if not self.path_list == other.get_path_list():
+            return False
+        if not self.constrain == other.get_constrain():
+            return False
+        return True
 
     def set_implement(self, implement):
         self.implement = implement

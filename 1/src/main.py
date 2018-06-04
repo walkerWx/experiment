@@ -19,7 +19,6 @@ def output_json(content, file):
 def optimize(path_file):
 
     path_data = PathData(path_file)
-    print(path_data.to_json())
 
     # 实验用例所在路径
     casedir = ''
@@ -57,11 +56,12 @@ def optimize(path_file):
             break
 
         # 不稳定部分进行等价转化形成等价计算路径集合
-        equal_paths = generate_equal_paths(path, num=2)
+        equal_paths = generate_equal_paths(path, num=10)
 
         for ep in equal_paths:
-
             print(ep.to_json())
+
+        for ep in equal_paths:
 
             # 所有不稳定输入域均已经优化
             if not unstable_intervals:
@@ -101,7 +101,7 @@ def optimize(path_file):
 
 
 if __name__ == "__main__":
-    optimize('../case/iRRAM/jmmuller/jmmuller.pth')
+    optimize('../case/herbie/cos2/cos2.pth')
 
 '''
 mergePath('../case/midarc/midarc.opt.pth')
