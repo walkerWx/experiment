@@ -6,6 +6,7 @@ import antlr4
 import itertools
 import time
 import json
+import signal
 import pickle
 import sympy
 
@@ -38,6 +39,12 @@ def generate_equal_paths(path, num=10):
     rules.append(RULES['Taylor'])
     rules.append(RULES['Simplify'])
     rules.append(RULES['Horner'])
+    rules.append(RULES['SinSinR'])
+    rules.append(RULES['CosPlus'])
+    rules.append(RULES['ExpReduction'])
+    rules.append(RULES['FracPartial'])
+    rules.append(RULES['TaylorExp'])
+
 
     # 记录待应用的规则与已经应用的规则
     to_transform = set()
@@ -90,6 +97,10 @@ def generate_equal_paths(path, num=10):
             to_transform.add(rp)
 
     equal_paths.remove(path)
+
+    # 将所有等价路径中的计算式进行对cpp兼容的操作
+    for ep in equal_paths:
+        compatible2cpp(ep)
 
     return equal_paths
 
@@ -178,7 +189,7 @@ def apply_rule_path(path, rule):
 
         if rule.rule_name == 'Simplify':
             str_expr = str(simplify(sympy_expr))
-            str_expr = starstar2pow(str_expr)  # sympy默认使用**表示幂，还原回cpp代码是无法编译，故进行一次**到pow函数的转换
+            #str_expr = starstar2pow(str_expr)  # sympy默认使用**表示幂，还原回cpp代码是无法编译，故进行一次**到pow函数的转换
         if rule.rule_name == 'Expand':
             str_expr = str(expand(sympy_expr))
             str_expr = starstar2pow(str_expr)
@@ -189,10 +200,21 @@ def apply_rule_path(path, rule):
             except sympy.polys.polyerrors.PolynomialError:
                 str_expr = str_expr  # 啥也不做，返回原表达式
         if rule.rule_name == 'Taylor':
+
+            # sympy泰勒展开可能超时，设置一个10秒的时限
+            def handler(signum, frame):
+                print("Taylor expand timeout!")
+                raise Exception("timeout")
+
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(10)
+
             try:
                 str_expr = str(series(sympy_expr, n=8))
-            except ValueError:
+            except Exception:
                 str_expr = chosen[1]  # 泰勒展开报错，返回原表达式
+
+            signal.alarm(0)
 
             # 泰勒展开失败，返回原计算式
             if 'Derivative' in str_expr:
@@ -201,10 +223,10 @@ def apply_rule_path(path, rule):
             # sympy泰勒展开式会附带大O标记，这里要做一次字符串处理
             Opos = str_expr.rfind('O')
             if Opos > 0:
-                str_expr = str_expr[:Opos - 2]
+                str_expr = str_expr[:Opos-2]
                 print(str_expr)
-            str_expr = starstar2pow(str_expr)
-
+            # str_expr = starstar2pow(str_expr)
+        # str_expr = compatible2cpp(str_expr)
         chosen[1] = str_expr
 
     if isinstance(rule, TransformRule):
@@ -265,7 +287,26 @@ def apply_rule_node(node, rule):
         if rule.rule_name == 'Horner':
             str_expr = str(horner(sympy_expr))
         if rule.rule_name == 'Taylor':
-            str_expr = str(series(sympy_expr, n=8))
+
+            # sympy泰勒展开可能超时，设置一个10秒的时限
+            def handler(signum, frame):
+                print("Taylor expand timeout!")
+                raise Exception("timeout")
+
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(5)
+
+            try:
+                str_expr = str(series(sympy_expr, n=8))
+            except Exception:
+                str_expr = node.getText()  # 泰勒展开报错，返回原表达式
+
+            signal.alarm(0)
+
+            # 泰勒展开失败，返回原计算式
+            if 'Derivative' in str_expr:
+                str_expr = node.getText()
+
             # sympy泰勒展开式会附带大O标记，这里要做一次字符串处理
             Opos = str_expr.rfind('O')
             if Opos > 0:
@@ -516,11 +557,40 @@ def generate_equivalent_expressions(expr, rules):
     return expr_set
 
 
+# 将表达式中的**转换为pow函数
 def starstar2pow(expr):
     return re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
 
 
+# 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
+def intdiv2floatdiv(expr):
+    return re.sub(r'([0-9]+)/([0-9]+)', r'\1.0/\2', expr)
+
+
+# 将路径中的表达式转换为c++能够直接使用的计算式
+def compatible2cpp(path):
+
+    if not isinstance(path, Path):
+        return
+
+    for pl in path.get_path_list():
+
+        if isinstance(pl, Procedure):
+            for update in pl.get_procedure():
+                update[1] = starstar2pow(update[1])
+                update[1] = intdiv2floatdiv(update[1])
+
+        if isinstance(pl, Loop):
+            loop_body = pl.get_loop_body()
+            for p in loop_body:
+                compatible2cpp(p)
+
+
+
 '''
+if __name__ == '__main__':
+    expr = '(pow(x, 2)/2 - pow(x, 4)/24 + pow(x, 6)/720)/(pow(x, 2))'
+    print(compatible2cpp(expr))
 # 生成等价过程模块
 def generate_equal_procedure(path_data, procedure):
 

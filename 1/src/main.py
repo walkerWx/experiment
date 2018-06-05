@@ -102,7 +102,19 @@ def optimize(path_file):
 
 
 if __name__ == "__main__":
-    optimize('../case/iRRAM/jmmuller/jmmuller.pth')
+
+
+    # todo
+    #optimize('../case/herbie/2cos/2cos.pth')
+
+    # done
+    #optimize('../case/iRRAM/jmmuller/jmmuller.pth')
+    #optimize('../case/herbie/logq/logq.pth')
+    #optimize('../case/herbie/sqrtexp/sqrtexp.pth')
+    optimize('../case/herbie/expq2/expq2.pth')
+    #optimize('../case/herbie/cos2/cos2.pth')
+
+
 
 
 '''

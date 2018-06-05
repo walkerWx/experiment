@@ -88,7 +88,6 @@ class TestTransform(unittest.TestCase):
         for te in target:
             self.assertTrue(te in equivalent_expr)
 
-
     def test_sqrtexp(self):
 
         expr = 'sqrt((exp(2*eps)-1)/(exp(eps)-1))'
