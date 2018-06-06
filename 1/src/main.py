@@ -173,7 +173,8 @@ def output_json(content, file):
 
 # 根据规则权重按权随机去规则
 def choose_rule_by_weight(rules):
-    return random.choice(rules)
+    weights = [x.weight for x in rules]
+    return random.choices(rules, weights)[0]
 
 
 if __name__ == "__main__":
@@ -189,10 +190,6 @@ if __name__ == "__main__":
     #optimize('../case/herbie/expq2/expq2.pth')
     optimize('../case/herbie/cos2/cos2.pth')
 
-    # r = RULES['TaylorExp']
-    # p = Path(json.loads('{"constrain": "true", "path": [{"type": "procedure", "content": [["r", "(1-cos(x))/(x*x)"]]}], "break": "false"}'))
-    # e = apply_rule_path(p, r)
-    # print(e.to_json())
 
 
 
