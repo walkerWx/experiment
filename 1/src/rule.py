@@ -16,18 +16,21 @@ class TransformRule:
         self.origin_parse_tree = origin_parse_tree
         self.transformed_parse_tree = transformed_parse_tree
         self.constrain_parse_tree = constrain_parse_tree
+        self.weight = 0
 
 
 class SympyRule:
 
     def __init__(self, rule_name):
         self.rule_name = rule_name
+        self.weight = 0
 
 
 class LoopRule:
 
     def __init__(self, rule_name):
         self.rule_name = rule_name
+        self.weight = 0
 
 
 def initialize_transform_rules():
@@ -41,7 +44,7 @@ def initialize_transform_rules():
     parser = exprParser(stream)
     tree = parser.rules()
 
-    rules = list()
+    rules = set()
     for single_rule in tree.getChildren():
         rule_name = single_rule.getChild(0).getText()
         origin_parse_tree = expr.ParseTree(single_rule.getChild(2))
@@ -50,7 +53,7 @@ def initialize_transform_rules():
             constrain_parse_tree = expr.ParseTree(single_rule.getChild(6))
         else:
             constrain_parse_tree = None
-        rules.append(TransformRule(rule_name, origin_parse_tree, transformed_parse_tree, constrain_parse_tree))
+        rules.add(TransformRule(rule_name, origin_parse_tree, transformed_parse_tree, constrain_parse_tree))
 
     return rules
 
@@ -63,16 +66,79 @@ def initialize_loop_rules():
     return {LoopRule('LoopReduce'), LoopRule('LoopReverse')}
 
 
-TRANSFORM_RULES = initialize_transform_rules()
-SYMPY_RULES = initialize_sympy_rules()
-LOOP_RULES = initialize_loop_rules()
+# 所有转换规则的权重，在应用规则进行等价转换时根据按权重选取规则
+rule_weight = {
+    'Negative': 1,
+    'Minus1': 1,
+    'Minus2': 1,
+    'Minus3': 1,
+    'Divide': 1,
+    'LnDivide': 1,
+    'CommutationPlus': 1,
+    'CommutationMultiply': 1,
+    'AssociationPlus': 1,
+    'AssociationMultiply': 1,
+    'Distribution1': 1,
+    'Distribution2': 1,
+    'Distribution3': 1,
+    'CommDenominator': 1,
+    'CommDenominator1': 1,
+    'CommDenominator2': 1,
+    'FracReduction': 1,
+    'FracPartial': 1,
+    'NumeratorForm': 1,
+    'NumeratorFrom1': 1,
+    'NumeratorFrom2': 1,
+    'NumeratorFrom3': 1,
+    'DenominatorForm': 1,
+    'Tan': 1,
+    'Sec': 1,
+    'Csc': 1,
+    'Cot': 1,
+    'SinPlus': 1,
+    'SinMinus': 1,
+    'CosPlus': 1,
+    'CosMinus': 1,
+    'TanPlus': 1,
+    'TanMinus': 1,
+    'SinCos': 1,
+    'CosSin': 1,
+    'CosCos': 1,
+    'SinSin': 1,
+    'SinCosR': 1,
+    'CosSinR': 1,
+    'CosCosR': 1,
+    'SinSinR': 1,
+    'ExpReduction': 1,
+    'TaylorExp': 1,
+    'TaylorLn': 1,
+    'TaylorLnPlusReverse': 1,
+    'TaylorLnMinusReverse': 1,
+    'TaylorLnDivide': 1,
+    'TaylorSin': 1,
+    'TaylorCos': 1,
+    'TaylorTan': 1,
+    'PolarRepresentation': 1,
+    'Midarc': 1,
+    'StirlingGamma': 1,
+    'GammaTrans': 1,
+    'Gamma_0': 1,
+    'Gamma_1': 1,
+    'Gamma_2': 1,
+
+    'Simplify': 1,
+    'Expand': 1,
+    'Horner': 1,
+    'Taylor': 1,
+
+    'LoopReduce': 1,
+    'LoopReverse': 1,
+
+}
 
 RULES = dict()
-for r in TRANSFORM_RULES:
-    RULES[r.rule_name] = r
-for r in SYMPY_RULES:
-    RULES[r.rule_name] = r
-for r in LOOP_RULES:
+for r in initialize_transform_rules() | initialize_sympy_rules() | initialize_loop_rules():
+    r.weight = rule_weight[r.rule_name]
     RULES[r.rule_name] = r
 
 

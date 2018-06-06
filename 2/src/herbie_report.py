@@ -443,14 +443,16 @@ def analysis(case):
 
 
 if __name__ == "__main__":
-
-    irram_code_file = "irram.cc"
-    with open(irram_code_file, "r") as f:
-        content = f.read()
-
-    pattern = re.compile(r'irram_(.*)\(')
-    cases = pattern.findall(content)
-    print(cases)
-
-    analysis('2cos')
+    #
+    # irram_code_file = "irram.cc"
+    # with open(irram_code_file, "r") as f:
+    #     content = f.read()
+    #
+    # pattern = re.compile(r'irram_(.*)\(')
+    # cases = pattern.findall(content)
+    # print(cases)
+    #
+    prepare('expq2')
+    run('expq2')
+    analysis('expq2')
 

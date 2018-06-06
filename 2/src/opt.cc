@@ -27,6 +27,8 @@ double opt_expm1(double x) {
 
 // Herbie case: expq2
 double opt_expq2(double x) {
+    if((true)&&((0.0000100<=x&&x<=0.0000201)))
+		return 1/x + 1.0/2 + x/12 - (pow(x, 3))/720 + (pow(x, 5))/30240 - (pow(x, 7))/1209600 ;
     return exp(x)/(exp(x)-1);
 }
 

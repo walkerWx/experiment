@@ -233,7 +233,7 @@ def filter_stable_interval(path_data, original_path, opt_path, intervals):
     # 根据path生成可执行文件并编译
     generate_cpp(path_data, original_path, implement_type='real')
     generate_cpp(path_data, opt_path, implement_type='float')
-    call(['make'], shell=True)
+    call(['make > /dev/null'], shell=True)
 
     stable_intervals = list()
     for interval in intervals:

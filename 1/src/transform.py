@@ -45,7 +45,6 @@ def generate_equal_paths(path, num=10):
     rules.append(RULES['FracPartial'])
     rules.append(RULES['TaylorExp'])
 
-
     # 记录待应用的规则与已经应用的规则
     to_transform = set()
     done_transform = set()
@@ -71,10 +70,8 @@ def generate_equal_paths(path, num=10):
         rp = rp.split("@", 1)
 
         rule = RULES[rp[0]]
-        print(json.loads(rp[1]))
         path = Path(json.loads(rp[1]))
 
-        print("In apply_rule_path:")
         print("chosen rule:\t" + rule.rule_name)
         print("chosen path:")
         print(path.to_json())
@@ -198,7 +195,7 @@ def apply_rule_path(path, rule):
                 str_expr = str(horner(sympy_expr))
                 str_expr = starstar2pow(str_expr)
             except sympy.polys.polyerrors.PolynomialError:
-                str_expr = str_expr  # 啥也不做，返回原表达式
+                return None  # 应用horner规则报错，返回None
         if rule.rule_name == 'Taylor':
 
             # sympy泰勒展开可能超时，设置一个10秒的时限
@@ -212,7 +209,7 @@ def apply_rule_path(path, rule):
             try:
                 str_expr = str(series(sympy_expr, n=8))
             except Exception:
-                str_expr = chosen[1]  # 泰勒展开报错，返回原表达式
+                return None  # 泰勒展开报错，返回None
 
             signal.alarm(0)
 
@@ -224,7 +221,6 @@ def apply_rule_path(path, rule):
             Opos = str_expr.rfind('O')
             if Opos > 0:
                 str_expr = str_expr[:Opos-2]
-                print(str_expr)
             # str_expr = starstar2pow(str_expr)
         # str_expr = compatible2cpp(str_expr)
         chosen[1] = str_expr
@@ -257,6 +253,11 @@ def apply_rule_path(path, rule):
         if candidates:
             chosen = random.choice(candidates)
             chosen[1] = apply_rule_expr(chosen[1], rule)
+        else:
+            return None
+
+    # 将所有等价路径中的计算式进行对cpp兼容的操作
+    compatible2cpp(epath)
 
     return epath
 

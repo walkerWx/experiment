@@ -55,6 +55,9 @@ REAL['header'] = '''
 #define euler_gamma REAL(0.57721566490)
 
 using namespace iRRAM;
+
+REAL pow(REAL x, REAL y) {return power(x, y);}
+
 '''
 
 REAL['convert_func'] = {'decimal': 'as_double()', 'integer': 'as_double()'}
