@@ -16,7 +16,7 @@ CXXFLAGS = -g -O2
 LDFLAGS = -Xlinker -rpath -Xlinker $(PROJECTHOME)/iRRAM/installed/lib
 LDLIBS =  -L$(PROJECTHOME)/iRRAM/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread
 
-all: float real bits_error
+all: float real bits_error 
 
 float: points.o 
 

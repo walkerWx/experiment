@@ -8,6 +8,9 @@ from config import *
 
 import itertools
 import subprocess
+import struct
+import sys
+import random
 
 getcontext().prec = 20
 
@@ -259,21 +262,61 @@ def filter_stable_interval(path_data, original_path, opt_path, intervals):
 
     return stable_intervals
 
-'''
-variables = ['x']
-path = 'sqrt(x+1)-sqrt(x)'
-stablepath = '1.0/(sqrt(x+1)+sqrt(x))'
-constrain = '0<x&&x<1&&0<y&&y<1'
-res = stableAnalysis(variables, stablepath, constrain)
-print (res)
-#res = stableAnalysis(variables, path, constrain)
 
-variables = [ "ar", "ai", "br", "bi"]
-path = "(ar/sqrt(ar*ar+ai*ai)+br/sqrt(br*br+bi*bi))/sqrt(2+2*(ar*br+ai*bi)/sqrt((ar*ar+ai*ai)*(br*br+bi*bi)))"
-constrain = "true"
-res = stableAnalysis(variables, path, constrain)
+# 将双精度浮点数转换为其二进制表示
+def double2binary(d):
+    return ''.join('{:0>8b}'.format(c) for c in struct.pack('!d', d))
 
-pd = PathData('../case/harmonic/harmonic.pth')
-path = pd.get_paths()[0]
-generate_cpp(pd, path)
-'''
+
+# 将二进制表示的双精度浮点数转换为数值形式
+def binary2double(b):
+    return struct.unpack('d', struct.pack('Q', int('0b'+b, 0)))[0]
+
+
+# 计算[begin, end)之间双精度浮点数个数
+def double_num_between(begin, end):
+    if begin == end:
+        return 0
+    if end < begin:
+        return double_num_between(end, begin)
+    if begin == 0:
+        return int('0b'+double2binary(end), 0)
+    if begin < 0 < end:
+        return double_num_between(0, -begin)+double_num_between(0, end)
+    if 0 < begin:
+        return double_num_between(0, end)-double_num_between(0, begin)
+    if end <= 0:
+        return double_num_between(0, -begin)-double_num_between(0, -end)
+    return 0
+
+
+# 生成双精度浮点数d后面第offset个浮点数
+def generate_double_by_offset(d, offset):
+    print(offset)
+    if d == 0:
+        return struct.unpack('d', struct.pack('Q', offset))[0]
+    if d > 0:
+        return generate_double_by_offset(0.0, offset-double_num_between(d, 0.0))
+    if d < 0:
+        if offset >= double_num_between(d, 0.0):
+            return generate_double_by_offset(0.0, offset - double_num_between(d, 0.0))
+        else:
+            return -generate_double_by_offset(0.0, double_num_between(0.0, -d) - offset)
+
+
+# 生成随机的双精度浮点数
+def generate_random_double(start=-sys.float_info.max, end=sys.float_info.max):
+
+    if start == end:
+        return start
+    if start > end:
+        return generate_random_double(end, start)
+
+    distance = double_num_between(start, end)
+    print(distance)
+
+    offset = random.randrange(distance)
+    return generate_double_by_offset(start, offset)
+
+
+
