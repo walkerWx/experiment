@@ -1,6 +1,10 @@
 import os
 import re
 
+report_dir = '/Users/walker/Desktop/HerbieCases'  # Herbie 跑benchmark得到的report文件夹
+case_parent_dir = '/Users/walker/PycharmProjects/experiment/2/case/'
+src_dir = '/Users/walker/PycharmProjects/experiment/2/src/'
+
 # 每个herbie实验用例生成输入的范围
 case_input_range = {
     '2log': {'begin': '0.0', 'end': 'INF'},
@@ -38,7 +42,6 @@ case_input_dimension = {
 def summary_compile_c():
 
     compiled_files = list()
-    report_dir = '/Users/walker/Desktop/HerbieCases'
     for root, dirs, files in os.walk(report_dir):
         for file in files:
             if file == "compiled.c":
@@ -195,15 +198,14 @@ def save_makefile(bins, file):
 def generate_herbie_cc(casename):
 
     # 新建case文件夹
-    os.chdir("/Users/walker/PycharmProjects/experiment/2/src")
-    casedir = "../case/" + casename
-    os.makedirs(casedir, exist_ok=True)
+    case_dir = os.path.join(case_parent_dir, casename)
+    os.makedirs(case_dir, exist_ok=True)
 
     # Herbie可执行文件名称，实验中每个case会选取多个Herbie优化结果进行实验，因此这里是个list
     herbie_bin = list()
 
     # Herbie实现文件，可调用summary_compile_c函数生成
-    herbie_code_file = "herbie.cc"
+    herbie_code_file = os.path.join(src_dir, "herbie.cc")
 
     # 获取herbie函数名称以及相应代码
     with open(herbie_code_file) as f:
@@ -216,7 +218,7 @@ def generate_herbie_cc(casename):
 
     # 生成herbie的C++实现
     for hb in herbie_bin:
-        hb_cc = os.path.join(casedir, hb + '.cc')
+        hb_cc = os.path.join(case_dir, hb + '.cc')
         content = [x for x in herbie_code if hb in x][0]
         save_herbie_cc(hb, content, hb_cc)
 
@@ -224,15 +226,10 @@ def generate_herbie_cc(casename):
 # 生成irram任意精度代码，其实现从当前目录的irram.cc中获取
 def generate_irram_cc(casename):
 
-    casedir = "/Users/walker/PycharmProjects/experiment/2/case/" + casename
-    srcdir = "/Users/walker/PycharmProjects/experiment/2/src/"
-    os.chdir(srcdir)
-
-    # iRRAM可执行文件名称
-    irram_bin = "irram"
+    case_dir = os.path.join(case_parent_dir, casename)
 
     # irram实现文件，直接按照数学公式纯手工编写
-    irram_code_file = "irram.cc"
+    irram_code_file = os.path.join(src_dir, "irram.cc")
 
     # 获取irram实现文件中的代码实现
     with open(irram_code_file) as f:
@@ -241,7 +238,7 @@ def generate_irram_cc(casename):
         irram_code = pattern.findall(content)
 
     # 生成irram的C++实现
-    irram_cc = os.path.join(casedir, 'irram.cc')
+    irram_cc = os.path.join(case_dir, 'irram.cc')
     content = irram_code[0]
     save_irram_cc(content, irram_cc)
 
@@ -249,15 +246,11 @@ def generate_irram_cc(casename):
 # 生成opt代码，其实现从当前目录的opt.cc中获取
 def generate_opt_cc(casename):
 
-    casedir = "/Users/walker/PycharmProjects/experiment/2/case/" + casename
-    srcdir = "/Users/walker/PycharmProjects/experiment/2/src/"
-    os.chdir(srcdir)
-
-    # 经我们工具优化后可执行文件名称
-    opt_bin = "opt"
+    os.chdir(src_dir)
+    case_dir = os.path.join(case_parent_dir, casename)
 
     # 优化后实现文件，暂时通过手工编写，后续需要自动化实现
-    opt_code_file = "opt.cc"
+    opt_code_file = os.path.join(src_dir, "opt.cc")
 
     # 获取优化后文件中代码实现
     with open(opt_code_file) as f:
@@ -266,7 +259,7 @@ def generate_opt_cc(casename):
         opt_code = pattern.findall(content)
 
     # 生成优化后文件的C++实现
-    opt_cc = os.path.join(casedir, 'opt.cc')
+    opt_cc = os.path.join(case_dir, 'opt.cc')
     content = opt_code[0]
     save_opt_cc(content, opt_cc)
 
@@ -274,15 +267,13 @@ def generate_opt_cc(casename):
 # 生成Makefile
 def generate_makefile(casename):
 
-    casedir = "/Users/walker/PycharmProjects/experiment/2/case/" + casename
-    srcdir = "/Users/walker/PycharmProjects/experiment/2/src/"
-    os.chdir(casedir)
+    case_dir = os.path.join(case_parent_dir, casename)
 
     # Herbie可执行文件名称，实验中每个case会选取多个Herbie优化结果进行实验，因此这里是个list
     herbie_bin = list()
 
     # Herbie实现文件，可调用summary_compile_c函数生成
-    herbie_code_file = os.path.join(srcdir, "herbie.cc")
+    herbie_code_file = os.path.join(src_dir, "herbie.cc")
 
     # 获取herbie可执行文件名称
     with open(herbie_code_file) as f:
@@ -291,7 +282,7 @@ def generate_makefile(casename):
         herbie_bin = pattern.findall(content)
 
     # 生成Makefile
-    make_file = os.path.join(casedir, 'Makefile')
+    make_file = os.path.join(case_dir, 'Makefile')
     irram_bin = "irram"
     opt_bin = "opt"
     save_makefile(herbie_bin + [irram_bin] + [opt_bin], make_file)
@@ -302,11 +293,9 @@ def generate_points(casename):
 
     print("[INFO] Preparing random floating points..")
 
-    casedir = "/Users/walker/PycharmProjects/experiment/2/case/" + casename
-    srcdir = "/Users/walker/PycharmProjects/experiment/2/src/"
-    os.chdir(srcdir)
+    case_dir = os.path.join(case_parent_dir, casename)
 
-    points_file = os.path.join(casedir, 'points.txt')
+    points_file = os.path.join(case_dir, 'points.txt')
 
     if casename in case_input_dimension:
         params_num = case_input_dimension[casename]
@@ -318,6 +307,8 @@ def generate_points(casename):
         generate_points += ' --range=[' + case_input_range[casename]['begin'] + ',' + case_input_range[casename]['end'] + ']'
 
     print("[INFO] Sample Point Command: " + generate_points)
+
+    os.chdir(src_dir)
     os.system('make 2>/dev/null')
     os.system(generate_points)
 
@@ -327,9 +318,8 @@ def compile_executables(casename):
 
     print("[INFO] Compiling herbie executables for " + casename)
 
-    casedir = "/Users/walker/PycharmProjects/experiment/2/case/" + casename
-    os.chdir(casedir)
-
+    case_dir = os.path.join(case_parent_dir, casename)
+    os.chdir(case_dir)
     os.system('make')
 
 
@@ -363,8 +353,8 @@ def prepare(casename):
 def run(casename):
 
     print("[INFO] Running case " + casename + " ...")
-    os.chdir("/Users/walker/PycharmProjects/experiment/2/src")
-    casedir = "../case/" + casename
+    os.chdir(src_dir)
+    case_dir = os.path.join(case_parent_dir, casename)
 
     herbie_bin = list()  # Herbie可执行文件名称，实验中每个case会选取多个Herbie优化结果进行实验，因此这里是个list
     irram_bin = "irram"  # iRRAM可执行文件名称
@@ -380,7 +370,7 @@ def run(casename):
 
     points_file = "points.txt"
 
-    os.chdir(casedir)
+    os.chdir(case_dir)
 
     # 删除旧文件
     for hb in herbie_bin:
@@ -423,10 +413,10 @@ def run(casename):
 def analysis(case):
 
     print(case)
-    casedir = os.path.join("/Users/walker/PycharmProjects/experiment/2/case", case)
-    os.chdir(os.path.join(casedir))
+    case_dir = os.path.join(case_parent_dir, case)
+    os.chdir(case_dir)
 
-    result_files = [f for f in os.listdir(casedir) if os.path.isfile(os.path.join(casedir, f)) and f.endswith("result.txt")]
+    result_files = [f for f in os.listdir(case_dir) if os.path.isfile(os.path.join(case_dir, f)) and f.endswith("result.txt")]
 
     herbie_reuslt_files = list()
     for f in result_files:
