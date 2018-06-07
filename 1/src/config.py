@@ -56,8 +56,6 @@ REAL['header'] = '''
 
 using namespace iRRAM;
 
-REAL pow(REAL x, REAL y) {return power(x, y);}
-
 '''
 
 REAL['convert_func'] = {'decimal': 'as_double()', 'integer': 'as_double()'}

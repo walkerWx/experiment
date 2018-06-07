@@ -280,6 +280,7 @@ class Procedure:
             update_expr = self.get_update_expr(var)
             if implement_type == REALTYPE:
                 update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
+                update_expr = re.sub(r'pow', "power", update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma
             if implement_type == FLOATTYPE:
