@@ -2,7 +2,6 @@
 # -*- coding:utf-8 -*-
 
 from __future__ import print_function
-from subprocess import call
 from decimal import *
 from config import *
 
@@ -11,6 +10,15 @@ import subprocess
 import struct
 import sys
 import random
+import functools
+import re
+import sympy
+import math
+import logging
+
+logging.basicConfig(format='%(levelname)s %(asctime)s : %(message)s', level=logging.INFO)
+
+import path
 
 getcontext().prec = 20
 
@@ -117,11 +125,11 @@ def intervals2constrain(variables, variables_type, intervals):
 
 
 # generate runable cpp file according to path, constrain and type
-def generate_cpp(path_data, path, implement_type='all'):
+def generate_cpp(path_data, paths, implement_type='all'):
 
     if implement_type == 'all':
-        generate_cpp(path_data, path, 'float')
-        generate_cpp(path_data, path, 'real')
+        generate_cpp(path_data, paths, 'float')
+        generate_cpp(path_data, paths, 'real')
         return
         
     # according to different implement type, we should include different header files and use different things
@@ -130,31 +138,40 @@ def generate_cpp(path_data, path, implement_type='all'):
     main_func = ''
 
     if implement_type == 'float':
-
         implement = FLOAT
-
         main_func += 'int main(){\n'
-
         precision_setting = implement['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
 
     elif implement_type == 'real':
-
         implement = REAL
-        
         main_func += 'void compute(){\n'
-
         precision_setting = implement['cout'] + ' << setRwidth(45);\n'
 
-    main_func += '\t' + precision_setting
+    main_func += '\t' + precision_setting + '\n'
+
     for var in path_data.get_variables():
         main_func += '\t' + implement[path_data.get_variable_type(var)] + ' ' + var + ';\n'
+    main_func += '\n'
 
-    # variables initialize
-    for var in path_data.get_input_variables():
-        main_func += '\t' + implement['cin'] + ' >> ' + var + ';\n'
+    # 输入对应字符串变量声明
+    # main_func += '//输入对应字符串变量声明\n'
+    main_func += '\tstd::string ' + ','.join([iv + '_str' for iv in path_data.get_input_variables()]) + ';\n'
 
-    for m in path.get_path_list():
-        main_func += m.to_cpp_code(implement_type, indent=1)
+    # 用户输入
+    # main_func += '//用户输入\n'
+    main_func += '\t' + implement['cin'] + ' >> ' + ' >> '.join([iv + '_str' for iv in path_data.get_input_variables()]) + ';\n\n'
+
+    # 字符串变量转换为数值变量
+    # main_func += '//字符串变量转换为数值变量\n'
+    for iv in path_data.get_input_variables():
+        main_func += '\t' + iv + ' = ' + TRANSFUNC[path_data.get_variable_type(iv)] + '(' + iv + '_str);\n'
+    main_func += '\n'
+
+    for path in paths:
+        main_func += '\tif(' + path.get_constrain() + '){\n'
+        for m in path.get_path_list():
+            main_func += m.to_cpp_code(implement_type, indent=2)
+        main_func += '\t}\n\n'
 
     if implement == FLOAT:
         main_func += '\t' + implement['cout'] + ' << double2binary(' + path_data.get_return_expr() + ') << "\\n";\n'
@@ -184,7 +201,7 @@ def stable_analysis(path_data, path):
     points = [interval2points(interval) for interval in intervals]
 
     generate_cpp(path_data, path)
-    call(['make'], shell=True)
+    subprocess.call(['make'], shell=True)
 
     stable_interval = []
     unstable_interval = []
@@ -236,7 +253,7 @@ def filter_stable_interval(path_data, original_path, opt_path, intervals):
     # 根据path生成可执行文件并编译
     generate_cpp(path_data, original_path, implement_type='real')
     generate_cpp(path_data, opt_path, implement_type='float')
-    call(['make > /dev/null'], shell=True)
+    subprocess.call(['make > /dev/null'], shell=True)
 
     stable_intervals = list()
     for interval in intervals:
@@ -292,7 +309,6 @@ def double_num_between(begin, end):
 
 # 生成双精度浮点数d后面第offset个浮点数
 def generate_double_by_offset(d, offset):
-    print(offset)
     if d == 0:
         return struct.unpack('d', struct.pack('Q', offset))[0]
     if d > 0:
@@ -313,10 +329,137 @@ def generate_random_double(start=-sys.float_info.max, end=sys.float_info.max):
         return generate_random_double(end, start)
 
     distance = double_num_between(start, end)
-    print(distance)
 
     offset = random.randrange(distance)
     return generate_double_by_offset(start, offset)
 
+
+# 计算两个二进制表示的浮点数的相对误差
+def relative_error(irram_res, opt_res):
+    irram = binary2double(irram_res)
+    opt = binary2double(opt_res)
+    if irram == 0:
+        if opt == 0:
+            return 0
+        return float('inf')
+    return abs((irram-opt)/irram)
+
+
+# 计算两个二进制表示的浮点数的比特误差
+def bits_error(irram_res, opt_res):
+    distance = double_num_between(binary2double(irram_res), binary2double(opt_res))
+    if distance == 0:
+        return 0
+    return int(math.log2(distance))
+
+
+# 生成随机64位整数
+def generate_random_int(start=-sys.maxsize, end=sys.maxsize):
+    if start > end:
+        return generate_random_int(end, start)
+    return random.randint(start, end)
+
+
+# 稳定性分析
+def stable_analysis_new(path_data):
+
+    paths = path_data.get_paths()
+    input_variables = [[iv, path_data.get_variable_type(iv)] for iv in path_data.get_input_variables()]
+
+    # 随机生成输入
+    points = list()
+    while len(points) < 300:  # 300个随机输入
+
+        point = list()
+        for v in variables:
+            if v[1] == 'decimal':
+                point.append(generate_random_double())
+            elif v[1] == 'integer':
+                point.append(generate_random_int())
+
+        # 排除不满足任意一条路径约束的输入
+        constrains = [p.get_constrain() for p in paths]
+        if not functools.reduce(lambda x, y: x or y, [satisfy(point, input_variables, c) for c in constrains]):
+            continue
+
+        points.append(point)
+
+    # 判断输入稳定性
+    generate_cpp(path_data, paths)  # 根据路径生成cpp文件
+    subprocess.call(['make > /dev/null'], shell=True)  # 编译
+
+    stable_points = list()
+    unstable_points = list()
+    for point in points:
+
+        float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join([double2binary(p) for p in point]), encoding='ascii').stdout
+        real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join([double2binary(p) for p in point]), encoding='ascii').stdout
+        bits_err = bits_error(real_res, float_res)
+
+        if bits_err < TOLERANCE:
+            stable_points.append(point)
+        else:
+            unstable_points.append(point)
+
+    logging.info('Generated {:d} input points. {:d} stable points and {:d} unstable points.'.format(len(points), len(stable_points), len(unstable_points)))
+    logging.info('Stable input points are as follows:')
+    for point in stable_points:
+        logging.info(' '.join([str(p) for p in point]))
+
+    logging.info('Unstable input points are as follows:')
+    for point in unstable_points:
+        logging.info(' '.join([str(p) for p in point]))
+
+    # 细分输入
+
+    # 所有输入点按路径划分
+
+    return
+
+
+# 判断输入是否满足约束
+def satisfy(point, variables, constrain):
+
+    if constrain == 'true':
+        return True
+
+    variables = [v[0] for v in variables]
+
+    stmt1 = ','.join(variables) + " = sympy.symbols('" + ' '.join(variables) + "')"
+    exec(stmt1)
+
+    stmt2 = 'constrain_expr=' + constrain
+
+    stmt2 = re.sub(r'\s+', '', stmt2)  # 去空格
+    stmt2 = re.sub(r'&&', '&', stmt2)  # && -> &
+    stmt2 = re.sub(r'\|\|', '|', stmt2)  # || -> |
+    stmt2 = re.sub(r'!', '~', stmt2)  # ! -> ~
+
+    # 加括号
+    stmt2 = re.sub(r'=(.*?)([&|])', r'=(\1)\2', stmt2)
+    stmt2 = re.sub(r'([&|])(.*?)([&|])', r'\1(\2)\3', stmt2)
+    stmt2 = re.sub(r'([&|])([^&|]*?)$', r'\1(\2)', stmt2)
+    stmt2 = re.sub(r'~([^&|~]*)', r'~(\1)', stmt2)
+
+    exec(stmt2)
+
+    stmt3 = 'constrain_expr.subs({' + ','.join([variables[i] + ':' + str(point[i]) for i in range(len(point))]) + '})'
+
+    return eval(stmt3)
+
+
+if __name__ == "__main__":
+
+    point = [1, 200, 3.0]
+    # variables = [['x', 'decimal'], ['y', 'integer'], ['z', 'decimal']]
+    variables = [['x', 'decimal']]
+
+    pth = '../case/herbie/2tan/2tan.pth'
+
+    path_data = path.PathData(pth)
+    paths = path_data.get_paths()
+
+
+    stable_analysis_new(path_data)
 
 

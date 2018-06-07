@@ -37,6 +37,7 @@ FLOAT['header'] = '''
 #include <iomanip>
 #include <cmath>
 #include <limits>
+#include <string>
 
 #define euler_gamma 0.57721566490
 
@@ -51,6 +52,7 @@ REAL['header'] = '''
 #include "points.h"
 #include "iRRAM.h"
 #include "gamma.h"
+#include <string>
 
 #define euler_gamma REAL(0.57721566490)
 
@@ -59,6 +61,11 @@ using namespace iRRAM;
 '''
 
 REAL['convert_func'] = {'decimal': 'as_double()', 'integer': 'as_double()'}
+
+# 二进制表示转换数值表示的函数名
+TRANSFUNC = dict()
+TRANSFUNC['decimal'] = 'binary2double'
+TRANSFUNC['integer'] = 'binary2int'
 
 FLOATCPP = 'float.cpp'
 REALCPP = 'real.cpp'
