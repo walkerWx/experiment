@@ -565,7 +565,7 @@ def starstar2pow(expr):
 
 # 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
 def intdiv2floatdiv(expr):
-    return re.sub(r'([0-9]+)/([0-9]+)', r'\1.0/\2', expr)
+    return re.sub(r'([^0-9.][0-9]+)/([0-9]+)', r'\1.0/\2', expr)
 
 
 # 将路径中的表达式转换为c++能够直接使用的计算式
@@ -590,8 +590,8 @@ def compatible2cpp(path):
 
 '''
 if __name__ == '__main__':
-    expr = '(pow(x, 2)/2 - pow(x, 4)/24 + pow(x, 6)/720)/(pow(x, 2))'
-    print(compatible2cpp(expr))
+    expr = 'a = s1/2'
+    print(intdiv2floatdiv(expr))
 # 生成等价过程模块
 def generate_equal_procedure(path_data, procedure):
 
