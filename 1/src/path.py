@@ -413,7 +413,12 @@ class Path:
         origin_vars = path_data.get_variables()
 
         for v in origin_vars:
-            code += (indent+1)*'\t' + 'iRRAM::' + REAL[path_data.get_variable_type(v)] + ' ' + v + '_real = iRRAM::' + REAL[path_data.get_variable_type(v)] + '(' + v + ');\n'
+            if path_data.get_variable_type(v) != 'integer':
+                code += (indent+1)*'\t' + 'iRRAM::' + REAL[path_data.get_variable_type(v)] + ' ' + v + '_real = iRRAM::' + REAL[path_data.get_variable_type(v)] + '(' + v + ');\n'
+            else:
+                code += (indent + 1) * '\t' + REAL[
+                    path_data.get_variable_type(v)] + ' ' + v + '_real = ' + REAL[
+                            path_data.get_variable_type(v)] + '(' + v + ');\n'
 
         # 对Procedure以及Loop进行代码生成，并注意替换其中变量
         for m in self.path_list:
@@ -421,7 +426,10 @@ class Path:
 
         # 计算过程结束后转换回去
         for v in origin_vars:
-            code += (indent+1)*'\t' + v + ' = ' + v + '_real.' + REAL['convert_func'][path_data.get_variable_type(v)] + ';\n'
+            if path_data.get_variable_type(v) == 'decimal':
+                code += (indent+1)*'\t' + v + ' = ' + v + '_real.' + REAL['convert_func'][path_data.get_variable_type(v)] + ';\n'
+            else:
+                code += (indent + 1) * '\t' + v + ' = ' + v + '_real;\n'
 
         if hasattr(self, 'loop_break') and self.loop_break:
             code += (indent+1)*'\t'+'break;\n'

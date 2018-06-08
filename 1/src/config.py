@@ -60,7 +60,7 @@ using namespace iRRAM;
 
 '''
 
-REAL['convert_func'] = {'decimal': 'as_double()', 'integer': 'as_double()'}
+REAL['convert_func'] = {'decimal': 'as_double(53)', 'integer': ''}
 
 # 二进制表示转换数值表示的函数名
 TRANSFUNC = dict()
