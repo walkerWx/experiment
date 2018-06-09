@@ -31,6 +31,12 @@ double binary2double(std::string str);
 // 将一个double转换为64位长的01字符串
 std::string double2binary(double d);
 
+// 将一个长度为32位的01字符串转换为int
+int binary2int(std::string str);
+
+// 将一个int转换为32位长的01字符串
+std::string int2binary(int i);
+
 // 计算两个以二进制表示的双精度浮点数的相对误差
 double relative_error(std::string irram_res, std::string herbie_res);
 

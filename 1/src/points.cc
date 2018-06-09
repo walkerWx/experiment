@@ -119,6 +119,18 @@ std::string double2binary(double d) {
     return bitset64.to_string();
 }
 
+// 将一个长度为32位的01字符串转换为int
+int binary2int(std::string str) {
+    std::bitset<32> bitset32(str);
+    return (int)(bitset32.to_ulong());
+}
+
+// 将一个int转换为32位长的01字符串
+std::string int2binary(int i) {
+    uint32_t u = *(uint32_t *)(&i);
+    std::bitset<32> bitset32(u);
+    return bitset32.to_string();
+}
 
 // 计算两个以二进制表示的双精度浮点数的相对误差
 double relative_error(std::string irram_res, std::string herbie_res) {

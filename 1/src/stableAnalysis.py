@@ -6,6 +6,7 @@ from decimal import *
 from config import *
 
 import itertools
+import copy
 import subprocess
 import struct
 import sys
@@ -285,9 +286,9 @@ def double2binary(d):
     return ''.join('{:0>8b}'.format(c) for c in struct.pack('!d', d))
 
 
-# 将64位有符号整型转换为其二进制表示 TODO
-def signedlonglong2binary(sll):
-    return
+# 将整型转换为其二进制表示
+def int2binary(i):
+    return ''.join('{:0>8b}'.format(c) for c in struct.pack('!i', i))
 
 
 # 将二进制表示的双精度浮点数转换为数值形式
@@ -295,45 +296,48 @@ def binary2double(b):
     return struct.unpack('d', struct.pack('Q', int('0b'+b, 0)))[0]
 
 
-# 将二进制表示表示的有符号整型转换为数值形式 TODO
-def binary2signedlonglong(b):
-    return 0
+# 将二进制表示表示的有符号整型转换为数值形式
+def binary2int(b):
+    return struct.unpack('i', struct.pack('I', int('0b'+b, 0)))[0]
 
 
 # 计算begin与end在双精度浮点数数轴上的距离，即中间隔间多少个浮点数+1
-def float_distance(begin, end):
+def double_distance(begin, end):
 
     if begin == end:
         return 0
     if end < begin:
-        return float_distance(end, begin)
+        return double_distance(end, begin)
     if begin == 0:
         return int('0b'+double2binary(end), 0)
     if begin < 0 < end:
-        return float_distance(0, -begin)+float_distance(0, end)
+        return double_distance(0, -begin)+double_distance(0, end)
     if 0 < begin:
-        return float_distance(0, end)-float_distance(0, begin)
+        return double_distance(0, end)-double_distance(0, begin)
     if end <= 0:
-        return float_distance(0, -begin)-float_distance(0, -end)
+        return double_distance(0, -begin)-double_distance(0, -end)
     return 0
 
 
 # 计算两个有符号整型的距离
-def signedlonglong_distance(begin, end):
+def int_distance(begin, end):
     return abs(begin-end)
 
 
 # 生成双精度浮点数d后面第offset个浮点数
 def generate_double_by_offset(d, offset):
     if d == 0:
-        return struct.unpack('d', struct.pack('Q', offset))[0]
-    if d > 0:
-        return generate_double_by_offset(0, offset+float_distance(0, d))
-    if d < 0:
-        if offset >= float_distance(d, 0.0):
-            return generate_double_by_offset(0.0, offset - float_distance(d, 0.0))
+        if offset >= 0:
+            return struct.unpack('d', struct.pack('Q', offset))[0]
         else:
-            return -generate_double_by_offset(0.0, float_distance(0.0, -d) - offset)
+            return -struct.unpack('d', struct.pack('Q', -offset))[0]
+    if d > 0:
+        return generate_double_by_offset(0, offset+double_distance(0, d))
+    if d < 0:
+        if offset >= double_distance(d, 0.0):
+            return generate_double_by_offset(0.0, offset - double_distance(d, 0.0))
+        else:
+            return -generate_double_by_offset(0.0, double_distance(0.0, -d) - offset)
 
 
 # 生成随机的双精度浮点数
@@ -344,10 +348,34 @@ def generate_random_double(start=-sys.float_info.max, end=sys.float_info.max):
     if start > end:
         return generate_random_double(end, start)
 
-    distance = float_distance(start, end)
+    distance = double_distance(start, end)
 
     offset = random.randrange(distance)
     return generate_double_by_offset(start, offset)
+
+
+# 生成随机整型，默认c++ int范围
+# def generate_random_int(start=1, end=1100):
+def generate_random_int(start=-2147483647, end=2147483647):
+    if start > end:
+        return generate_random_int(end, start)
+    return random.randint(start, end)
+
+
+# 在point附近+-range范围内随机生成其他的点
+def generate_random_point(point, rge):
+    values = list()
+    types = copy.copy(point.types)
+    for i in range(point.dimension):
+        if types[i] == 'decimal':
+            d = binary2double(point.values[i])
+            s = generate_double_by_offset(d, -rge)
+            e = generate_double_by_offset(d, rge)
+            values.append(double2binary(generate_random_double(s, e)))
+        if types[i] == 'integer':
+            i = binary2int(point.values[i])
+            values.append(int2binary(generate_random_int(i-rge, i+rge)))
+    return Point(values, types)
 
 
 # 计算两个二进制表示的浮点数的相对误差
@@ -363,36 +391,42 @@ def relative_error(irram_res, opt_res):
 
 # 计算两个二进制表示的浮点数的比特误差
 def bits_error(irram_res, opt_res):
-    distance = float_distance(binary2double(irram_res), binary2double(opt_res))
+    distance = double_distance(binary2double(irram_res), binary2double(opt_res))
     if distance == 0:
         return 0
     return int(math.log2(distance))
 
 
-# 生成随机64位有符号整型
-def generate_random_signedlonglong(start=-sys.maxsize, end=sys.maxsize):
-    if start > end:
-        return generate_random_signedlonglong(end, start)
-    return random.randint(start, end)
-
-
-# 生成两个浮点数的中位数mid，满足float_distance(left, mid) == float_distance(mid, right) +- 1
+# 生成两个浮点数的中位数mid，满足double_distance(left, mid) == double_distance(mid, right) +- 1
 def get_middle_double(left, right):
-    distance = float_distance(left, right)
+    distance = double_distance(left, right)
     return generate_double_by_offset(left, int(distance/2))
 
 
-# 生成两个有符号整型的均值 TODO
-def get_middle_signedlonglong(left, right):
-    return
+# 生成两个有符号整型的均值
+def get_middle_int(left, right):
+    return left + int((right-left)/2)
 
 
-# 生成两个输入点的中间的点 TODO
+# 生成两个输入点的中间的点
 def get_middle_point(left, right):
-    if len(left) != len(right):
-        logging.error("get_middle_point() Error: len(left) != len(right)")
-        return None
-    return [get_middle_double(left[i], right[i]) for i in range(len(left))]
+
+    values = list()
+    types = copy.copy(left.types)
+
+    for i in range(len(types)):
+        if types[i] == 'decimal':
+            lv = binary2double(left.values[i])
+            rv = binary2double(right.values[i])
+            mv = get_middle_double(lv, rv)
+            values.append(double2binary(mv))
+        if types[i] == 'integer':
+            lv = binary2int(left.values[i])
+            rv = binary2int(right.values[i])
+            mv = get_middle_int(lv, rv)
+            values.append(int2binary(mv))
+
+    return Point(values, types)
 
 
 class Point:
@@ -408,6 +442,15 @@ class Point:
         self.values = values
         self.types = types
 
+    def __str__(self):
+        s = ''
+        for i in range(self.dimension):
+            if self.types[i] == 'decimal':
+                s += '{:.25e}\t'.format(binary2double(self.values[i]))
+            if self.types[i] == 'integer':
+                s += '{:0>10d}\t'.format(binary2int(self.values[i]))
+        return s
+
 
 # 稳定性分析
 def stable_analysis_new(path_data):
@@ -420,12 +463,13 @@ def stable_analysis_new(path_data):
 
         values = list()
         types = list()
-        for v in variables:
-            types.append(v[1])
-            if v[1] == 'decimal':
+        for v in input_variables:
+            t = path_data.get_variable_type(v)
+            types.append(t)
+            if t == 'decimal':
                 values.append(double2binary(generate_random_double()))
-            elif v[1] == 'integer':
-                values.append(signedlonglong2binary(generate_random_signedlonglong()))
+            elif t == 'integer':
+                values.append(int2binary(generate_random_int()))
 
         point = Point(values, types)
 
@@ -436,6 +480,11 @@ def stable_analysis_new(path_data):
 
         points.append(point)
 
+    logging.info("Random sampling points")
+    for point in points:
+        logging.info(str(point))
+
+
     # 判断输入稳定性
     generate_cpp(path_data, paths)  # 根据路径生成cpp文件
     subprocess.call(['make > /dev/null'], shell=True)  # 编译
@@ -443,31 +492,38 @@ def stable_analysis_new(path_data):
     point_stablility = [(point, is_point_stable(point)) for point in points]  # 所有输入点及其稳定性信息，结构:[(p1, True), (p2, False)... ]
 
     # 所有输入点按大小排序，按照输入点的第一个维度的大小
-    point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]))  # TODO 需要首先判断类型
+    point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
 
-    # TODO 进一步细化整体算法
-    # 对稳定性不同的相邻输入点进行进一步划分
-    for i in range(len(point_stablility[:])-1):
+    for ps in point_stablility:
+        print(ps[0], end='\t')
+        print(ps[1])
 
-        lsi = points[i][1]  # left point stable info
-        rsi = points[i+1][1]  # right point stable info
-
-        # 相邻输入点稳定性不同，进一步划分
-        if lsi != rsi:
-            divide_stable_unstable(point_stablility, i)
-
-
-    points = sorted(points, key=lambda p: binary2double(p[0]))
-
-    # 对相邻的稳定输入点进一步细化
-
-
-    # 所有输入点按路径划分
+    # # TODO 进一步细化整体算法
+    # # 对稳定性不同的相邻输入点进行进一步划分
+    #
+    # # 划分过程中新产生的输入点
+    # new_points = list()
+    # for i in range(len(point_stablility)-1):
+    #
+    #     # 相邻输入点稳定性不同，进一步划分
+    #     if point_stablility[i][1] != point_stablility[i+1][1]:
+    #         new_points.extend(divide_stable_unstable(point_stablility, i))
+    #
+    # point_stablility.extend(new_points)
+    # point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
+    #
+    # # 对相邻的稳定输入点进一步细化
+    #
+    # for ps in point_stablility:
+    #     print(ps[0], end='\t')
+    #     print(ps[1])
+    #
+    # # 所有输入点按路径划分
 
     return
 
 
-# 根据index对相邻的两个稳定性不同的输入点进一步划分，通过二分查找的方式大致定位稳定与不稳定的分界点，并将新产生的分界点加入到point_stability TODO 未完成
+# 根据index对相邻的两个稳定性不同的输入点进一步划分，通过二分查找的方式大致定位稳定与不稳定的分界点，并将新产生的分界点返回
 def divide_stable_unstable(point_stablility, index):
 
     left_point = point_stablility[index][0]
@@ -476,35 +532,39 @@ def divide_stable_unstable(point_stablility, index):
     lsi = point_stablility[index][1]
     rsi = point_stablility[index+1][1]
 
-    mid_point = get_middle_point(left_point, right_point)  # TODO mid_point是有可能不在输入域上的，如何处理？
+    mid_point = get_middle_point(left_point, right_point)  # FIXME mid_point是有可能不在输入域上的，如何处理？
+
+    # 相距1000个输入点认为足够近，退出循环，参数可调
+    close_enough = 1000  # CONFIG
 
     while True:
 
-        if left_point.types[0] == 'decimal' and float_distance(binary2double(left_point[0]), binary2double(right_point[0])) < 1000:  # 相距1000个浮点数时认为距离足够近
+        d = double_distance(binary2double(left_point.values[0]), binary2double(right_point.values[0]))
+        print('L:', end='')
+        print(left_point)
+        print('M:', end='')
+        print(mid_point)
+        print('R:', end='')
+        print(right_point)
+        print('D::' + str(d))
+        print('')
+
+        if left_point.types[0] == 'decimal' and double_distance(binary2double(left_point.values[0]), binary2double(right_point.values[0])) < close_enough:
             break
-        if left_point.types[0] == 'integer' and signedlonglong_distance(binary2signedlonglong(left_point[0]), binary2signedlonglong(right_point[0])) < 1000:  # 相距1000个整数是认为距离足够近
+        if left_point.types[0] == 'integer' and int_distance(binary2int(left_point.values[0]), binary2int(right_point.values[0])) < close_enough:
             break
 
-        logging.info("Left: {:.30e}, Middle: {:.30e}, Right: {:.30e}".format(binary2double(left_point[0]), binary2double(mid_point[0]), binary2double(right_point[0])))
-
-        # 在mid_point 50距离内随机采样10个点，均稳定时认为mid_point稳定，否则不稳定
         msi = is_point_stable(mid_point)
-        for _ in range(10):
-            # 距离50范围内采点
-            random_point = [double2binary(generate_double_by_offset(binary2double(p), random.randint(-50, 50))) for p in mid_point]
-            msi = (msi and is_point_stable(random_point))
 
         if msi == lsi:
             left_point = mid_point
         elif msi == rsi:
             right_point = mid_point
-        mid_point = [double2binary(get_middle_double(binary2double(left_point[i]), binary2double(right_point[i]))) for i in range(len(left_point))]  # TODO 同上
 
-    # 临界点加入至输入点集中
-    points.append(left_point)
-    points.append(right_point)
-    stable_info[' '.join(left_point)] = lsi
-    stable_info[' '.join(right_point)] = rsi
+        mid_point = get_middle_point(left_point, right_point)  # FIXME 同上
+
+    # 返回划分过程中新产生的点
+    return [(left_point, lsi), (right_point, rsi)]
 
 
 # 根据index对相邻的两个稳定的输入点形成的区间进行划分，去中点判定稳定性，稳定则将新的分界点加入到point_stability并返回，不稳定则使用divide_stable_unstable进一步划分 TODO
@@ -523,7 +583,7 @@ def satisfy(point, variables, constrain):
         if point.types[i] == 'decimal':
             values.append(str(binary2double(point.values[i])))
         if point.types[i] == 'integer':
-            values.append(str(binary2signedlonglong(point.values[i])))
+            values.append(str(binary2int(point.values[i])))
 
     stmt1 = ','.join(variables) + " = sympy.symbols('" + ' '.join(variables) + "')"
     exec(stmt1)
@@ -550,10 +610,30 @@ def satisfy(point, variables, constrain):
 
 # 判断输入点是否稳定，注意调用前必须保证对应路径已经生成可执行程序float与real
 def is_point_stable(point):
-    float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
-    real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
-    bits_err = bits_error(real_res, float_res)
-    return bits_err < TOLERANCE
+
+    stable = True
+
+    # 在稳定输入域与不稳定输入域的交界处，稳定输入点越靠近稳定输入域越密集，不稳定输入点越靠近不稳定输入域越密集
+    # 因此，如果只通过单个点来判定稳定性有可能选取到不稳定输入域附近孤立的稳定点，这里采取的策略是在point附近多次采点，均稳定则稳定，出现不稳定则不稳定
+
+    # 当前策略为+-50范围内选10个点，参数可调整
+    points_num = 10  # CONFIG
+    points_range = 50  # CONFIG
+
+    for _ in range(points_num):
+
+        # 距离50范围内采点
+        random_point = generate_random_point(point, points_range)
+
+        # logging.info('Call subprocess float with parameter {}'.format(' '.join(random_point.values)))
+        float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(random_point.values), encoding='ascii').stdout
+        # logging.info('Call subprocess real  with parameter {}'.format(' '.join(random_point.values)))
+        real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(random_point.values), encoding='ascii').stdout
+
+        bits_err = bits_error(real_res, float_res)
+        stable = (stable and (bits_err < TOLERANCE))
+
+    return stable
 
 
 if __name__ == "__main__":
@@ -562,7 +642,7 @@ if __name__ == "__main__":
     # variables = [['x', 'decimal'], ['y', 'integer'], ['z', 'decimal']]
     variables = [['x', 'decimal']]
 
-    pth = '../case/herbie/cos2/cos2.pth'
+    pth = '../case/herbie/2tan/2tan.pth'
 
     path_data = path.PathData(pth)
     paths = path_data.get_paths()
@@ -580,5 +660,6 @@ if __name__ == "__main__":
     #     print(is_point_stable(p))
 
     stable_analysis_new(path_data)
+
 
 
