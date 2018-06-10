@@ -451,6 +451,16 @@ class Point:
                 s += '{:0>10d}\t'.format(binary2int(self.values[i]))
         return s
 
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            return False
+        if not self.dimension == other.dimension:
+            return False
+        return self.types == other.types and self.values == other.values
+
+    def __hash__(self):
+        return hash(' '.join(self.types) + ' ' + str(self))
+
 
 # 稳定性分析
 def stable_analysis_new(path_data):
@@ -459,7 +469,7 @@ def stable_analysis_new(path_data):
     input_variables = path_data.get_input_variables()
 
     points = list()  # 输入点
-    while len(points) < 300:  # 300个随机输入
+    while len(points) < 10:  # 300个随机输入
 
         values = list()
         types = list()
@@ -484,7 +494,6 @@ def stable_analysis_new(path_data):
     for point in points:
         logging.info(str(point))
 
-
     # 判断输入稳定性
     generate_cpp(path_data, paths)  # 根据路径生成cpp文件
     subprocess.call(['make > /dev/null'], shell=True)  # 编译
@@ -498,29 +507,26 @@ def stable_analysis_new(path_data):
         print(ps[0], end='\t')
         print(ps[1])
 
-    # # TODO 进一步细化整体算法
-    # # 对稳定性不同的相邻输入点进行进一步划分
-    #
-    # # 划分过程中新产生的输入点
-    # new_points = list()
-    # for i in range(len(point_stablility)-1):
-    #
-    #     # 相邻输入点稳定性不同，进一步划分
-    #     if point_stablility[i][1] != point_stablility[i+1][1]:
-    #         new_points.extend(divide_stable_unstable(point_stablility, i))
-    #
-    # point_stablility.extend(new_points)
-    # point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
-    #
-    # # 对相邻的稳定输入点进一步细化
-    #
-    # for ps in point_stablility:
-    #     print(ps[0], end='\t')
-    #     print(ps[1])
-    #
-    # # 所有输入点按路径划分
+    # 对稳定性不同的相邻输入点进行进一步划分
 
-    return
+    new_points = list() # 划分过程中新产生的输入点
+    for i in range(len(point_stablility)-1):
+
+        # 相邻输入点稳定性不同，进一步划分
+        if point_stablility[i][1] != point_stablility[i+1][1]:
+            new_points.extend(divide_stable_unstable(point_stablility, i))
+
+    # 新产生的输入点加入并排序
+    point_stablility.extend(new_points)
+    point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
+
+    for ps in point_stablility:
+        print(ps[0], end='\t')
+        print(ps[1])
+
+    # TODO 对相邻的稳定输入点进一步细化
+
+    return point_stablility
 
 
 # 根据index对相邻的两个稳定性不同的输入点进一步划分，通过二分查找的方式大致定位稳定与不稳定的分界点，并将新产生的分界点返回
@@ -620,6 +626,7 @@ def is_point_stable(point):
     points_num = 10  # CONFIG
     points_range = 50  # CONFIG
 
+    count = 0
     for _ in range(points_num):
 
         # 距离50范围内采点
@@ -631,9 +638,13 @@ def is_point_stable(point):
         real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(random_point.values), encoding='ascii').stdout
 
         bits_err = bits_error(real_res, float_res)
-        stable = (stable and (bits_err < TOLERANCE))
+        # stable = (stable and (bits_err < TOLERANCE))
+        if bits_err < TOLERANCE:
+            count += 1
+        else:
+            count -= 1
 
-    return stable
+    return count >= 4  # 稳定不稳定73开认为稳定，后续调整
 
 
 if __name__ == "__main__":
@@ -642,7 +653,7 @@ if __name__ == "__main__":
     # variables = [['x', 'decimal'], ['y', 'integer'], ['z', 'decimal']]
     variables = [['x', 'decimal']]
 
-    pth = '../case/herbie/2tan/2tan.pth'
+    pth = '../case/herbie/logq/logq.pth'
 
     path_data = path.PathData(pth)
     paths = path_data.get_paths()

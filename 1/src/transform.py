@@ -95,10 +95,6 @@ def generate_equal_paths(path, num=10):
 
     equal_paths.remove(path)
 
-    # 将所有等价路径中的计算式进行对cpp兼容的操作
-    for ep in equal_paths:
-        compatible2cpp(ep)
-
     return equal_paths
 
 
@@ -186,14 +182,11 @@ def apply_rule_path(path, rule):
 
         if rule.rule_name == 'Simplify':
             str_expr = str(simplify(sympy_expr))
-            #str_expr = starstar2pow(str_expr)  # sympy默认使用**表示幂，还原回cpp代码是无法编译，故进行一次**到pow函数的转换
         if rule.rule_name == 'Expand':
             str_expr = str(expand(sympy_expr))
-            str_expr = starstar2pow(str_expr)
         if rule.rule_name == 'Horner':
             try:
                 str_expr = str(horner(sympy_expr))
-                str_expr = starstar2pow(str_expr)
             except sympy.polys.polyerrors.PolynomialError:
                 return None  # 应用horner规则报错，返回None
         if rule.rule_name == 'Taylor':
@@ -221,8 +214,6 @@ def apply_rule_path(path, rule):
             Opos = str_expr.rfind('O')
             if Opos > 0:
                 str_expr = str_expr[:Opos-2]
-            # str_expr = starstar2pow(str_expr)
-        # str_expr = compatible2cpp(str_expr)
         chosen[1] = str_expr
 
     if isinstance(rule, TransformRule):
@@ -255,9 +246,6 @@ def apply_rule_path(path, rule):
             chosen[1] = apply_rule_expr(chosen[1], rule)
         else:
             return None
-
-    # 将所有等价路径中的计算式进行对cpp兼容的操作
-    compatible2cpp(epath)
 
     return epath
 
@@ -558,9 +546,6 @@ def generate_equivalent_expressions(expr, rules):
     return expr_set
 
 
-# 将表达式中的**转换为pow函数
-def starstar2pow(expr):
-    return re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
 
 
 # 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
@@ -578,7 +563,6 @@ def compatible2cpp(path):
 
         if isinstance(pl, Procedure):
             for update in pl.get_procedure():
-                update[1] = starstar2pow(update[1])
                 update[1] = intdiv2floatdiv(update[1])
 
         if isinstance(pl, Loop):

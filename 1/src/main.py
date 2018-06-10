@@ -26,32 +26,39 @@ def optimize(path_file):
     opt_path_data = copy.deepcopy(path_data)
     opt_path_data.clear_paths()
 
-    for path in path_data.get_paths():
 
-        # TODO 稳定性分析应该放在此循环外，首先将输入域根据路径划分，再进行优化
+    #################
+    #   稳定性分析   #
+    ################
 
-        #################
-        #   稳定性分析   #
-        ################
+    point_stability = stable_analysis_new(path_data)
+    paths = path_data.get_paths()
 
-        res = stable_analysis(path_data, path)
-        stable_intervals = res['stable']
-        unstable_intervals = res['unstable']
+    # 将输入点根据路径进行划分
+    path_point_stability = dict()
+    for p in paths:
+        path_point_stability[p] = [ps for ps in point_stability if satisfy(ps[0], path_data.get_input_variables(), p.get_constrain())]
 
-        # 将稳定性分析结果写入文件
-        sa_file = os.path.join(casedir, path_data.get_program_name() + '.sa.json')
-        output_json(res, sa_file)
+    for pth, pnt_stb in path_point_stability.items():
 
-        # 直接将稳定部分使用浮点精度实现加入到优化后路径文件中
-        if stable_intervals:
-            float_path = copy.deepcopy(path)
-            float_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], stable_intervals))
-            float_path.set_implement(FLOATTYPE)
-            opt_path_data.add_path(float_path)
+        points = list()  # 该条路径上的输入点
+        unstable_points = set()  # 该条路径上不稳定的点
+        point_stable_path = dict()  # 每个点所对应的稳定的路径
 
-        # 所有不稳定输入域均已经优化
-        if not unstable_intervals:
-            break
+        for i in range(len(pnt_stb)):
+            points.append(pnt_stb[i][0])
+            if pnt_stb[i][1]:  # 原来的路径已经稳定
+                point_stable_path[pnt_stb[i][0]] = pth
+            else:
+                unstable_points.add(pnt_stb[i][0])
+
+        print("Stable points and corresponding path")
+        for pnt, stb_pth in point_stable_path.items():
+            print(str(pnt) + " stable on ", end='\t')
+            print(stb_pth.to_json())
+        print("Still unstable points:")
+        for up in unstable_points:
+            print(up)
 
         ####################
         #   随机代数变换    #
@@ -75,17 +82,18 @@ def optimize(path_file):
         rules.append(RULES['TaylorExp'])
 
         # 以rule name @ path json形式记录待应用规则与路径组合
-        to_transform = set([x.rule_name+'@'+json.dumps(path.to_json()) for x in rules])
+        to_transform = set([x.rule_name+'@'+json.dumps(pth.to_json()) for x in rules])
 
         # 记录已经应用的规则与路径组合，防止重复应用
         done_transform = set()
 
         start_ticks = time.time()
         run_ticks = 0
-        while len(equal_paths) < 10 and run_ticks < 20:  # 超时时间设置为10s
+        # while len(equal_paths) < 10 and run_ticks < 20:  # 超时时间设置为10s
+        while len(equal_paths) < 8:  # 超时时间设置为10s
 
             # 待应用规则与表达式组合列表为空或输入域均已稳定则结束随机代数变换
-            if not to_transform or not unstable_intervals:
+            if not to_transform or not unstable_points:
                 break
 
             run_ticks = time.time() - start_ticks
@@ -122,28 +130,60 @@ def optimize(path_file):
 
                 print("[INFO] Generate equal path:\t" + json.dumps(ep.to_json()) + " by " + chosen_rule_path + "\n")
 
-                # 在该等价计算路径下计算稳定的不稳定输入域
-                ep_stable_intervals = filter_stable_interval(path_data, path, ep, unstable_intervals)
+                # 原不稳定输入点中，在该条路径下计算稳定的输入点
+                # 首先根据新的路径生成float.cpp并编译
+                generate_cpp(path_data, [ep], implement_type='float')
+                subprocess.call(['make > /dev/null'], shell=True)
+                ep_stable_points = [up for up in unstable_points if is_point_stable(up)]
 
-                # 将该等价路径与稳定区间加入到结果中
-                if ep_stable_intervals:
+                if ep_stable_points:
 
-                    print("stable intervals on path")
-                    print(ep_stable_intervals)
+                    print("stable points on new path :", end='\t')
                     print(ep.to_json())
-                    print("")
+                    for p in ep_stable_points:
+                        point_stable_path[p] = ep
+                        print(p)
 
-                    opt_path = copy.deepcopy(ep)
-                    opt_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], ep_stable_intervals))
-                    opt_path.set_implement(FLOATTYPE)
-                    opt_path_data.add_path(opt_path)
-
-                # 去掉已经稳定的区间
-                unstable_intervals = [t for t in unstable_intervals if t not in ep_stable_intervals]
+                # 去掉已经稳定的
+                unstable_points = unstable_points - set(ep_stable_points)
 
                 # 将新产生的路径与规则组合加入到to_transform，同时删除done_transform出现的元素
                 to_transform = to_transform | set([x.rule_name+'@'+json.dumps(ep.to_json()) for x in rules]) - done_transform
 
+        print("Stable points and corresponding path")
+        for p, sp in point_stable_path.items():
+            print(str(p) + " stable on ", end='\t')
+            print(sp.to_json())
+        print("Still unstable points:")
+        for up in unstable_points:
+            print(up)
+
+
+
+    '''
+    for path in path_data.get_paths():
+
+        res = stable_analysis_new(path_data, path)
+        stable_intervals = res['stable']
+        unstable_intervals = res['unstable']
+
+        # 将稳定性分析结果写入文件
+        sa_file = os.path.join(casedir, path_data.get_program_name() + '.sa.json')
+        output_json(res, sa_file)
+
+        # 直接将稳定部分使用浮点精度实现加入到优化后路径文件中
+        if stable_intervals:
+            float_path = copy.deepcopy(path)
+            float_path.add_constrain(intervals2constrain(path_data.get_input_variables(), [path_data.get_variable_type(x) for x in path_data.get_input_variables()], stable_intervals))
+            float_path.set_implement(FLOATTYPE)
+            opt_path_data.add_path(float_path)
+
+        # 所有不稳定输入域均已经优化
+        if not unstable_intervals:
+            break
+
+
+       
         # 未找到稳定的等价路径的区间，使用高精度实现
         if unstable_intervals:
             real_path = copy.deepcopy(path)
@@ -163,6 +203,7 @@ def optimize(path_file):
     #   路径合并  #
     ##############
     merge_path(opt_path_file)
+    '''
 
 
 # 将一个dict数据结构输出到文件
