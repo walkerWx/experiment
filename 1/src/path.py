@@ -181,7 +181,7 @@ class Loop:
             code += (indent+1)*'\t' + implement[self.get_variable_type(var)] + ' ' + var + ';\n'
 
         for var, update_expr in self.get_initialize_list().items():
-            update_expr = starstar2pow(update_expr)
+            update_expr = compatible2cpp(update_expr)
             code += (indent+1)*'\t' + var + ' = ' + update_expr + ';\n'
 
         code += (indent+1)*'\t'+'while(true) {\n'
@@ -206,7 +206,7 @@ class Loop:
             code += (indent+1)*'\t' + REAL[self.get_variable_type(var)] + ' ' + var + ';\n'
 
         for var, update_expr in self.get_initialize_list().items():
-            update_expr = starstar2pow(update_expr)
+            update_expr = compatible2cpp(update_expr)
             code += (indent+1)*'\t' + var + ' = ' + convert_expr(update_expr, origin_vars, real_vars) + ';\n'
 
         code += (indent+1)*'\t'+'while(true) {\n'
@@ -282,12 +282,12 @@ class Procedure:
             update_expr = self.get_update_expr(var)
             if implement_type == REALTYPE:
                 update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
-                update_expr = starstar2pow(update_expr)
+                update_expr = compatible2cpp(update_expr)
                 update_expr = re.sub(r'pow', "power", update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma
             if implement_type == FLOATTYPE:
-                update_expr = starstar2pow(update_expr)
+                update_expr = compatible2cpp(update_expr)
                 update_expr = re.sub('gamma\(', 'tgamma(', update_expr)
 
             code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
@@ -364,7 +364,7 @@ class Path:
         return self.implement
 
     def add_constrain(self, constrain):
-        self.constrain = '(' + self.constrain + ')' + '&&' + '(' + constrain + ')'
+        self.constrain = self.constrain + '&&' + '(' + constrain + ')'
 
     def get_constrain(self):
         return self.constrain
@@ -446,3 +446,15 @@ class Path:
 # 将表达式中的**转换为pow函数
 def starstar2pow(expr):
     return re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
+
+
+# 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
+def intdiv2floatdiv(expr):
+    return re.sub(r'([^0-9.][0-9]+)/([0-9]+)', r'\1.0/\2', expr)
+
+
+# 将路径中的表达式转换为c++能够直接使用的计算式
+def compatible2cpp(expr):
+    expr = starstar2pow(expr)
+    expr = intdiv2floatdiv(expr)
+    return expr

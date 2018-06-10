@@ -24,7 +24,10 @@ def optimize(path_file):
 
     # 优化后的path，除了路径信息外，其余信息与原path文件相同，路径信息为我们对该path文件中的路径进行优化后添加进去的
     opt_path_data = copy.deepcopy(path_data)
-    opt_path_data.clear_paths()
+
+    # 默认的任意精度实现
+    for pth in opt_path_data.get_paths():
+        pth.set_implement(REALTYPE)
 
 
     #################
@@ -50,12 +53,14 @@ def optimize(path_file):
             if pnt_stb[i][1]:  # 原来的路径已经稳定
                 point_stable_path[pnt_stb[i][0]] = pth
             else:
+                point_stable_path[pnt_stb[i][0]] = None
                 unstable_points.add(pnt_stb[i][0])
 
         print("Stable points and corresponding path")
         for pnt, stb_pth in point_stable_path.items():
-            print(str(pnt) + " stable on ", end='\t')
-            print(stb_pth.to_json())
+            if stb_pth:
+                print(str(pnt) + " stable on ", end='\t')
+                print(stb_pth.to_json())
         print("Still unstable points:")
         for up in unstable_points:
             print(up)
@@ -152,14 +157,40 @@ def optimize(path_file):
 
         print("Stable points and corresponding path")
         for p, sp in point_stable_path.items():
-            print(str(p) + " stable on ", end='\t')
-            print(sp.to_json())
+            if sp:
+                print(str(p) + " stable on ", end='\t')
+                print(sp.to_json())
         print("Still unstable points:")
         for up in unstable_points:
             print(up)
 
+        # 将连续的稳定的并且隶属于统一条路径的输入点形成约束，加入到优化后路径文件
+        s = 0
+        e = s
+        while s < len(points):
 
+            while e+1 < len(points) and point_stable_path[points[e]] == point_stable_path[points[e+1]]:
+                e += 1
 
+            # points[s] ~ points[e] 均使用 point_stable_path[points[s]] 的计算过程
+            sp = copy.deepcopy(point_stable_path[points[s]])  # 优化后路径
+
+            if sp:
+                vname = path_data.get_input_variables()[0]
+                vtype = path_data.get_variable_type(vname)
+                if vtype == 'decimal':
+                    vstart = binary2double(points[s].values[0])
+                    vend = binary2double(points[e].values[0])
+                elif vtype == 'integer':
+                    vstart = binary2int(points[s].values[0])
+                    vend = binary2int(points[e].values[0])
+                sp.add_constrain(str(vstart) + '<=' + vname)
+                sp.add_constrain(vname + '<=' + str(vend))
+                sp.set_implement(FLOATTYPE)
+                opt_path_data.add_path(sp)
+
+            e += 1
+            s = e
     '''
     for path in path_data.get_paths():
 
@@ -194,6 +225,7 @@ def optimize(path_file):
         print("[INFO] Print all generated equivalent paths:")
         for ep in equal_paths:
             print(ep)
+    '''
 
     # 结果输出到文件
     opt_path_file = os.path.join(casedir, opt_path_data.get_program_name()+'_o.pth.json')
@@ -203,7 +235,6 @@ def optimize(path_file):
     #   路径合并  #
     ##############
     merge_path(opt_path_file)
-    '''
 
 
 # 将一个dict数据结构输出到文件

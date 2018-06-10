@@ -62,7 +62,7 @@ SinSinR : cos(A)-cos(B) -> -2*sin((A+B)/2)*sin((A-B)/2);
 
 ExpReduction : (exp(2*A)-1)/(exp(A)-1) -> 1+exp(A);
 
-TaylorExp: exp(x) -> (1+x+pow(x,2)/2+pow(x,3)/6+pow(x,4)/24);
+TaylorExp: exp(x) -> (1+x+x**2/2+x**3/6+x**4/24);
 
 TaylorLn: sum(k, 0, n, -x^k/k) -> ln(1-x) @ abs(x) < 1;
 
@@ -70,9 +70,9 @@ TaylorLnPlusReverse : log(x+1) -> (x - (x)^2/2 + (x)^3/3 - (x)^4/4+(x)^5/5);
 TaylorLnMinusReverse : log(-x+1) -> (-x - x^2/2 - x^3/3 - x^4/4-x^5/5);
 TaylorLnDivide : log((x+1)/(-x+1)) -> 2*x*(1+1/x^2+1/5*x^4);
 
-TaylorSin: sin(x) -> (x-pow(x,3)/6+pow(x, 5)/120-pow(x,7)/5040);
-TaylorCos: cos(x) -> (1-pow(x,2)/2+pow(x,4)/24-pow(x,6)/720);
-TaylorTan: tan(x) -> (x+pow(x,3)/3+pow(x,5)*2/15+pow(x,7)*17/315);
+TaylorSin: sin(x) -> (x-x**3/6+x**5/120-x**7/5040);
+TaylorCos: cos(x) -> (1-x**2/2+x**4/24-x**6/720);
+TaylorTan: tan(x) -> (x+x*3/3+x**5*2/15+x**7*17/315);
 
 PolarRepresentation: A+B*I -> sqrt(A**2+B**2)*e**(atan(B/A)*I);
 

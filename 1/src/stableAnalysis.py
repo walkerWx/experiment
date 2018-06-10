@@ -469,7 +469,7 @@ def stable_analysis_new(path_data):
     input_variables = path_data.get_input_variables()
 
     points = list()  # 输入点
-    while len(points) < 10:  # 300个随机输入
+    while len(points) < 300:  # 300个随机输入
 
         values = list()
         types = list()

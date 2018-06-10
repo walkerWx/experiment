@@ -548,27 +548,6 @@ def generate_equivalent_expressions(expr, rules):
 
 
 
-# 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
-def intdiv2floatdiv(expr):
-    return re.sub(r'([^0-9.][0-9]+)/([0-9]+)', r'\1.0/\2', expr)
-
-
-# 将路径中的表达式转换为c++能够直接使用的计算式
-def compatible2cpp(path):
-
-    if not isinstance(path, Path):
-        return
-
-    for pl in path.get_path_list():
-
-        if isinstance(pl, Procedure):
-            for update in pl.get_procedure():
-                update[1] = intdiv2floatdiv(update[1])
-
-        if isinstance(pl, Loop):
-            loop_body = pl.get_loop_body()
-            for p in loop_body:
-                compatible2cpp(p)
 
 
 
