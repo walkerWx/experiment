@@ -39,22 +39,37 @@ using namespace iRRAM;
     code_body += FLOAT['decimal'] + ' ' + path_data.get_function_name() + '(' + param_list + ')\n'
     code_body += '{\n'
 
-    # 变量声明
+    # 变量声明，每个变量分别声明其浮点精度类型变量以及任意精度类型变量
     for v in path_data.get_variables():
         if v not in path_data.get_input_variables():
             code_body += '\t' + FLOAT[path_data.get_variable_type(v)] + ' ' + v + ';\n'
+            code_body += '\t' + REAL[path_data.get_variable_type(v)] + ' ' + v + '_real;\n'
+        else:
+            code_body += '\t' + REAL[path_data.get_variable_type(v)] + ' ' + v + '_real(' + v + ');\n'
 
     code_body += '\n'
 
+    # 优化后的浮点精度实现
     for p in path_data.get_paths():
-
-
         if p.get_implement() == FLOATTYPE:
-            code_body += p.to_cpp_code(FLOATTYPE, indent=1)
-        elif p.get_implement() == REALTYPE:
-            code_body += p.to_mixed_code(path_data, indent=1)
+            code_body += '\t' + 'if(' + p.constrain + ') {\n'
+            for m in p.path_list:
+                code_body += m.to_cpp_code(FLOATTYPE, 2)
+            code_body += '\t\treturn ' + path_data.get_return_expr() + ';\n'
+            code_body += '\t}\n'
+            code_body += '\n'
 
-        code_body += '\n'
+    # 原任意精度实现
+    float_vars = path_data.get_variables()
+    real_vars = [fv + '_real' for fv in float_vars]
+    for p in path_data.get_paths():
+        if p.get_implement() == REALTYPE:
+            code_body += '\t' + 'if(' + p.constrain + ') {\n'
+            for m in p.path_list:
+                code_body += convert_expr(m.to_cpp_code(FLOATTYPE, 2), float_vars, real_vars)
+            code_body += '\t\treturn ' + path_data.get_return_expr() + '_real.as_double();\n'
+            code_body += '\t}\n'
+            code_body += '\n'
 
     # return语句
     code_body += '\treturn ' + path_data.get_return_expr() + ';\n'

@@ -7,31 +7,31 @@ import json
 import re
 
 
-# variables substitution in path. e.g x+y --> a+b
-def convert_expr(originPath, originVars, newVars):
+# variables substitution in expr. e.g x+y --> a+b
+def convert_expr(expr, origin_vars, new_vars):
 
     m = {}
-    for i in range(len(originVars)):
-        m[originVars[i]] = newVars[i]
+    for i in range(len(origin_vars)):
+        m[origin_vars[i]] = new_vars[i]
 
-    newPath = ''
+    new_expr = ''
     i = 0
-    while i < len(originPath):
-        if not originPath[i].isalpha():
-            newPath += originPath[i]
+    while i < len(expr):
+        if not expr[i].isalpha():
+            new_expr += expr[i]
             i += 1
         else:
             j = i
-            while j < len(originPath) and originPath[j].isalpha():
+            while j < len(expr) and expr[j].isalpha():
                 j += 1
-            var = originPath[i:j]
+            var = expr[i:j]
             if var in m:
-                newPath += m[var]
+                new_expr += m[var]
             else:
-                newPath += var
+                new_expr += var
             i = j
 
-    return newPath
+    return new_expr
 
 
 class PathData:
