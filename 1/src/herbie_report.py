@@ -2,8 +2,8 @@ import os
 import re
 
 report_dir = '/Users/walker/Desktop/HerbieCases'  # Herbie 跑benchmark得到的report文件夹
-case_parent_dir = '/Users/walker/PycharmProjects/experiment/2/case/'
-src_dir = '/Users/walker/PycharmProjects/experiment/2/src/'
+case_parent_dir = '/Users/walker/PycharmProjects/experiment/1/case/herbie'
+src_dir = '/Users/walker/PycharmProjects/experiment/1/src/'
 
 # 每个herbie实验用例生成输入的范围
 case_input_range = {
@@ -79,7 +79,7 @@ def save_herbie_cc(execname, herbie_code, file):
 #include <iostream>
 #include <string>
 #include <iomanip>
-#include "../../src/points.h"
+#include "../../../src/points.h"
 '''
 
     main = "int main() {\n"
@@ -112,7 +112,7 @@ def save_irram_cc(irram_code, file):
     header = '''#include <string>
 #include <iostream>
 #include "iRRAM.h"
-#include "../../src/points.h"
+#include "../../../src/points.h"
 '''
 
     main = "void compute() {\n"
@@ -151,7 +151,7 @@ def save_opt_cc(opt_code, file):
 #include <iomanip>
 #include <limits>
 #include "iRRAM.h" 
-#include "../../src/points.h"
+#include "../../../src/points.h"
 
 using namespace std;
 using namespace iRRAM;
@@ -189,10 +189,12 @@ def save_makefile(bins, file):
     content += "all: " + " ".join(bins) + "\n"
     for bin in bins:
         content += bin + ": " + bin + ".cc points.o\n"
-    content += "points.o: ../../src/points.cc ../../src/points.h\n"
+    content += "points.o: ../../../src/points.cc ../../../src/points.h\n"
     content += "\t$(CXX) -c -o $@ $< $(CXXFLAGS)\n"
     content += "clean:\n"
-    content += "\t rm -rf " + " ".join(bins) + " points.o *.dSYM"
+    content += "\trm -rf " + " ".join(bins) + " points.o *.dSYM\n"
+    content += "deepclean: clean\n"
+    content += "\trm -rf *.cc *.txt result.csv Makefile *_o.pth.json\n"
 
     with open(file, 'w') as f:
         f.write(content)
@@ -339,7 +341,7 @@ def prepare(casename):
     generate_irram_cc(casename)
 
     # 生成opt代码，其实现从当前目录的opt.cc中获取
-    generate_opt_cc(casename)
+    # generate_opt_cc(casename)
 
     # 生成Makefile
     generate_makefile(casename)
@@ -398,18 +400,18 @@ def run(casename):
 
     for point in points:
         print(point, file=open("point.txt", "w"))
-        print("[INFO] Executing herbie program with input :" + point.replace("\n", ""))
+        # print("[INFO] Executing herbie program with input :" + point.replace("\n", ""))
         for hb in herbie_bin:
             os.system("./" + hb + " < point.txt >> " + hb + "_result.txt")
 
     for point in points:
         print(point, file=open("point.txt", "w"))
-        print("[INFO] Executing optimized program with input :" + point.replace("\n", ""))
+        # print("[INFO] Executing optimized program with input :" + point.replace("\n", ""))
         os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt")
 
     for point in points:
         print(point, file=open("point.txt", "w"))
-        print("[INFO] Executing irram program with input :" + point.replace("\n", ""))
+        # print("[INFO] Executing irram program with input :" + point.replace("\n", ""))
         os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt")
 
 
@@ -431,7 +433,7 @@ def analysis(case):
         if f.startswith("opt"):
             opt_result_file = f
 
-    analysis_command = "../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files) + " --opt=" + opt_result_file
+    analysis_command = "../../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files) + " --opt=" + opt_result_file
     print(analysis_command)
     os.system(analysis_command)
     print("")
@@ -447,7 +449,7 @@ if __name__ == "__main__":
     # cases = pattern.findall(content)
     # print(cases)
     #
-    # prepare('cos2')
-    # run('cos2')
+    prepare('cos2')
+    run('cos2')
     analysis('cos2')
 

@@ -7,7 +7,48 @@ double opt_2log(double N) {
 
 // Herbie Case: cos2
 double opt_cos2(double x) {
-    return (1-cos(x))/(x*x);
+
+    REAL x_real(x);
+	double r;
+	REAL r_real;
+
+	if(0<x&&x<1e100&&(1.3254399006202563e-307<=x)&&(x<=0.06353450484580483)) {
+		r = (pow(x, 2))*((pow(x, 2))*(-(pow(x, 2))/40320 + 1.0/720) - 1.0/24) + 1.0/2;
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(0.1950220289677712<=x)&&(x<=0.1950220289677712)) {
+		r = (-cos(x) + 1)/(pow(x, 2));
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(0.1950220289677918<=x)&&(x<=138927.36952800868)) {
+		r = (1-cos(x))/(x*x);
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(138927.6748100838<=x)&&(x<=8.901605660795768e+33)) {
+		r = (1-cos(x))/(x*x);
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(1.635746089034015e+34<=x)&&(x<=5.136949077534515e+91)) {
+		r = (1-cos(x))/(x*x);
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(5.200918451550393e+91<=x)&&(x<=1.6080661410658722e+99)) {
+		r = (1-cos(x))/(x*x);
+		return r;
+	}
+
+	if(0<x&&x<1e100) {
+		r_real = (1-cos(x_real))/(x_real*x_real);
+		return r_real.as_double();
+	}
+
+	return r;
+
 }
 
 // Herbie case: exp2
@@ -27,9 +68,43 @@ double opt_expm1(double x) {
 
 // Herbie case: expq2
 double opt_expq2(double x) {
-    if((true)&&((0.0000100<=x&&x<=0.0000201)))
-		return 1/x + 1.0/2 + x/12 - (pow(x, 3))/720 + (pow(x, 5))/30240 - (pow(x, 7))/1209600 ;
-    return exp(x)/(exp(x)-1);
+
+REAL x_real(x);
+	double r;
+	REAL r_real;
+
+	if(0<x&&x<1e100&&(1.5849788283144796e-306<=x)&&(x<=0.0013392671530306716)) {
+		r = (pow(x, 4))/720 - (pow(x, 2))/24 + 1.0/2;
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(0.021706814672986015<=x)&&(x<=0.055604341241586676)) {
+		r = (pow(x, 2))*((pow(x, 2))*(-(pow(x, 2))/40320 + 1.0/720) - 1.0/24) + 1.0/2;
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(0.18414519199774187<=x)&&(x<=60940444.46477206)) {
+		r = (1-cos(x))/(x*x);
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(60940444.464779094<=x)&&(x<=60940444.464779094)) {
+		r = (-cos(x) + 1)/(pow(x, 2));
+		return r;
+	}
+
+	if(0<x&&x<1e100&&(60940444.80902673<=x)&&(x<=1.1552030466972242e+99)) {
+		r = (1-cos(x))/(x*x);
+		return r;
+	}
+
+	if(0<x&&x<1e100) {
+		r_real = (1-cos(x_real))/(x_real*x_real);
+		return r_real.as_double();
+	}
+
+	return r;
+
 }
 
 // Herbie case: invcot
