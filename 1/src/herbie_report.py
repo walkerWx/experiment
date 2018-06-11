@@ -7,7 +7,6 @@ project_home = '/Users/walker/PycharmProjects/experiment/'
 report_dir = '/Users/walker/Desktop/HerbieCases'  # Herbie 跑benchmark得到的report文件夹
 case_parent_dir = os.path.join(project_home, '1/case/herbie')
 src_dir = os.path.join(project_home, '1/src/')
-print(src_dir)
 
 # 每个herbie实验用例生成输入的范围
 case_input_range = {
