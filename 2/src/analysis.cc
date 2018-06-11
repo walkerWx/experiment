@@ -54,11 +54,7 @@ int main(int argc, char *argv[]) {
     ifs.open(input_file, ifstream::in);
     while (getline(ifs, line)) {
         input_points.push_back(vector<string>());
-        iss.str(line);
-        for (int i = 0; i < input_dimension; ++i) {
-            iss >> tmp; 
-            input_points.back().push_back(tmp);
-        } 
+        input_points[input_points.size()-1] = split(line, ' ');
     }
     ifs.close();
 
@@ -138,7 +134,7 @@ int main(int argc, char *argv[]) {
 
             // 输出hebie结果与irram结果的相对误差
             ofs << binary2double(hbr[i]) << ",";
-            re = relative_error(irram_result[i], hbr[i]) ;
+            re = relative_error(irram_result[i], hbr[i]);
             if (re > max_relative_error_HI) {
                 max_relative_error_HI = re; 
                 mre_irram_out_HI = irram_result[i];
@@ -155,6 +151,10 @@ int main(int argc, char *argv[]) {
                 mhe_irram_out_HI = irram_result[i];
                 mhe_herbie_out_HI = hbr[i];
                 mhe_input_HI = input_points[i];
+                cout << "NOW mhe input HI is" << endl;
+                for (auto p : mhe_input_HI) {
+                    cout << p << " " << binary2double(p) << " " << endl;
+                }
                 mhe_file_HI = herbie_result_file[j];
             }
             ofs << he << ",";
@@ -178,6 +178,7 @@ int main(int argc, char *argv[]) {
             mhe_opt_out_OI = opt_result[i];
             mhe_input_OI = input_points[i];
         }
+        ofs << he << ",";
         ofs << endl;
     }
     ofs.close();
@@ -217,6 +218,6 @@ int main(int argc, char *argv[]) {
     }
     cout << "iRRAM output:\n" <<  mre_irram_out_OI << " " << binary2double(mre_irram_out_OI) << endl;
     cout << "Optimized output:\n" << mre_opt_out_OI << " " << binary2double(mre_opt_out_OI) << endl << endl;
-    
+
 }
 

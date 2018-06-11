@@ -150,17 +150,21 @@ def save_opt_cc(opt_code, file):
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include "iRRAM.h" 
 #include "../../src/points.h"
+
+using namespace std;
+using namespace iRRAM;
+
 '''
 
-    main = "int main() {\n"
-    main += "\tstd::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);\n"
+    main = "void compute() {\n"
     main += "\tstd::string " + ",".join([x+"_str" for x in vars]) + ";\n"
-    main += "\tstd::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
+    main += "\tiRRAM::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
     for var in vars:
         main += "\tdouble " + var + "_double = binary2double(" + var + "_str);\n"
     main += "\tdouble r_double = " + funcname + "(" + ", ".join([x+"_double" for x in vars]) + ");\n"
-    main += '\tstd::cout << double2binary(r_double) << "\\n";\n'
+    main += '\tiRRAM::cout << double2binary(r_double) << "\\n";\n'
     main += "}\n"
 
     with open(file, 'w') as f:
@@ -255,7 +259,7 @@ def generate_opt_cc(casename):
     # 获取优化后文件中代码实现
     with open(opt_code_file) as f:
         content = f.read()
-        pattern = re.compile(r'^.*?' + casename + r'(?:.|\n)*?\}', re.M)
+        pattern = re.compile(r'^.*?' + casename + r'(?:.|\n)*?\n\}', re.M)
         opt_code = pattern.findall(content)
 
     # 生成优化后文件的C++实现
@@ -428,6 +432,7 @@ def analysis(case):
             opt_result_file = f
 
     analysis_command = "../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files) + " --opt=" + opt_result_file
+    print(analysis_command)
     os.system(analysis_command)
     print("")
 
@@ -442,7 +447,7 @@ if __name__ == "__main__":
     # cases = pattern.findall(content)
     # print(cases)
     #
-    prepare('expq2')
-    run('expq2')
-    analysis('expq2')
+    # prepare('cos2')
+    # run('cos2')
+    analysis('cos2')
 
