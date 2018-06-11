@@ -509,7 +509,7 @@ def stable_analysis_new(path_data):
 
     # 对稳定性不同的相邻输入点进行进一步划分
 
-    new_points = list() # 划分过程中新产生的输入点
+    new_points = list()  # 划分过程中新产生的输入点
     for i in range(len(point_stablility)-1):
 
         # 相邻输入点稳定性不同，进一步划分
@@ -622,6 +622,13 @@ def is_point_stable(point):
     # 在稳定输入域与不稳定输入域的交界处，稳定输入点越靠近稳定输入域越密集，不稳定输入点越靠近不稳定输入域越密集
     # 因此，如果只通过单个点来判定稳定性有可能选取到不稳定输入域附近孤立的稳定点，这里采取的策略是在point附近多次采点，均稳定则稳定，出现不稳定则不稳定
 
+    # 首先确认选取的点时稳定的
+    float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point.values), encoding='ascii').stdout
+    real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point.values), encoding='ascii').stdout
+    bits_err = bits_error(real_res, float_res)
+    if bits_err >= TOLERANCE:
+        return False
+
     # 当前策略为+-50范围内选10个点，参数可调整
     points_num = 10  # CONFIG
     points_range = 50  # CONFIG
@@ -649,14 +656,14 @@ def is_point_stable(point):
 
 if __name__ == "__main__":
 
-    point = [1, 200, 3.0]
+    # point = [1, 200, 3.0]
     # variables = [['x', 'decimal'], ['y', 'integer'], ['z', 'decimal']]
-    variables = [['x', 'decimal']]
-
-    pth = '../case/herbie/logq/logq.pth'
-
-    path_data = path.PathData(pth)
-    paths = path_data.get_paths()
+    # variables = [['x', 'decimal']]
+    #
+    # pth = '../case/herbie/logq/logq.pth'
+    #
+    # path_data = path.PathData(pth)
+    # paths = path_data.get_paths()
 
     # start = 0.1
     # end = 0.25
@@ -670,7 +677,9 @@ if __name__ == "__main__":
     #     print(binary2double(p[0]), end='\t')
     #     print(is_point_stable(p))
 
-    stable_analysis_new(path_data)
+    # stable_analysis_new(path_data)
 
+    p = Point(['0100100100101011111010110010101100000000001111011111111101011000'], ['decimal'])
+    print(is_point_stable(p))
 
 

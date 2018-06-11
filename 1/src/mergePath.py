@@ -7,9 +7,8 @@ from __future__ import print_function
 from path import *
 from config import *
 
+import os
 
-# TODO
-# different type implemention && loop implemention
 # merge paths in pth file to a C program
 def merge_path(path_file):
 
@@ -23,9 +22,7 @@ def merge_path(path_file):
 #include <cmath>
 
 #include "iRRAM.h"
-#include "../../src/gamma.h"
-
-#define euler_gamma (0.57721566490)
+#include "../../../src/points.h"
 
 using namespace std;
 using namespace iRRAM;
@@ -76,26 +73,21 @@ using namespace iRRAM;
     code_body += '}\n\n'
 
     # main函数
-    code_body += 'void compute(){\n'
-
-    for v in path_data.get_input_variables():
-        code_body += '\t' + FLOAT[path_data.get_variable_type(v)] + ' ' + v + ';\n'
-
-    code_body += '\t' + FLOAT['cin'] + ' >> ' + ' >> '.join(path_data.get_input_variables()) + ';\n'
-
-    code_body += '\t' + FLOAT['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
-
-    code_body += '\t' + FLOAT['cout'] + ' << ' + path_data.get_function_name() + '(' + ', '.join(path_data.get_input_variables()) +') << endl;\n'
-
-    code_body += '}\n'
-
+    code_body += "void compute() {\n"
+    code_body += "\tstd::string " + ",".join([x + "_str" for x in path_data.get_input_variables()]) + ";\n"
+    code_body += "\tiRRAM::cin >> " + " >> ".join([x + "_str" for x in path_data.get_input_variables()]) + ";\n"
+    for var in path_data.get_input_variables():
+        code_body += "\tdouble " + var + "_double = binary2double(" + var + "_str);\n"
+    code_body += "\tdouble r_double = " + path_data.get_function_name() + "(" + ", ".join([x + "_double" for x in path_data.get_input_variables()]) + ");\n"
+    code_body += '\tiRRAM::cout << double2binary(r_double) << "\\n";\n'
+    code_body += "}\n"
 
     # output to file
     output_directory = ''
     if path_file.rfind('/') != -1:
         output_directory = path_file[:path_file.rfind('/')+1]
 
-    output_file = open(output_directory+path_data.get_program_name()+'_o.cc', 'w')
+    output_file = open(os.path.join(output_directory, 'opt.cc'), 'w')
 
     print(code_header, file=output_file)
     print(code_body, file=output_file)

@@ -227,7 +227,16 @@ def optimize(path_file):
             print(ep)
     '''
 
-    # 结果输出到文件
+    # 稳定性分析结果输出到文件
+    points_file = os.path.join(casedir, 'points.txt')
+    with open(points_file, 'w') as f:
+        for (point, stable) in point_stability:
+            f.write(' '.join(point.values))
+            f.write(' ')
+            f.write(str(stable))
+            f.write('\n')
+
+    # 优化后路径信息输出到文件
     opt_path_file = os.path.join(casedir, opt_path_data.get_program_name()+'_o.pth.json')
     output_json(opt_path_data.to_json(), opt_path_file)
 

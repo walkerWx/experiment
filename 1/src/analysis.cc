@@ -40,7 +40,6 @@ int main(int argc, char *argv[]) {
     string line;
     getline(ifs, line);
     ifs.close();
-    int input_dimension = split(line, ' ').size();
 
     vector<vector<string>> input_points; 
     vector<string> irram_result;
@@ -54,7 +53,9 @@ int main(int argc, char *argv[]) {
     ifs.open(input_file, ifstream::in);
     while (getline(ifs, line)) {
         input_points.push_back(vector<string>());
-        input_points[input_points.size()-1] = split(line, ' ');
+        vector<string> input_point_stable = split(line, ' ');
+        input_point_stable = vector<string>(input_point_stable.begin(), input_point_stable.end()-1);
+        input_points[input_points.size()-1] = input_point_stable;
     }
     ifs.close();
 
@@ -151,10 +152,6 @@ int main(int argc, char *argv[]) {
                 mhe_irram_out_HI = irram_result[i];
                 mhe_herbie_out_HI = hbr[i];
                 mhe_input_HI = input_points[i];
-                cout << "NOW mhe input HI is" << endl;
-                for (auto p : mhe_input_HI) {
-                    cout << p << " " << binary2double(p) << " " << endl;
-                }
                 mhe_file_HI = herbie_result_file[j];
             }
             ofs << he << ",";
