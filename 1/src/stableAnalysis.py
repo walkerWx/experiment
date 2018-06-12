@@ -16,113 +16,9 @@ import re
 import sympy
 import math
 import logging
-
-logging.basicConfig(format='%(levelname)s %(asctime)s : %(message)s', level=logging.INFO)
-
 import path
 
-getcontext().prec = 20
-
-
-# 以step为步长对输入区间[start, end]进行划分，并将结果输出
-def divide_input_space(var_type):
-
-    li = range(INTSTART, INTEND)
-
-    ld = []
-    step = 10**(-PREC) 
-    i = 0
-    while FLOATSTART+i*step < FLOATEND:
-        ld.append([round(FLOATSTART+i*step, PREC), round(FLOATSTART+(i+1)*step, PREC)])
-        i = i + 1
-
-    lst = []
-
-    for t in var_type:
-        if t == 'integer':
-            lst.append(li)
-        elif t == 'decimal':
-            lst.append(ld)
-
-    return [list(x) for x in itertools.product(*lst)]
-
-
-# 计算每个变量的范围表示的N维空间的所有顶点，例如 x = [1, 2], y = [2, 4] 对应二维空间中的4个顶点 (1, 2) (1, 4) (2, 2) (2, 4)
-def interval2points(interval):
-
-    for i in range(len(interval)):
-        if isinstance(interval[i], int):
-            interval[i] = [interval[i]]
-        
-    points = [list(x) for x in itertools.product(*interval)]
-
-    # 格式化输入
-    for point in points:
-        for i in range(len(point)):
-            if isinstance(point[i], int):
-                point[i] = str(point[i])
-            else:
-                point[i] = ('%.'+str(PREC)+'f') % point[i]
-
-    return points
-
-
-# 对拆分后的区间进行合并  
-def merge_interval(intervals):
-
-    merged = list()
-
-    # 单变量情况
-    dimension = len(intervals[0])
-
-    if dimension == 1:
-        # 变量为浮点数
-        if len(intervals[0][0]) == 2:
-            t = [x[0] for x in intervals]
-            i = 0
-            while i < len(t):
-                start = t[i][0]
-                while i+1 < len(t):
-                    if t[i][1] != t[i+1][0]:
-                        break
-                    i = i + 1
-                end = t[i][1]
-                merged.append([[start, end]])
-                i = i + 1
-        # 变量为整数
-        elif len(intervals[0][0]) == 1:
-            t = [x[0] for x in intervals]
-            i = 0
-            while i < len(t):
-                start = t[i][0]
-                while i+1 < len(t):
-                    if t[i][0] + 1 != t[i+1][0]:
-                        break
-                    i = i + 1
-                end = t[i][0]
-                merged.append([[start, end]])
-                i = i + 1
-
-    return merged
-
-
-# 将变量的区间转化为能直接填写到程序中的约束的字符串 
-def interval2constrain(variables, variables_type, interval):
-    constrain = []
-    for i in range(len(interval)):
-        if variables_type[i] == 'decimal':
-            constrain.append((('%.'+str(PREC)+'f') % interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + (('%.'+str(PREC)+'f') % interval[i][1]))
-        elif variables_type[i] == 'integer':
-            constrain.append(str(interval[i][0]) + '<=' + variables[i] + '&&' + variables[i] + '<=' + str(interval[i][1]))
-    constrain = '(' + '&&'.join(constrain) + ')'
-    return constrain
-
-
-def intervals2constrain(variables, variables_type, intervals):
-    intervals = merge_interval(intervals)
-    constrain = [interval2constrain(variables, variables_type, interval) for interval in intervals]
-    constrain = '||'.join(constrain)
-    return constrain
+logging.basicConfig(format='%(levelname)s %(asctime)s : %(message)s', level=logging.INFO)
 
 
 # generate runable cpp file according to path, constrain and type
@@ -185,101 +81,6 @@ def generate_cpp(path_data, paths, implement_type='all'):
     f = open(output_file[implement_type], 'w')
     print(implement['header'], file=f)
     print(main_func, file=f)
-
-
-# 稳定性分析主逻辑
-def stable_analysis(path_data, path):
-
-    variables = path_data.get_variables()
-    print('VARIABLES:\t', variables, file=LOGFILE)
-    print('PATH:\t', path.to_json(), file=LOGFILE)
-    print('CONSTRAIN:\t',  file=LOGFILE)
-
-    # 只关心用户输入的变量
-    input_variables = path_data.get_input_variables()
-    input_variables_type = [path_data.get_variable_type(var) for var in input_variables]
-    intervals = divide_input_space(input_variables_type)
-    points = [interval2points(interval) for interval in intervals]
-
-    generate_cpp(path_data, path)
-    subprocess.call(['make'], shell=True)
-
-    stable_interval = []
-    unstable_interval = []
-
-    for i in range(len(intervals)):
-
-        stable = True   # interval stable
-        pstable = True  # point stable
-
-        print('', file=LOGFILE)
-        print('----------------------------------------------', file=LOGFILE)
-        print('INTERVAL:\t', intervals[i], file=LOGFILE)
-
-        # 对待分析区间中所有点，计算其比特误差
-        for point in points[i]:
-
-            pstable = True
-
-            float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
-            real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
-            bits_error = int(subprocess.run(['./bits_error'], stdout=subprocess.PIPE, input=float_res+' '+real_res, encoding='ascii').stdout)
-
-            if bits_error >= TOLERANCE:
-                pstable = False
-                stable = False
-
-            print('', file=LOGFILE)
-            print('POINT:\t', point, file=LOGFILE)
-            print('FLOAT RESULT:\t', float_res, file=LOGFILE)
-            print('REAL RESULT:\t', real_res, file=LOGFILE)
-            print('BITS ERROR:\t', bits_error, file=LOGFILE)
-            print('STABLE:\t', str(pstable), file=LOGFILE)
-
-        if stable:
-            stable_interval.append(intervals[i])
-        else:
-            unstable_interval.append(intervals[i])
-
-    print(' ', file=LOGFILE)
-    print('STABLE INTERVAL:\t', len(stable_interval), file=LOGFILE)
-    print('UNSTABLE INTERVAL:\t', len(unstable_interval), file=LOGFILE)
-
-    return {'stable': stable_interval, 'unstable': unstable_interval}
-
-
-# 判断一条路径在给定区间上是否稳定
-def filter_stable_interval(path_data, original_path, opt_path, intervals):
-
-    # 根据path生成可执行文件并编译
-    generate_cpp(path_data, original_path, implement_type='real')
-    generate_cpp(path_data, opt_path, implement_type='float')
-    subprocess.call(['make > /dev/null'], shell=True)
-
-    stable_intervals = list()
-    for interval in intervals:
-
-        # 输入区间对应边界点
-        points = interval2points(interval)
-
-        # TODO 判断输入域上的点是否均满足路径约束
-
-        pstable = True
-        for point in points:
-
-            float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
-            real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point), encoding='ascii').stdout
-            bits_error = int(subprocess.run(['./bits_error'], stdout=subprocess.PIPE, input=float_res+' '+real_res, encoding='ascii').stdout)
-
-            if bits_error >= TOLERANCE:
-                pstable = False
-                break
-
-        if pstable:
-            stable_intervals.append(interval)
-
-    return stable_intervals
-
 
 # 将双精度浮点数转换为其二进制表示
 def double2binary(d):
@@ -498,45 +299,103 @@ def stable_analysis_new(path_data):
     generate_cpp(path_data, paths)  # 根据路径生成cpp文件
     subprocess.call(['make > /dev/null'], shell=True)  # 编译
 
-    point_stablility = [(point, is_point_stable(point)) for point in points]  # 所有输入点及其稳定性信息，结构:[(p1, True), (p2, False)... ]
+    point_stability_output = [(point, is_point_stable(point), real_output(point)) for point in points]  # 所有输入点及其稳定性信息，结构:[(p1, True), (p2, False)... ]
 
     # 所有输入点按大小排序，按照输入点的第一个维度的大小
-    point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
+    point_stability_output = sorted(point_stability_output, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
 
-    for ps in point_stablility:
-        print(ps[0], end='\t')
-        print(ps[1])
+    for pso in point_stability_output:
+        print("{}\t{}".format(str(pso[0]), str(pso[1])))
 
     # 对稳定性不同的相邻输入点进行进一步划分
 
     new_points = list()  # 划分过程中新产生的输入点
-    for i in range(len(point_stablility)-1):
+    for i in range(len(point_stability_output)-1):
 
         # 相邻输入点稳定性不同，进一步划分
-        if point_stablility[i][1] != point_stablility[i+1][1]:
-            new_points.extend(divide_stable_unstable(point_stablility, i))
+        if point_stability_output[i][1] != point_stability_output[i+1][1]:
+            new_points.extend(divide_stable_unstable(point_stability_output, i))
 
     # 新产生的输入点加入并排序
-    point_stablility.extend(new_points)
-    point_stablility = sorted(point_stablility, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
+    point_stability_output.extend(new_points)
+    point_stability_output = sorted(point_stability_output, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
 
-    for ps in point_stablility:
-        print(ps[0], end='\t')
-        print(ps[1])
+    for pso in point_stability_output:
+        print("{}\t{}".format(str(pso[0]), str(pso[1])))
 
-    # TODO 对相邻的稳定输入点进一步细化
+    # 对相邻的稳定输入点进一步细化，一直细化到输入点的数量达到一定值
+    points_enough = 500  # CONFIG
+    while len(point_stability_output) < points_enough:
 
-    return point_stablility
+        print("points number " + str(len(point_stability_output)))
+
+        # 根据权重对相邻的稳定输入点进一步细化，权重主要取决于下述两个值
+        w1 = list()
+        w2 = list()
+
+        # 相邻稳定输入点 p q, abs((real_output(p)-real_output(q))/(p-q))
+        def weight_1(p, q):
+
+            # 只考虑相邻的稳定输入点
+            if (not p[1]) or (not q[1]):
+                return 0
+
+            delta_out = abs(binary2double(p[2])-binary2double(q[2]))
+            delta_in = 1
+            if p[0].types[0] == 'decimal':
+                delta_in = abs(binary2double(p[0].values[0])-binary2double(q[0].values[0]))
+            elif p[0].types[0] == 'integer':
+                delta_in = abs(binary2int(p[0].values[0])-binary2int(q[0].values[0]))
+
+            return delta_out/delta_in
+
+        # 相邻稳定输入点距离权重
+        def weight_2(p, q):
+
+            # 只考虑相邻的稳定输入点
+            if (not p[1]) or (not q[1]):
+                return 0
+
+            d = 0
+            if p[0].types[0] == 'decimal':
+                d = double_distance(binary2double(p[0].values[0]), binary2double(q[0].values[0]))
+            elif p[0].types[0] == 'integer':
+                d = int_distance(binary2int(p[0].values[0]), binary2int(q[0].values[0]))
+
+            return int(math.log2(d))/64
+
+        w1 = [weight_1(point_stability_output[i], point_stability_output[i+1]) for i in range(len(point_stability_output)-1)]
+        w2 = [weight_2(point_stability_output[i], point_stability_output[i+1]) for i in range(len(point_stability_output)-1)]
+
+        # 归一化
+        w1 = [w/max(w1) for w in w1]
+        w2 = [w/max(w2) for w in w2]
+
+        # 对应权重相加
+        w = [sum(x) for x in zip(w1, w2)]
+
+        # 最大权重下标
+        max_weight_index = w.index(max(w))
+
+        # 在该下标处细分
+        point_stability_output = divide_stable_stable(point_stability_output, max_weight_index)
+
+    for pso in point_stability_output:
+        print("{}\t{}".format(str(pso[0]), str(pso[1])))
+
+    return [(pso[0], pso[1]) for pso in point_stability_output]
 
 
 # 根据index对相邻的两个稳定性不同的输入点进一步划分，通过二分查找的方式大致定位稳定与不稳定的分界点，并将新产生的分界点返回
-def divide_stable_unstable(point_stablility, index):
+def divide_stable_unstable(point_stability_output, index):
 
-    left_point = point_stablility[index][0]
-    right_point = point_stablility[index+1][0]
+    left_point = point_stability_output[index][0]
+    right_point = point_stability_output[index+1][0]
 
-    lsi = point_stablility[index][1]
-    rsi = point_stablility[index+1][1]
+    logging.info("divide stable unstable: {} --- {}".format(str(left_point), str(right_point)))
+
+    lsi = point_stability_output[index][1]
+    rsi = point_stability_output[index+1][1]
 
     mid_point = get_middle_point(left_point, right_point)  # FIXME mid_point是有可能不在输入域上的，如何处理？
 
@@ -570,12 +429,32 @@ def divide_stable_unstable(point_stablility, index):
         mid_point = get_middle_point(left_point, right_point)  # FIXME 同上
 
     # 返回划分过程中新产生的点
-    return [(left_point, lsi), (right_point, rsi)]
+    return [(left_point, lsi, real_output(left_point)), (right_point, rsi, real_output(right_point))]
 
 
-# 根据index对相邻的两个稳定的输入点形成的区间进行划分，去中点判定稳定性，稳定则将新的分界点加入到point_stability并返回，不稳定则使用divide_stable_unstable进一步划分 TODO
-def divide_stable_stable(point_stability, index):
-    return
+# 根据index对相邻的两个稳定的输入点形成的区间进行划分，去中点判定稳定性，稳定则将新的分界点加入到point_stability_output并返回，不稳定则使用divide_stable_unstable进一步划分
+def divide_stable_stable(point_stability_output, index):
+
+    left_point = point_stability_output[index][0]
+    right_point = point_stability_output[index+1][0]
+
+    logging.info("divide stable stable: {} --- {}".format(str(left_point), str(right_point)))
+
+    mid_point = get_middle_point(left_point, right_point)
+    point_stability_output.insert(index+1, (mid_point, is_point_stable(mid_point), real_output(mid_point)))
+
+    # 中点不稳定，细分
+    if not point_stability_output[index+1][1]:
+
+        new_points = list()
+        new_points.extend(divide_stable_unstable(point_stability_output, index))
+        new_points.extend(divide_stable_unstable(point_stability_output, index+1))
+
+        # 新产生的输入点加入并排序
+        point_stability_output.extend(new_points)
+        point_stability_output = sorted(point_stability_output, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
+
+    return point_stability_output
 
 
 # 判断输入是否满足约束
@@ -612,6 +491,11 @@ def satisfy(point, variables, constrain):
     stmt3 = 'constrain_expr.subs({' + ','.join([variables[i] + ':' + values[i] for i in range(len(values))]) + '})'
 
     return eval(stmt3)
+
+
+# 输入点在任意精度下输出，注意当前的real是否为对应的任意精度程序
+def real_output(point):
+    return subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point.values), encoding='ascii').stdout
 
 
 # 判断输入点是否稳定，注意调用前必须保证对应路径已经生成可执行程序float与real
@@ -656,14 +540,9 @@ def is_point_stable(point):
 
 if __name__ == "__main__":
 
-    # point = [1, 200, 3.0]
-    # variables = [['x', 'decimal'], ['y', 'integer'], ['z', 'decimal']]
-    # variables = [['x', 'decimal']]
-    #
-    # pth = '../case/herbie/logq/logq.pth'
-    #
-    # path_data = path.PathData(pth)
-    # paths = path_data.get_paths()
+    pth = '../case/herbie/cos2/cos2.pth'
+
+    path_data = path.PathData(pth)
 
     # start = 0.1
     # end = 0.25
@@ -677,9 +556,7 @@ if __name__ == "__main__":
     #     print(binary2double(p[0]), end='\t')
     #     print(is_point_stable(p))
 
-    # stable_analysis_new(path_data)
+    stable_analysis_new(path_data)
 
-    p = Point(['0100100100101011111010110010101100000000001111011111111101011000'], ['decimal'])
-    print(is_point_stable(p))
 
 
