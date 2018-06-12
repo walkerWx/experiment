@@ -1,12 +1,11 @@
 import os
 import re
 
-# 项目所在路径
-project_home = '/Users/walker/PycharmProjects/experiment/'
+from config import iRRAM_HOME, PROJECT_HOME
 
 report_dir = '/Users/walker/Desktop/HerbieCases'  # Herbie 跑benchmark得到的report文件夹
-case_parent_dir = os.path.join(project_home, '1/case/herbie')
-src_dir = os.path.join(project_home, '1/src/')
+case_parent_dir = os.path.join(PROJECT_HOME, '1/case/herbie')
+src_dir = os.path.join(PROJECT_HOME, '1/src/')
 
 # 每个herbie实验用例生成输入的范围
 case_input_range = {
@@ -181,14 +180,13 @@ using namespace iRRAM;
 def save_makefile(bins, file):
 
     content = ""
-    content += "PROJECTHOME = /Users/walker/Projects\n"
-    content += "prefix=$(PROJECTHOME)/iRRAM/installed\n"
-    content += "CPPFLAGS = -I$(PROJECTHOME)/iRRAM/installed/include\n"
+    content += "iRRAM_HOME=" + iRRAM_HOME + "\n"
+    content += "CPPFLAGS = -I$(iRRAM_HOME)/installed/include\n"
     content += "CXX = clang++ -std=c++11\n"
     content += "CXXCPP = clang++ -E -std=c++11\n"
     content += "CXXFLAGS = -g -O2\n"
-    content += "LDFLAGS = -Xlinker -rpath -Xlinker $(PROJECTHOME)/iRRAM/installed/lib\n"
-    content += "LDLIBS =  -L$(PROJECTHOME)/iRRAM/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread\n"
+    content += "LDFLAGS = -Xlinker -rpath -Xlinker $(iRRAM_HOME)/installed/lib\n"
+    content += "LDLIBS =  -L$(iRRAM_HOME)/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread\n"
     content += "all: " + " ".join(bins) + "\n"
     for bin in bins:
         content += bin + ": " + bin + ".cc points.o\n"

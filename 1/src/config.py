@@ -3,25 +3,16 @@
 
 # Configuration file
 
+PROJECT_HOME = '/Users/walker/PycharmProjects/experiment'
+iRRAM_HOME = '/Users/walker/Projects/iRRAM'
+
 # 优化后程序两种不同的实现类型：浮点数实现、高精度实现
 FLOATTYPE = 'float'
 REALTYPE = 'real'
 
-# 待分析输入区间，每个输入范围 [START, END]
-FLOATSTART = 0.00001
-FLOATEND = 0.00002
-
-INTSTART = 1
-INTEND = 100
-
-# 区间拆分粒度，即划分小区间的大小 10^(-PREC)
-PREC = 7
 
 # 浮点精度与高精度程序的容许的比特误差，容许误差范围内认为是稳定的
 TOLERANCE = 4
-
-# 使用规则进行等价转化尝试次数
-TRANSFORM_NUM = 1
 
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
 FLOAT = dict()

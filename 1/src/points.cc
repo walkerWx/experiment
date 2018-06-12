@@ -142,7 +142,7 @@ double relative_error(std::string irram_res, std::string herbie_res) {
         }
         return std::numeric_limits<double>::infinity();
     }
-    return abs((irram-herbie)/irram);
+    return std::abs((irram-herbie)/irram);
 }
 
 int log2_64(uint64_t value) {
