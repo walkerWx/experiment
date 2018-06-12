@@ -264,7 +264,7 @@ class Point:
 
 
 # 稳定性分析
-def stable_analysis_new(path_data):
+def stable_analysis(path_data):
 
     paths = path_data.get_paths()
     input_variables = path_data.get_input_variables()
@@ -540,7 +540,7 @@ def is_point_stable(point):
 
 if __name__ == "__main__":
 
-    pth = '../case/herbie/cos2/cos2.pth'
+    pth = '../case/herbie/sqrtexp/sqrtexp.pth'
 
     path_data = path.PathData(pth)
 
@@ -556,7 +556,7 @@ if __name__ == "__main__":
     #     print(binary2double(p[0]), end='\t')
     #     print(is_point_stable(p))
 
-    stable_analysis_new(path_data)
+    stable_analysis(path_data)
 
 
 

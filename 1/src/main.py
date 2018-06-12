@@ -34,7 +34,7 @@ def optimize(path_file):
     #   稳定性分析   #
     ################
 
-    point_stability = stable_analysis_new(path_data)
+    point_stability = stable_analysis(path_data)
     paths = path_data.get_paths()
 
     # 将输入点根据路径进行划分
@@ -261,15 +261,9 @@ def choose_rule_by_weight(rules):
 if __name__ == "__main__":
 
 
-    # todo
-    #optimize('../case/herbie/2cos/2cos.pth')
-
     # done
-    #optimize('../case/iRRAM/jmmuller/jmmuller.pth')
-    #optimize('../case/herbie/logq/logq.pth')
-    #optimize('../case/herbie/sqrtexp/sqrtexp.pth')
-    #optimize('../case/herbie/expq2/expq2.pth')
-    optimize('../case/herbie/cos2/cos2.pth')
+    # optimize('../case/herbie/cos2/cos2.pth')
+    optimize('../case/herbie/sqrtexp/sqrtexp.pth')
 
 
 

@@ -9,3 +9,5 @@ expr_parser/
 .idea/
 a.out
 .DS_Store
+1/case/*
+!1/case/*.pth
