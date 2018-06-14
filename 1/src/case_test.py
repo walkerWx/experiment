@@ -129,7 +129,7 @@ class TestTransform(unittest.TestCase):
         rules.append(RULES['Simplify'])
         rules.append(RULES['SinPlus'])
         rules.append(RULES['CosSinR'])
-        rules.append(RULES['TaylorSin'])
+        # rules.append(RULES['TaylorSin'])
 
         equivalent_expr = generate_equivalent_expressions(expr, rules)
         equivalent_expr = list(equivalent_expr)
@@ -327,6 +327,66 @@ class TestTransform(unittest.TestCase):
         for te in target:
             self.assertTrue(te in equivalent_expr)
 
+    def test_2log(self):
+
+        expr = 'log(n+1)-log(n))'
+        target = ['']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        #rules.append(RULES['Taylor'])
+        rules.append(RULES['Distribution3'])
+        rules.append(RULES['TaylorLog'])
+        rules.append(RULES['LogMinus'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+    def test_logs(self):
+
+        expr = '(n+1)*log(n+1)-n*log(n)-1'
+        target = ['']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        # rules.append(RULES['Taylor'])
+        rules.append(RULES['Distribution2'])
+        rules.append(RULES['CommutationPlus'])
+        # rules.append(RULES['TaylorLog'])
+        rules.append(RULES['LogMinus'])
+        rules.append(RULES['LogDivideReverse'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+    def test_atan2(self):
+
+        expr = 'atan(n+1)-atan(n)'
+        target = ['']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        # rules.append(RULES['Taylor'])
+        rules.append(RULES['AtanMinus'])
+        # rules.append(RULES['TaylorLog'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
 
 
 

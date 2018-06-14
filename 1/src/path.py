@@ -445,12 +445,14 @@ class Path:
 
 # 将表达式中的**转换为pow函数
 def starstar2pow(expr):
-    return re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
+    expr = re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
+    expr = re.sub(r'\(([^()]+)\)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
+    return expr
 
 
 # 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
 def intdiv2floatdiv(expr):
-    return re.sub(r'([^0-9.][0-9]+)/([0-9]+)', r'\1.0/\2', expr)
+    return re.sub(r'([^0-9.][0-9]+)/([0-9]+)', r'\1/\2.0', expr)
 
 
 # 将路径中的表达式转换为c++能够直接使用的计算式

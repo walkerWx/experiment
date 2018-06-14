@@ -9,6 +9,8 @@ from mergePath import *
 from stableAnalysis import *
 from transform import *
 
+import stableAnalysis
+
 
 # 优化过程的主要逻辑
 def optimize(path_file):
@@ -76,8 +78,8 @@ def optimize(path_file):
         rules = list()
         rules.append(RULES['LoopReduce'])
         rules.append(RULES['LoopReverse'])
-        rules.append(RULES['TaylorCos'])
-        rules.append(RULES['Taylor'])
+        #rules.append(RULES['TaylorCos'])
+        #rules.append(RULES['Taylor'])
         rules.append(RULES['Simplify'])
         rules.append(RULES['Horner'])
         rules.append(RULES['SinSinR'])
@@ -85,6 +87,18 @@ def optimize(path_file):
         rules.append(RULES['ExpReduction'])
         rules.append(RULES['FracPartial'])
         rules.append(RULES['TaylorExp'])
+        rules.append(RULES['Distribution3'])
+        rules.append(RULES['TaylorLog'])
+        rules.append(RULES['LogMinus'])
+        rules.append(RULES['AtanMinus'])
+
+        rules.append(RULES['TanPlus'])
+        rules.append(RULES['CosPlus'])
+        rules.append(RULES['CommDenominator2'])
+        rules.append(RULES['SinPlus'])
+        rules.append(RULES['CosSinR'])
+
+        # rules.append(RULES['NumeratorFrom3'])
 
         # 以rule name @ path json形式记录待应用规则与路径组合
         to_transform = set([x.rule_name+'@'+json.dumps(pth.to_json()) for x in rules])
@@ -260,10 +274,36 @@ def choose_rule_by_weight(rules):
 
 if __name__ == "__main__":
 
-
-    # done
-    # optimize('../case/herbie/cos2/cos2.pth')
+    # Herbie case
     optimize('../case/herbie/sqrtexp/sqrtexp.pth')
+    # optimize('../case/herbie/sintan/sintan.pth')
+    # quad2p
+    # quad2m
+    # optimize('../case/herbie/cos2/cos2.pth')
+    # 2nthrt
+    # optimize('../case/herbie/2log/2log.pth')
+    # optimize('../case/herbie/2frac/2frac.pth')
+    # optimize('../case/herbie/2cos/2cos.pth')
+    # optimize('../case/herbie/2cbrt/2cbrt.pth')
+    ##optimize('../case/herbie/tanhf/tanhf.pth')
+    # quadp
+    # quadm
+    ##optimize('../case/herbie/qlog/qlog.pth')
+    # optimize('../case/herbie/logs/logs.pth')
+    # optimize('../case/herbie/logq/logq.pth')
+    # optimize('../case/herbie/invcot/invcot.pth')
+    # expq3
+    # optimize('../case/herbie/expq2/expq2.pth')
+    # optimize('../case/herbie/expm1/expm1.pth')
+    # expax
+    # optimize('../case/herbie/exp2/exp2.pth')
+    # optimize('../case/herbie/3frac/3frac.pth') iRRAM_BUG
+    # optimize('../case/herbie/2tan/2tan.pth')
+    # optimize('../case/herbie/2sqrt/2sqrt.pth') iRRAM_BUG
+    # optimize('../case/herbie/2sin/2sin.pth')
+    # optimize('../case/herbie/2isqrt/2isqrt.pth') iRRAM_BUG
+    # optimize('../case/herbie/2atan/2atan.pth')
+
 
 
 

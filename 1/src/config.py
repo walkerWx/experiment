@@ -3,8 +3,8 @@
 
 # Configuration file
 
-PROJECT_HOME = '/Users/walker/PycharmProjects/experiment'
-iRRAM_HOME = '/Users/walker/Projects/iRRAM'
+PROJECT_HOME = '/home/walker/Projects/experiment'
+iRRAM_HOME = '/home/walker/Projects/iRRAM'
 
 # 优化后程序两种不同的实现类型：浮点数实现、高精度实现
 FLOATTYPE = 'float'

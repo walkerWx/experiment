@@ -192,7 +192,11 @@ def relative_error(irram_res, opt_res):
 
 # 计算两个二进制表示的浮点数的比特误差
 def bits_error(irram_res, opt_res):
-    distance = double_distance(binary2double(irram_res), binary2double(opt_res))
+    irram_double = binary2double(irram_res)
+    opt_double = binary2double(opt_res)
+    if math.isnan(opt_double) or math.isnan(irram_double):
+        return 64
+    distance = double_distance(irram_double, opt_double)
     if distance == 0:
         return 0
     return int(math.log2(distance))
@@ -347,6 +351,9 @@ def stable_analysis(path_data):
             elif p[0].types[0] == 'integer':
                 delta_in = abs(binary2int(p[0].values[0])-binary2int(q[0].values[0]))
 
+            if delta_in == 0:
+                delta_in = sys.float_info.min
+
             return delta_out/delta_in
 
         # 相邻稳定输入点距离权重
@@ -362,14 +369,19 @@ def stable_analysis(path_data):
             elif p[0].types[0] == 'integer':
                 d = int_distance(binary2int(p[0].values[0]), binary2int(q[0].values[0]))
 
+            if d == 0:
+                return 0
+
             return int(math.log2(d))/64
 
         w1 = [weight_1(point_stability_output[i], point_stability_output[i+1]) for i in range(len(point_stability_output)-1)]
         w2 = [weight_2(point_stability_output[i], point_stability_output[i+1]) for i in range(len(point_stability_output)-1)]
 
         # 归一化
-        w1 = [w/max(w1) for w in w1]
-        w2 = [w/max(w2) for w in w2]
+        if max(w1) > 0:
+            w1 = [w/max(w1) for w in w1]
+        if max(w2) > 0:
+            w2 = [w/max(w2) for w in w2]
 
         # 对应权重相加
         w = [sum(x) for x in zip(w1, w2)]

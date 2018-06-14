@@ -331,7 +331,7 @@ double herbie_report0_22_3fracproblem333(double x) {
         return r4974217;
 }
 
-double herbie_report0_23_2tanproblem332(double x, double eps) {
+double herbie_report0_23_2tanproblem332(double eps, double x) {
         double r4974317 = eps;
         double r4974318 = -1.544522075665048e-61;
         bool r4974319 = r4974317 <= r4974318;
@@ -407,7 +407,7 @@ double herbie_report0_24_2sqrtexample31(double x) {
         return r4974531;
 }
 
-double herbie_report0_25_2sinexample33(double x, double eps) {
+double herbie_report0_25_2sinexample33(double eps, double x) {
         double r4974589 = eps;
         double r4974590 = -3.155352278606027e-11;
         bool r4974591 = r4974589 <= r4974590;
@@ -581,7 +581,7 @@ double herbie_report0_7_2fracproblem331(double x) {
         return r4972854;
 }
 
-double herbie_report0_8_2cosproblem335(double x, double eps) {
+double herbie_report0_8_2cosproblem335(double eps, double x) {
         double r4972913 = eps;
         double r4972914 = -0.20974005095147724;
         bool r4972915 = r4972913 <= r4972914;
@@ -967,7 +967,7 @@ double herbie_report1_22_3fracproblem333(double x) {
         return r4427249;
 }
 
-double herbie_report1_23_2tanproblem332(double x, double eps) {
+double herbie_report1_23_2tanproblem332(double eps, double x) {
         double r4427355 = eps;
         double r4427356 = -9.808042908886654e-45;
         bool r4427357 = r4427355 <= r4427356;
@@ -1010,7 +1010,7 @@ double herbie_report1_24_2sqrtexample31(double x) {
         return r4427469;
 }
 
-double herbie_report1_25_2sinexample33(double x, double eps) {
+double herbie_report1_25_2sinexample33(double eps, double x) {
         double r4427529 = eps;
         double r4427530 = -87.63281068505832;
         bool r4427531 = r4427529 <= r4427530;
@@ -1198,7 +1198,7 @@ double herbie_report1_7_2fracproblem331(double x) {
         return r4425866;
 }
 
-double herbie_report1_8_2cosproblem335(double x, double eps) {
+double herbie_report1_8_2cosproblem335(double eps, double x) {
         double r4425928 = eps;
         double r4425929 = -87.63281068505832;
         bool r4425930 = r4425928 <= r4425929;
@@ -1608,7 +1608,7 @@ double herbie_report2_22_3fracproblem333(double x) {
         return r5133923;
 }
 
-double herbie_report2_23_2tanproblem332(double x, double eps) {
+double herbie_report2_23_2tanproblem332(double eps, double x) {
         double r5134040 = eps;
         double r5134041 = -4.268897171870659e-97;
         bool r5134042 = r5134040 <= r5134041;
@@ -1659,7 +1659,7 @@ double herbie_report2_24_2sqrtexample31(double x) {
         return r5134179;
 }
 
-double herbie_report2_25_2sinexample33(double x, double eps) {
+double herbie_report2_25_2sinexample33(double eps, double x) {
         double r5134237 = eps;
         double r5134238 = -2.9435202822804814e-10;
         bool r5134239 = r5134237 <= r5134238;
@@ -1841,7 +1841,7 @@ double herbie_report2_7_2fracproblem331(double x) {
         return r5132530;
 }
 
-double herbie_report2_8_2cosproblem335(double x, double eps) {
+double herbie_report2_8_2cosproblem335(double eps, double x) {
         double r5132587 = eps;
         double r5132588 = -2.4303830374302007e-05;
         bool r5132589 = r5132587 <= r5132588;
@@ -2208,7 +2208,7 @@ double herbie_report3_22_3fracproblem333(double x) {
         return r4681862;
 }
 
-double herbie_report3_23_2tanproblem332(double x, double eps) {
+double herbie_report3_23_2tanproblem332(double eps, double x) {
         double r4681935 = eps;
         double r4681936 = -5.375866629033562e-22;
         bool r4681937 = r4681935 <= r4681936;
@@ -2257,7 +2257,7 @@ double herbie_report3_24_2sqrtexample31(double x) {
         return r4682068;
 }
 
-double herbie_report3_25_2sinexample33(double x, double eps) {
+double herbie_report3_25_2sinexample33(double eps, double x) {
         double r4682126 = eps;
         double r4682127 = -0.14160280251421495;
         bool r4682128 = r4682126 <= r4682127;
@@ -2438,7 +2438,7 @@ double herbie_report3_7_2fracproblem331(double x) {
         return r4680491;
 }
 
-double herbie_report3_8_2cosproblem335(double x, double eps) {
+double herbie_report3_8_2cosproblem335(double eps, double x) {
         double r4680548 = eps;
         double r4680549 = -0.14160280251421495;
         bool r4680550 = r4680548 <= r4680549;
@@ -2829,7 +2829,7 @@ double herbie_report4_22_3fracproblem333(double x) {
         return r4786984;
 }
 
-double herbie_report4_23_2tanproblem332(double x, double eps) {
+double herbie_report4_23_2tanproblem332(double eps, double x) {
         double r4787048 = eps;
         double r4787049 = -7.553642666547184e-18;
         bool r4787050 = r4787048 <= r4787049;
@@ -2869,7 +2869,7 @@ double herbie_report4_24_2sqrtexample31(double x) {
         return r4787154;
 }
 
-double herbie_report4_25_2sinexample33(double x, double eps) {
+double herbie_report4_25_2sinexample33(double eps, double x) {
         double r4787214 = eps;
         double r4787215 = -7.553642666547184e-18;
         bool r4787216 = r4787214 <= r4787215;
@@ -3040,7 +3040,7 @@ double herbie_report4_7_2fracproblem331(double x) {
         return r4785613;
 }
 
-double herbie_report4_8_2cosproblem335(double x, double eps) {
+double herbie_report4_8_2cosproblem335(double eps, double x) {
         double r4785670 = eps;
         double r4785671 = -7.553642666547184e-18;
         bool r4785672 = r4785670 <= r4785671;
@@ -3429,7 +3429,7 @@ double herbie_report5_22_3fracproblem333(double x) {
         return r4695778;
 }
 
-double herbie_report5_23_2tanproblem332(double x, double eps) {
+double herbie_report5_23_2tanproblem332(double eps, double x) {
         double r4695895 = eps;
         double r4695896 = -3.260861502166898e-09;
         bool r4695897 = r4695895 <= r4695896;
@@ -3485,7 +3485,7 @@ double herbie_report5_24_2sqrtexample31(double x) {
         return r4696050;
 }
 
-double herbie_report5_25_2sinexample33(double x, double eps) {
+double herbie_report5_25_2sinexample33(double eps, double x) {
         double r4696118 = eps;
         double r4696119 = -3.260861502166898e-09;
         bool r4696120 = r4696118 <= r4696119;
@@ -3669,7 +3669,7 @@ double herbie_report5_7_2fracproblem331(double x) {
         return r4694439;
 }
 
-double herbie_report5_8_2cosproblem335(double x, double eps) {
+double herbie_report5_8_2cosproblem335(double eps, double x) {
         double r4694498 = eps;
         double r4694499 = -3.260861502166898e-09;
         bool r4694500 = r4694498 <= r4694499;
@@ -4049,7 +4049,7 @@ double herbie_report6_22_3fracproblem333(double x) {
         return r5101214;
 }
 
-double herbie_report6_23_2tanproblem332(double x, double eps) {
+double herbie_report6_23_2tanproblem332(double eps, double x) {
         double r5101287 = eps;
         double r5101288 = -4.651213277161281e-25;
         bool r5101289 = r5101287 <= r5101288;
@@ -4098,7 +4098,7 @@ double herbie_report6_24_2sqrtexample31(double x) {
         return r5101420;
 }
 
-double herbie_report6_25_2sinexample33(double x, double eps) {
+double herbie_report6_25_2sinexample33(double eps, double x) {
         double r5101480 = eps;
         double r5101481 = -1.515125117040252e-19;
         bool r5101482 = r5101480 <= r5101481;
@@ -4270,7 +4270,7 @@ double herbie_report6_7_2fracproblem331(double x) {
         return r5099835;
 }
 
-double herbie_report6_8_2cosproblem335(double x, double eps) {
+double herbie_report6_8_2cosproblem335(double eps, double x) {
         double r5099894 = eps;
         double r5099895 = -1.515125117040252e-19;
         bool r5099896 = r5099894 <= r5099895;
@@ -4694,7 +4694,7 @@ double herbie_report7_22_3fracproblem333(double x) {
         return r5276922;
 }
 
-double herbie_report7_23_2tanproblem332(double x, double eps) {
+double herbie_report7_23_2tanproblem332(double eps, double x) {
         double r5277005 = eps;
         double r5277006 = -1.4115753216880934e-29;
         bool r5277007 = r5277005 <= r5277006;
@@ -4753,7 +4753,7 @@ double herbie_report7_24_2sqrtexample31(double x) {
         return r5277168;
 }
 
-double herbie_report7_25_2sinexample33(double x, double eps) {
+double herbie_report7_25_2sinexample33(double eps, double x) {
         double r5277228 = eps;
         double r5277229 = -1.0110770446373945e-05;
         bool r5277230 = r5277228 <= r5277229;
@@ -4928,7 +4928,7 @@ double herbie_report7_7_2fracproblem331(double x) {
         return r5275391;
 }
 
-double herbie_report7_8_2cosproblem335(double x, double eps) {
+double herbie_report7_8_2cosproblem335(double eps, double x) {
         double r5275450 = eps;
         double r5275451 = -1.0110770446373945e-05;
         bool r5275452 = r5275450 <= r5275451;
@@ -5315,7 +5315,7 @@ double herbie_report8_22_3fracproblem333(double x) {
         return r4640644;
 }
 
-double herbie_report8_23_2tanproblem332(double x, double eps) {
+double herbie_report8_23_2tanproblem332(double eps, double x) {
         double r4640711 = eps;
         double r4640712 = -1.269838332456437e-41;
         bool r4640713 = r4640711 <= r4640712;
@@ -5358,7 +5358,7 @@ double herbie_report8_24_2sqrtexample31(double x) {
         return r4640826;
 }
 
-double herbie_report8_25_2sinexample33(double x, double eps) {
+double herbie_report8_25_2sinexample33(double eps, double x) {
         double r4640884 = eps;
         double r4640885 = -4.257151295365278e-13;
         bool r4640886 = r4640884 <= r4640885;
@@ -5527,7 +5527,7 @@ double herbie_report8_7_2fracproblem331(double x) {
         return r4639283;
 }
 
-double herbie_report8_8_2cosproblem335(double x, double eps) {
+double herbie_report8_8_2cosproblem335(double eps, double x) {
         double r4639342 = eps;
         double r4639343 = -0.3935751030544258;
         bool r4639344 = r4639342 <= r4639343;
@@ -5915,7 +5915,7 @@ double herbie_report9_22_3fracproblem333(double x) {
         return r4992689;
 }
 
-double herbie_report9_23_2tanproblem332(double x, double eps) {
+double herbie_report9_23_2tanproblem332(double eps, double x) {
         double r4992772 = eps;
         double r4992773 = -8.169036226543137e-50;
         bool r4992774 = r4992772 <= r4992773;
@@ -5974,7 +5974,7 @@ double herbie_report9_24_2sqrtexample31(double x) {
         return r4992935;
 }
 
-double herbie_report9_25_2sinexample33(double x, double eps) {
+double herbie_report9_25_2sinexample33(double eps, double x) {
         double r4992993 = eps;
         double r4992994 = -8.341657616033116e-09;
         bool r4992995 = r4992993 <= r4992994;
@@ -6146,7 +6146,7 @@ double herbie_report9_7_2fracproblem331(double x) {
         return r4991306;
 }
 
-double herbie_report9_8_2cosproblem335(double x, double eps) {
+double herbie_report9_8_2cosproblem335(double eps, double x) {
         double r4991365 = eps;
         double r4991366 = -2.538377866327137e-06;
         bool r4991367 = r4991365 <= r4991366;

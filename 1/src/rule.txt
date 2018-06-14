@@ -7,7 +7,9 @@ Minus3 : A-B -> ((A-B)*(A+B))/(A+B);
 
 Divide : A/B -> A*(1/B);
 
-LnDivide : log(A/B) -> log(A) - log(B);
+LogDivide : log(A/B) -> log(A) - log(B);
+LogMinus : log(A)-log(B) -> log(A/B);
+LogDivideReverse: log(A/B) -> -log(B/A);
 
 CommutationPlus : A+B -> B+(A);
 CommutationMultiply : A*B -> B*A;
@@ -59,10 +61,12 @@ SinCosR : sin(A)+sin(B) -> 2*sin((A+B)/2)*cos((A-B)/2);
 CosSinR : sin(A)-sin(B) -> 2*cos((A+B)/2)*sin((A-B)/2);
 CosCosR : cos(A)+cos(B) -> 2*cos((A+B)/2)*cos((A-B)/2);
 SinSinR : cos(A)-cos(B) -> -2*sin((A+B)/2)*sin((A-B)/2);
+AtanMinus: atan(A)-atan(B) -> atan((A-B)/(1+A*B));
 
 ExpReduction : (exp(2*A)-1)/(exp(A)-1) -> 1+exp(A);
 
 TaylorExp: exp(x) -> (1+x+x**2/2+x**3/6+x**4/24);
+TaylorLog: log(1+x) -> (x-x**2/2+x**3/3-x**4/4);
 
 TaylorLn: sum(k, 0, n, -x^k/k) -> ln(1-x) @ abs(x) < 1;
 

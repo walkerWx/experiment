@@ -347,11 +347,6 @@ def prepare(casename):
     # 生成Makefile
     generate_makefile(casename)
 
-    '''
-    # 生成随机输入，也就是随机采点，默认256个，结果存储在case目录的points.txt中，以二进制表示
-    # generate_points(casename)
-    '''
-
     # 将之前生成的herbie，irram，opt文件编译成可执行文件
     compile_executables(casename)
 
@@ -450,7 +445,7 @@ if __name__ == "__main__":
     # cases = pattern.findall(content)
     # print(cases)
     #
-    prepare('cos2')
-    run('cos2')
-    analysis('cos2')
+    prepare('2sin')
+    run('2sin')
+    analysis('2sin')
 

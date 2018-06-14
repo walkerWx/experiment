@@ -89,25 +89,25 @@ int main(int argc, char *argv[]) {
         assert(r.size() == herbie_result.front().size());
     }
 
-    int max_herbie_error_HI = 0; // herbie运行结果与iRRAM运行结果的最大herbie误差, HI代表Herbie vs iRRAM
+    int max_herbie_error_HI = -1; // herbie运行结果与iRRAM运行结果的最大herbie误差, HI代表Herbie vs iRRAM
     string mhe_irram_out_HI = "";
     string mhe_herbie_out_HI = "";
     vector<string> mhe_input_HI;
     string mhe_file_HI = "";
 
 
-    double max_relative_error_HI = 0.0; // herbie运行结果与iRRAM运行结果的最大相对误差, HI代表Herbie vs iRRAM
+    double max_relative_error_HI = -1.0; // herbie运行结果与iRRAM运行结果的最大相对误差, HI代表Herbie vs iRRAM
     string mre_irram_out_HI = "";
     string mre_herbie_out_HI = "";
     vector<string> mre_input_HI;
     string mre_file_HI = "";
 
-    int max_herbie_error_OI = 0; // 优化后程序运行结果与iRRAM运行结果的最大herbie误差, OI代表Herbie vs iRRAM
+    int max_herbie_error_OI = -1; // 优化后程序运行结果与iRRAM运行结果的最大herbie误差, OI代表Herbie vs iRRAM
     string mhe_irram_out_OI = "";
     string mhe_opt_out_OI = "";
     vector<string> mhe_input_OI;
 
-    double max_relative_error_OI = 0.0; // 优化后运行结果与iRRAM运行结果的最大相对误差, OI代表Herbie vs iRRAM
+    double max_relative_error_OI = -1.0; // 优化后运行结果与iRRAM运行结果的最大相对误差, OI代表Herbie vs iRRAM
     string mre_irram_out_OI = "";
     string mre_opt_out_OI = "";
     vector<string> mre_input_OI;

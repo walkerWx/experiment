@@ -84,8 +84,8 @@ iRRAM::REAL irram_2frac(iRRAM::REAL x) {
 }
 
 // Herbie case: 2cos
-iRRAM::REAL irram_2cos(iRRAM::REAL x, iRRAM::REAL eps) {
-    return iRRAM::cos(x+eps) - iRRAM::cos(x);
+iRRAM::REAL irram_2cos(iRRAM::REAL e, iRRAM::REAL x) {
+    return iRRAM::cos(x+e) - iRRAM::cos(x);
 }
 
 // Herbie case: 2cbrt
@@ -135,8 +135,8 @@ iRRAM::REAL irram_3frac(iRRAM::REAL x) {
 }
 
 // Herbie case: 2tan
-iRRAM::REAL irram_2tan(iRRAM::REAL x, iRRAM::REAL eps) {
-    return iRRAM::tan(x+eps) - iRRAM::tan(x);
+iRRAM::REAL irram_2tan(iRRAM::REAL e, iRRAM::REAL x) {
+    return iRRAM::tan(x+e) - iRRAM::tan(x);
 }
 
 // Herbie case: 2sqrt
@@ -145,8 +145,8 @@ iRRAM::REAL irram_2sqrt(iRRAM::REAL x) {
 }
 
 // Herbie case: 2sin
-iRRAM::REAL irram_2sin(iRRAM::REAL x, iRRAM::REAL eps) {
-    return iRRAM::sin(x+eps) - iRRAM::sin(x);
+iRRAM::REAL irram_2sin(iRRAM::REAL e, iRRAM::REAL x) {
+    return iRRAM::sin(x+e) - iRRAM::sin(x);
 }
 
 // Herbie case: 2isqrt

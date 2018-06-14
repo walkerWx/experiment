@@ -1,8 +1,8 @@
 {
     "program_name": "2log",
     "function_name" : "irram_2log",
-    "variables" : {"N": "decimal", "r": "decimal"},
-    "input_variables":["N"],
+    "variables" : {"n": "decimal", "r": "decimal"},
+    "input_variables":["n"],
     "return": "r",
-	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "log(N+1) - log(N);"]]}]}]
+	"paths" : [{"constrain":"0<n", "path":[{"type": "procedure", "content": [["r", "log(n+1)-log(n)"]]}]}]
 }

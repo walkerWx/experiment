@@ -1,6 +1,6 @@
 # Makefile for user_programs
 
-iRRAM_HOME=/Users/walker/Projects/iRRAM
+iRRAM_HOME=/home/walker/Projects/iRRAM
 
 CC = clang -std=c11
 CFLAGS = -g -O2

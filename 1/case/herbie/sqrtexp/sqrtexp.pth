@@ -4,5 +4,5 @@
     "variables" : {"x": "decimal", "r": "decimal"},
     "input_variables":["x"],
     "return": "r",
-	"paths" : [{"constrain":"x<100", "path":[{"type": "procedure", "content": [["r", "sqrt((exp(2*x)-1)/(exp(x)-1))"]]}]}]
+	"paths" : [{"constrain":"-100<x&&x<100", "path":[{"type": "procedure", "content": [["r", "sqrt((exp(2*x)-1)/(exp(x)-1))"]]}]}]
 }

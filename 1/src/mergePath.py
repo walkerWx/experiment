@@ -63,7 +63,7 @@ using namespace iRRAM;
         if p.get_implement() == REALTYPE:
             code_body += '\t' + 'if(' + p.constrain + ') {\n'
             for m in p.path_list:
-                code_body += convert_expr(m.to_cpp_code(FLOATTYPE, 2), float_vars, real_vars)
+                code_body += convert_expr(m.to_cpp_code(REALTYPE, 2), float_vars, real_vars)
             code_body += '\t\treturn ' + path_data.get_return_expr() + '_real.as_double();\n'
             code_body += '\t}\n'
             code_body += '\n'

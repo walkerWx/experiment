@@ -267,7 +267,10 @@ def apply_rule_node(node, rule):
 
         str_expr = node.getText()
         transformations = standard_transformations + (convert_xor, )
-        sympy_expr = parse_expr(str_expr, transformations=transformations)
+        try:
+            sympy_expr = parse_expr(str_expr, transformations=transformations)
+        except Exception:
+            return node
 
         if rule.rule_name == 'Simplify':
             str_expr = str(simplify(sympy_expr))
