@@ -12,11 +12,8 @@ int main() {
     cin >> d1 >> d2;
     cout << herbie_error(d1, d2) << endl;
     */
-    string s;
-    int i;
-    cin >> i;
-    s = int2binary(i);
-    cout << s << endl;
-    cout << binary2int(s) << endl;
+    string s, t;
+    cin >> s >> t;
+    cout << herbie_error(s, t) << endl;
 }
 

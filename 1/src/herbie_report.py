@@ -1,5 +1,6 @@
 import os
 import re
+import logging
 
 from config import iRRAM_HOME, PROJECT_HOME
 
@@ -420,7 +421,9 @@ def analysis(case):
 
     result_files = [f for f in os.listdir(case_dir) if os.path.isfile(os.path.join(case_dir, f)) and f.endswith("result.txt")]
 
+    irram_result_file = None
     herbie_reuslt_files = list()
+    opt_result_file = None
     for f in result_files:
         if f.startswith("irram"):
             irram_result_file = f
@@ -429,6 +432,18 @@ def analysis(case):
         if f.startswith("opt"):
             opt_result_file = f
 
+    if not irram_result_file:
+        logging.error("iRRAM result file not found!")
+        return
+
+    if not herbie_reuslt_files:
+        logging.error("Herbie result file not found!")
+        return
+
+    if not opt_result_file:
+        logging.error("Opt result file not found!")
+        return
+
     analysis_command = "../../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files) + " --opt=" + opt_result_file
     print(analysis_command)
     os.system(analysis_command)
@@ -436,7 +451,7 @@ def analysis(case):
 
 
 if __name__ == "__main__":
-    #
+
     # irram_code_file = "irram.cc"
     # with open(irram_code_file, "r") as f:
     #     content = f.read()
@@ -445,7 +460,10 @@ if __name__ == "__main__":
     # cases = pattern.findall(content)
     # print(cases)
     #
-    prepare('2sin')
-    run('2sin')
-    analysis('2sin')
+    # for case in cases:
+    #     analysis(case)
+
+    prepare('qlog')
+    run('qlog')
+    analysis('qlog')
 

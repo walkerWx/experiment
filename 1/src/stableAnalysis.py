@@ -143,6 +143,7 @@ def generate_double_by_offset(d, offset):
 
 # 生成随机的双精度浮点数
 def generate_random_double(start=-sys.float_info.max, end=sys.float_info.max):
+# def generate_random_double(start=-0.9, end=-1.1):
 
     if start == end:
         return start
@@ -284,7 +285,7 @@ def stable_analysis(path_data):
             if t == 'decimal':
                 values.append(double2binary(generate_random_double()))
             elif t == 'integer':
-                values.append(int2binary(generate_random_int()))
+                values.append(int2binary(generate_random_int(1, 10000)))
 
         point = Point(values, types)
 
@@ -428,7 +429,8 @@ def divide_stable_unstable(point_stability_output, index):
 
         if left_point.types[0] == 'decimal' and double_distance(binary2double(left_point.values[0]), binary2double(right_point.values[0])) < close_enough:
             break
-        if left_point.types[0] == 'integer' and int_distance(binary2int(left_point.values[0]), binary2int(right_point.values[0])) < close_enough:
+        # 当前输入为整数的用例均为循环次数，因此这里设置的间隔较小
+        if left_point.types[0] == 'integer' and int_distance(binary2int(left_point.values[0]), binary2int(right_point.values[0])) < 2:
             break
 
         msi = is_point_stable(mid_point)
@@ -524,6 +526,10 @@ def is_point_stable(point):
     bits_err = bits_error(real_res, float_res)
     if bits_err >= TOLERANCE:
         return False
+
+    # 参数类型为整数时，直接以该点的稳定性作为判断依据
+    if point.types[0] == "integer":
+        return bits_err < TOLERANCE
 
     # 当前策略为+-50范围内选10个点，参数可调整
     points_num = 10  # CONFIG

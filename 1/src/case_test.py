@@ -389,6 +389,26 @@ class TestTransform(unittest.TestCase):
             self.assertTrue(te in equivalent_expr)
 
 
+    def test_gamma(self):
+
+        expr = 'gamma((2-euler_gamma+x)/(euler_gamma-1-x)-1)'
+        target = ['']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        # rules.append(RULES['Taylor'])
+        rules.append(RULES['Gamma_1'])
+        # rules.append(RULES['TaylorLog'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
+
 
 if __name__ == '__main__':
     unittest.main()

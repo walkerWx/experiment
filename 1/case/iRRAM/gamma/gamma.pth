@@ -1,13 +1,14 @@
 {
 "program_name": "gamma",
 "function_name" : "evaluate",
-"variables" : { "x": "decimal"},
+"variables" : { "x": "decimal", "r": "decimal"},
 "input_variables": ["x"],
-"paths": [{"constrain": "true", "path":["procedure:p1"]}],
-"return": "x",
-"loops": {},
-"procedures": {
-    "p1": [["x", "gamma((2-euler_gamma+x)/(euler_gamma-1-x)-1)"]]
-    }
- }
+"paths":[
+            {
+                "constrain": "-2<x&&x<0",
+                "path": [{"type": "procedure", "content":[["r", "gamma((2-euler_gamma+x)/(euler_gamma-1-x)-1)"]]}]
+            }
+        ],
+"return": "r"
+}
 

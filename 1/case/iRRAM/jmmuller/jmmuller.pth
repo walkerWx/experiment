@@ -6,7 +6,7 @@
 "return": "a",
 "paths": [
             {
-                "constrain": "true",
+                "constrain": "0<count&&count<1000",
                 "path":[
                             {
                                 "type": "procedure",

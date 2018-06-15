@@ -78,8 +78,8 @@ def optimize(path_file):
         rules = list()
         rules.append(RULES['LoopReduce'])
         rules.append(RULES['LoopReverse'])
-        #rules.append(RULES['TaylorCos'])
-        #rules.append(RULES['Taylor'])
+        rules.append(RULES['TaylorCos'])
+        rules.append(RULES['Taylor'])
         rules.append(RULES['Simplify'])
         rules.append(RULES['Horner'])
         rules.append(RULES['SinSinR'])
@@ -98,7 +98,9 @@ def optimize(path_file):
         rules.append(RULES['SinPlus'])
         rules.append(RULES['CosSinR'])
 
-        # rules.append(RULES['NumeratorFrom3'])
+        rules.append(RULES['Gamma_1'])
+
+        # rules.append(RULES['NumeratorFrom1'])
 
         # 以rule name @ path json形式记录待应用规则与路径组合
         to_transform = set([x.rule_name+'@'+json.dumps(pth.to_json()) for x in rules])
@@ -109,7 +111,7 @@ def optimize(path_file):
         start_ticks = time.time()
         run_ticks = 0
         # while len(equal_paths) < 10 and run_ticks < 20:  # 超时时间设置为10s
-        while len(equal_paths) < 8:  # 超时时间设置为10s
+        while len(equal_paths) < 20:  # 超时时间设置为10s
 
             # 待应用规则与表达式组合列表为空或输入域均已稳定则结束随机代数变换
             if not to_transform or not unstable_points:
@@ -138,11 +140,11 @@ def optimize(path_file):
             for ep in eps:
 
                 if not ep:
-                    print("[INFO] Can't apply rule [" + rule.rule_name + "] on path " + json.dumps(path.to_json()) + "\n")
+                    # print("[INFO] Can't apply rule [" + rule.rule_name + "] on path " + json.dumps(path.to_json()) + "\n")
                     continue
 
                 if json.dumps(ep.to_json()) in equal_paths:
-                    print("[INFO] New generated path already exists!\n")
+                    # print("[INFO] New generated path already exists!\n")
                     continue
 
                 equal_paths.add(json.dumps(ep.to_json()))
@@ -275,7 +277,7 @@ def choose_rule_by_weight(rules):
 if __name__ == "__main__":
 
     # Herbie case
-    optimize('../case/herbie/sqrtexp/sqrtexp.pth')
+    # optimize('../case/herbie/sqrtexp/sqrtexp.pth')
     # optimize('../case/herbie/sintan/sintan.pth')
     # quad2p
     # quad2m
@@ -285,13 +287,13 @@ if __name__ == "__main__":
     # optimize('../case/herbie/2frac/2frac.pth')
     # optimize('../case/herbie/2cos/2cos.pth')
     # optimize('../case/herbie/2cbrt/2cbrt.pth')
-    ##optimize('../case/herbie/tanhf/tanhf.pth')
+    # optimize('../case/herbie/tanhf/tanhf.pth')
     # quadp
     # quadm
-    ##optimize('../case/herbie/qlog/qlog.pth')
+    # optimize('../case/herbie/qlog/qlog.pth') iRRAM_BUG
     # optimize('../case/herbie/logs/logs.pth')
     # optimize('../case/herbie/logq/logq.pth')
-    # optimize('../case/herbie/invcot/invcot.pth')
+    optimize('../case/herbie/invcot/invcot.pth')
     # expq3
     # optimize('../case/herbie/expq2/expq2.pth')
     # optimize('../case/herbie/expm1/expm1.pth')
@@ -303,6 +305,13 @@ if __name__ == "__main__":
     # optimize('../case/herbie/2sin/2sin.pth')
     # optimize('../case/herbie/2isqrt/2isqrt.pth') iRRAM_BUG
     # optimize('../case/herbie/2atan/2atan.pth')
+
+    # iRRMA case
+    # optimize('../case/iRRAM/analytic/analytic.pth')
+    # optimize('../case/iRRAM/e_example/e_example.pth')
+    # optimize('../case/iRRAM/jmmuller/jmmuller.pth')
+    # optimize('../case/iRRAM/harmonic/harmonic.pth')
+    # optimize('../case/iRRAM/gamma/gamma.pth')
 
 
 

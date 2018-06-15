@@ -3,7 +3,7 @@
 "function_name" : "evaluate",
 "variables" : { "n": "integer", "initval":"decimal"},
 "input_variables": ["n"],
-"paths": [{"constrain": "true", "path":[
+"paths": [{"constrain": "0<n&&n<10000", "path":[
     {
         "type": "procedure",
         "content": [["initval", "0"]]

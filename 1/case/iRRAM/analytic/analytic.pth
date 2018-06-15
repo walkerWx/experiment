@@ -6,7 +6,7 @@
     "return": "res",
 	"paths" : [
 	            {
-	                "constrain":"true",
+	                "constrain":"0<x&&x<1",
 	                "path":
 	                    [
 	                        {

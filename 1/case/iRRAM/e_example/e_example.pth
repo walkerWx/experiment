@@ -6,7 +6,7 @@
     "return": "z",
     "paths": [
                 {
-                    "constrain": "true",
+                    "constrain": "1<=n&&n<=10000",
                     "path": [
                         {
                             "type": "procedure",
