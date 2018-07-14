@@ -445,8 +445,10 @@ class Path:
 
 # 将表达式中的**转换为pow函数
 def starstar2pow(expr):
-    expr = re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
-    expr = re.sub(r'\(([^()]+)\)\*\*([0-9]*)', r'(pow(\1, \2))', expr)
+    expr = re.sub(r'\(([^()]+)\)\*\*\((.*)?\)', r'(pow(\1, \2))', expr)
+    expr = re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9|.]+)', r'pow(\1, \2)', expr)
+    expr = re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*\((.*)?\)', r'pow(\1, \2)', expr)
+    expr = re.sub(r'\(([^()]+)\)\*\*([0-9|.]*)', r'(pow(\1, \2))', expr)
     return expr
 
 
@@ -460,3 +462,7 @@ def compatible2cpp(expr):
     expr = starstar2pow(expr)
     expr = intdiv2floatdiv(expr)
     return expr
+
+if __name__ == '__main__':
+    e = 'x**0.333333333333333'
+    print(starstar2pow(e))

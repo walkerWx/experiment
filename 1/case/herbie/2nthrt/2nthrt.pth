@@ -4,5 +4,5 @@
     "variables" : {"x": "decimal", "n": "decimal", "r": "decimal"},
     "input_variables":["x", "n"],
     "return": "r",
-	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "pow(x+1,1/n)-pow(x,1/n)"]]}]}]
+	"paths" : [{"constrain":"0<x&&1e100<n", "path":[{"type": "procedure", "content": [["r", "(x+1)**(1/n)-x**(1/n)"]]}]}]
 }

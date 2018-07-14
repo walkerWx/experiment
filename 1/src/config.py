@@ -3,7 +3,7 @@
 
 # Configuration file
 
-PROJECT_HOME = '/home/walker/Projects/experiment'
+PROJECT_HOME = '/home/walker/PycharmProjects/experiment'
 iRRAM_HOME = '/home/walker/Projects/iRRAM'
 
 # 优化后程序两种不同的实现类型：浮点数实现、高精度实现
@@ -29,8 +29,10 @@ FLOAT['header'] = '''
 #include <cmath>
 #include <limits>
 #include <string>
+#include <cfenv>
 
 #define euler_gamma 0.57721566490
+#define pi 3.1415926535897932384626433832795
 
 using namespace std;
 '''
@@ -44,8 +46,10 @@ REAL['header'] = '''
 #include "iRRAM.h"
 #include "gamma.h"
 #include <string>
+#include <cfenv>
 
 #define euler_gamma REAL(0.57721566490)
+#define pi REAL(3.1415926535897932384626433832795)
 
 using namespace iRRAM;
 

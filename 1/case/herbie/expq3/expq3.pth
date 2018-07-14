@@ -4,5 +4,5 @@
     "variables" : {"a": "decimal", "b": "decimal", "e": "decimal", "r": "decimal"},
     "input_variables":["a", "b", "e"],
     "return": "r",
-	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "e*(exp((a+b)*e)-1)/((exp(a*e)-1)*(exp(b*e)-1))"]]}]}]
+	"paths" : [{"constrain":"-1e-100<e&&e<1e-100&&(-100<a+b)&&(a+b<100)", "path":[{"type": "procedure", "content": [["r", "e*(exp((a+b)*e)-1)/((exp(a*e)-1)*(exp(b*e)-1))"]]}]}]
 }

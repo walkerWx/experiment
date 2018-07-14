@@ -54,7 +54,9 @@ int main(int argc, char *argv[]) {
     while (getline(ifs, line)) {
         input_points.push_back(vector<string>());
         vector<string> input_point_stable = split(line, ' ');
-        input_point_stable = vector<string>(input_point_stable.begin(), input_point_stable.end()-1);
+        if (input_point_stable.back() == "True" || input_point_stable.back() == "False") {
+            input_point_stable = vector<string>(input_point_stable.begin(), input_point_stable.end()-1);
+        }
         input_points[input_points.size()-1] = input_point_stable;
     }
     ifs.close();

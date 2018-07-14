@@ -4,5 +4,5 @@
     "variables" : {"x": "decimal", "r": "decimal"},
     "input_variables":["x"],
     "return": "r",
-	"paths" : [{"constrain":"(2.021934569891518e+52<=x)&&(x<=1.1427252465397032e+161)", "path":[{"type": "procedure", "content": [["r", "1/(x+1)-1/x"]]}]}]
+	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "1/(x+1)-1/x"]]}]}]
 }

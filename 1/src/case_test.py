@@ -409,6 +409,24 @@ class TestTransform(unittest.TestCase):
             self.assertTrue(te in equivalent_expr)
 
 
+    def test_quadp(self):
+
+        expr = '((-b)-sqrt(b*b-4*a*c))/(2*a)'
+        target = ['']
+
+        rules = list()
+        rules.append(RULES['Simplify'])
+        rules.append(RULES['NumeratorFrom2'])
+        # rules.append(RULES['Taylor'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        for ee in equivalent_expr:
+            print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
 
 if __name__ == '__main__':
     unittest.main()

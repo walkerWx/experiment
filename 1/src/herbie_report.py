@@ -82,10 +82,12 @@ def save_herbie_cc(execname, herbie_code, file):
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <cfenv>
 #include "../../../src/points.h"
 '''
 
     main = "int main() {\n"
+    main += "\tstd::fesetround(FE_DOWNWARD);\n"
     main += "\tstd::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);\n"
     main += "\tstd::string " + ",".join([x+"_str" for x in vars]) + ";\n"
     main += "\tstd::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
@@ -115,10 +117,12 @@ def save_irram_cc(irram_code, file):
     header = '''#include <string>
 #include <iostream>
 #include "iRRAM.h"
+#include <cfenv>
 #include "../../../src/points.h"
 '''
 
     main = "void compute() {\n"
+    main += "\tstd::fesetround(FE_DOWNWARD);\n"
     main += "\tstd::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);\n"
     main += "\tiRRAM::cout << iRRAM::setRwidth(30);\n"
     main += "\tstd::string " + ",".join([x+"_str" for x in vars]) + ";\n"
@@ -140,6 +144,39 @@ def save_irram_cc(irram_code, file):
         f.write(main)
 
 
+def save_double_cc(double_code, file):
+
+    pattern = re.compile(r'\((.*)\)')
+    function_definition = double_code.split('\n')[1]
+    params = pattern.search(function_definition).group()
+    vars = [x.strip().split(' ')[1] for x in params[1:-1].split(',')]
+
+    funcname = function_definition.split('(')[0].split(' ')[1]
+
+    header = '''#include <string>
+#include <iostream>
+#include <cfenv>
+#include "../../../src/points.h"
+'''
+
+    main = "int main() {\n"
+    main += "\tstd::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);\n"
+    main += "\tstd::string " + ",".join([x+"_str" for x in vars]) + ";\n"
+    main += "\tstd::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
+    for var in vars:
+        main += "\tdouble " + var + "_double = binary2double(" + var + "_str);\n"
+    main += "\tdouble r = " + funcname + "(" + ", ".join([x+"_double" for x in vars]) + ");\n"
+    main += '\tstd::cout << double2binary(r) << "\\n";\n'
+    main += "}\n"
+
+    with open(file, 'w') as f:
+        f.write(header)
+        f.write("\n")
+        f.write(double_code)
+        f.write("\n")
+        f.write(main)
+
+
 def save_opt_cc(opt_code, file):
 
     pattern = re.compile(r'\((.*)\)')
@@ -154,6 +191,7 @@ def save_opt_cc(opt_code, file):
 #include <iomanip>
 #include <limits>
 #include "iRRAM.h" 
+#include <cfenv>
 #include "../../../src/points.h"
 
 using namespace std;
@@ -162,6 +200,7 @@ using namespace iRRAM;
 '''
 
     main = "void compute() {\n"
+    main += "\tstd::fesetround(FE_DOWNWARD);\n"
     main += "\tstd::string " + ",".join([x+"_str" for x in vars]) + ";\n"
     main += "\tiRRAM::cin >> " + " >> ".join([x+"_str" for x in vars]) + ";\n"
     for var in vars:
@@ -249,6 +288,26 @@ def generate_irram_cc(casename):
     irram_cc = os.path.join(case_dir, 'irram.cc')
     content = irram_code[0]
     save_irram_cc(content, irram_cc)
+
+
+# 生成double精度代码，其实现从当前目录的double.cc中获取
+def generate_double_cc(casename):
+
+    case_dir = os.path.join(case_parent_dir, casename)
+
+    # irram实现文件，直接按照数学公式纯手工编写
+    double_code_file = os.path.join(src_dir, "double.cc")
+
+    # 获取irram实现文件中的代码实现
+    with open(double_code_file) as f:
+        content = f.read()
+        pattern = re.compile(r'^.*?' + casename + r'(?:.|\n)*?\}', re.M)
+        irram_code = pattern.findall(content)
+
+    # 生成irram的C++实现
+    irram_cc = os.path.join(case_dir, 'double.cc')
+    content = irram_code[0]
+    save_double_cc(content, irram_cc)
 
 
 # 生成opt代码，其实现从当前目录的opt.cc中获取
@@ -341,6 +400,9 @@ def prepare(casename):
 
     # 生成irram任意精度代码，其实现从当前目录的irram.cc中获取
     generate_irram_cc(casename)
+
+    # 生成double精度代码，其实现从当前目录double.cc中获取
+    generate_double_cc(casename)
 
     # 生成opt代码，其实现从当前目录的opt.cc中获取
     # generate_opt_cc(casename)
@@ -452,18 +514,18 @@ def analysis(case):
 
 if __name__ == "__main__":
 
-    # irram_code_file = "irram.cc"
-    # with open(irram_code_file, "r") as f:
-    #     content = f.read()
-    #
-    # pattern = re.compile(r'irram_(.*)\(')
-    # cases = pattern.findall(content)
-    # print(cases)
-    #
+    irram_code_file = "irram.cc"
+    with open(irram_code_file, "r") as f:
+        content = f.read()
+
+    pattern = re.compile(r'irram_(.*)\(')
+    cases = pattern.findall(content)
+    print(cases)
+
     # for case in cases:
     #     analysis(case)
 
-    prepare('qlog')
-    run('qlog')
-    analysis('qlog')
+    # prepare('2nthrt')
+    # run('2nthrt')
+    # analysis('2nthrt')
 

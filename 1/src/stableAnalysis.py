@@ -37,11 +37,15 @@ def generate_cpp(path_data, paths, implement_type='all'):
     if implement_type == 'float':
         implement = FLOAT
         main_func += 'int main(){\n'
+        main_func += '\tstd::fesetround(FE_DOWNWARD);\n'
+        #main_func += '\tstd::fesetround(FE_DOWNWARD);\n'
         precision_setting = implement['cout'] + ' << scientific << setprecision(numeric_limits<double>::digits10);\n'
 
     elif implement_type == 'real':
         implement = REAL
         main_func += 'void compute(){\n'
+        main_func += '\tstd::fesetround(FE_DOWNWARD);\n'
+        #main_func += '\tstd::fesetround(FE_DOWNWARD);\n'
         precision_setting = implement['cout'] + ' << setRwidth(45);\n'
 
     main_func += '\t' + precision_setting + '\n'
@@ -294,11 +298,8 @@ def stable_analysis(path_data):
         if not functools.reduce(lambda x, y: x or y, [satisfy(point, input_variables, c) for c in constrains]):
             continue
 
-        points.append(point)
-
-    logging.info("Random sampling points")
-    for point in points:
         logging.info(str(point))
+        points.append(point)
 
     # 判断输入稳定性
     generate_cpp(path_data, paths)  # 根据路径生成cpp文件

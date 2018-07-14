@@ -4,6 +4,7 @@
 import copy
 import os
 import subprocess
+import logging
 
 from mergePath import *
 from stableAnalysis import *
@@ -12,10 +13,14 @@ from transform import *
 import stableAnalysis
 
 
+
 # 优化过程的主要逻辑
 def optimize(path_file):
 
     path_data = PathData(path_file)
+    paths = path_data.get_paths()
+    constrains = [p.get_constrain() for p in paths]
+
 
     # 实验用例所在路径
     casedir = ''
@@ -31,13 +36,42 @@ def optimize(path_file):
     for pth in opt_path_data.get_paths():
         pth.set_implement(REALTYPE)
 
+    # generate random points and write them to 'random_points.txt' for later analysis use
+    points = list()  # 输入点
+    while len(points) < 250:  # 250个随机输入
+
+        values = list()
+        types = list()
+        for v in path_data.get_input_variables():
+            t = path_data.get_variable_type(v)
+            types.append(t)
+            if t == 'decimal':
+                values.append(double2binary(generate_random_double()))
+            elif t == 'integer':
+                values.append(int2binary(generate_random_int(1, 10000)))
+
+        point = stableAnalysis.Point(values, types)
+
+        # 排除不满足任意一条路径约束的输入
+        if not functools.reduce(lambda x, y: x or y, [satisfy(point, path_data.get_input_variables(), c) for c in constrains]):
+            continue
+        logging.info(point)
+        points.append(point)
+
+    # write random points to file
+    points_file = os.path.join(casedir, 'points.txt.rd')
+    with open(points_file, 'w') as f:
+        for point in points:
+            f.write(' '.join(point.values))
+            f.write('\n')
 
     #################
-    #   稳定性分析   #
+    #   稳定性分析  #
     ################
 
     point_stability = stable_analysis(path_data)
-    paths = path_data.get_paths()
+    # remove points not satisfy any constrain
+    point_stability = [x for x in point_stability if functools.reduce(lambda m, n: m or n, [satisfy(x[0], path_data.get_input_variables(), c) for c in constrains])]
 
     # 将输入点根据路径进行划分
     path_point_stability = dict()
@@ -100,7 +134,8 @@ def optimize(path_file):
 
         rules.append(RULES['Gamma_1'])
 
-        # rules.append(RULES['NumeratorFrom1'])
+        # rules.append(RULES['NumeratorFrom3'])
+        rules.append(RULES['NumeratorFrom2'])
 
         # 以rule name @ path json形式记录待应用规则与路径组合
         to_transform = set([x.rule_name+'@'+json.dumps(pth.to_json()) for x in rules])
@@ -170,6 +205,9 @@ def optimize(path_file):
 
                 # 将新产生的路径与规则组合加入到to_transform，同时删除done_transform出现的元素
                 to_transform = to_transform | set([x.rule_name+'@'+json.dumps(ep.to_json()) for x in rules]) - done_transform
+
+                # long expressions are normally bad, remove them
+                to_transform = set([x for x in to_transform if len(x) < 500])
 
         print("Stable points and corresponding path")
         for p, sp in point_stable_path.items():
@@ -243,6 +281,8 @@ def optimize(path_file):
             print(ep)
     '''
 
+
+
     # 稳定性分析结果输出到文件
     points_file = os.path.join(casedir, 'points.txt')
     with open(points_file, 'w') as f:
@@ -279,32 +319,38 @@ if __name__ == "__main__":
     # Herbie case
     # optimize('../case/herbie/sqrtexp/sqrtexp.pth')
     # optimize('../case/herbie/sintan/sintan.pth')
-    # quad2p
-    # quad2m
     # optimize('../case/herbie/cos2/cos2.pth')
-    # 2nthrt
+    # optimize('../case/herbie/2nthrt/2nthrt.pth')
     # optimize('../case/herbie/2log/2log.pth')
     # optimize('../case/herbie/2frac/2frac.pth')
     # optimize('../case/herbie/2cos/2cos.pth')
-    # optimize('../case/herbie/2cbrt/2cbrt.pth')
+    optimize('../case/herbie/2cbrt/2cbrt.pth')
     # optimize('../case/herbie/tanhf/tanhf.pth')
-    # quadp
-    # quadm
-    # optimize('../case/herbie/qlog/qlog.pth') iRRAM_BUG
+    # optimize('../case/herbie/qlog/qlog.pth')
     # optimize('../case/herbie/logs/logs.pth')
     # optimize('../case/herbie/logq/logq.pth')
-    optimize('../case/herbie/invcot/invcot.pth')
-    # expq3
+    # optimize('../case/herbie/invcot/invcot.pth')
+    # optimize('../case/herbie/expq3/expq3.pth')
     # optimize('../case/herbie/expq2/expq2.pth')
     # optimize('../case/herbie/expm1/expm1.pth')
-    # expax
+    # optimize('../case/herbie/expax/expax.pth')
     # optimize('../case/herbie/exp2/exp2.pth')
-    # optimize('../case/herbie/3frac/3frac.pth') iRRAM_BUG
+    # optimize('../case/herbie/3frac/3frac.pth')
     # optimize('../case/herbie/2tan/2tan.pth')
-    # optimize('../case/herbie/2sqrt/2sqrt.pth') iRRAM_BUG
     # optimize('../case/herbie/2sin/2sin.pth')
-    # optimize('../case/herbie/2isqrt/2isqrt.pth') iRRAM_BUG
     # optimize('../case/herbie/2atan/2atan.pth')
+
+    # NumeratorFrom2
+    # optimize('../case/herbie/quadp/quadp.pth')
+    # optimize('../case/herbie/quadm/quadm.pth')
+    # optimize('../case/herbie/quad2p/quad2p.pth')
+    # optimize('../case/herbie/quad2m/quad2m.pth')
+
+    # NumeratorFrom3
+    # optimize('../case/herbie/2sqrt/2sqrt.pth')
+    # optimize('../case/herbie/2isqrt/2isqrt.pth')
+
+
 
     # iRRMA case
     # optimize('../case/iRRAM/analytic/analytic.pth')

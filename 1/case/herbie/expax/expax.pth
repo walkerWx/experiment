@@ -4,5 +4,5 @@
     "variables" : {"a": "decimal", "x": "decimal", "r": "decimal"},
     "input_variables":["a", "x"],
     "return": "r",
-	"paths" : [{"constrain":"true", "path":[{"type": "procedure", "content": [["r", "exp(a*x)-1"]]}]}]
+	"paths" : [{"constrain":"(-1e-10<a)&&(a<1e-10)&&(-1e-10<x)&&(x<1e-10)", "path":[{"type": "procedure", "content": [["r", "exp(a*x)-1"]]}]}]
 }

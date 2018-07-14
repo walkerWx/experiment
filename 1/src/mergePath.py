@@ -20,6 +20,7 @@ def merge_path(path_file):
 #include <iomanip>
 #include <limits>
 #include <cmath>
+#include <cfenv>
 
 #include "iRRAM.h"
 #include "../../../src/points.h"
@@ -74,6 +75,7 @@ using namespace iRRAM;
 
     # main函数
     code_body += "void compute() {\n"
+    code_body += "\tstd::fesetround(FE_DOWNWARD);\n"
     code_body += "\tstd::string " + ",".join([x + "_str" for x in path_data.get_input_variables()]) + ";\n"
     code_body += "\tiRRAM::cin >> " + " >> ".join([x + "_str" for x in path_data.get_input_variables()]) + ";\n"
     for var in path_data.get_input_variables():

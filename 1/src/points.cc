@@ -159,7 +159,7 @@ int log2_64(uint64_t value) {
 // Herbie定义的两个浮点数的误差
 int herbie_error(std::string irram_res, std::string herbie_res) {
     uint64_t u = double_num_between(binary2double(irram_res), binary2double(herbie_res));
-    return log2_64(u);
+    return log2_64(u+1);
 }
 
 // 对一个字符转以特定分隔符进行分割

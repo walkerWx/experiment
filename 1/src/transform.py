@@ -192,19 +192,19 @@ def apply_rule_path(path, rule):
         if rule.rule_name == 'Taylor':
 
             # sympy泰勒展开可能超时，设置一个10秒的时限
-            def handler(signum, frame):
-                print("Taylor expand timeout!")
-                raise Exception("timeout")
-
-            signal.signal(signal.SIGALRM, handler)
-            signal.alarm(10)
+            # def handler(signum, frame):
+            #     print("Taylor expand timeout!")
+            #     raise Exception("timeout")
+            #
+            # signal.signal(signal.SIGALRM, handler)
+            # signal.alarm(10)
 
             try:
                 str_expr = str(series(sympy_expr, n=8))
             except Exception:
                 return None  # 泰勒展开报错，返回None
 
-            signal.alarm(0)
+            # signal.alarm(0)
 
             # 泰勒展开失败，返回原计算式
             if 'Derivative' in str_expr:
