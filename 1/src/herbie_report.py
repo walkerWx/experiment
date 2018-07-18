@@ -352,7 +352,8 @@ def generate_makefile(casename):
     make_file = os.path.join(case_dir, 'Makefile')
     irram_bin = "irram"
     opt_bin = "opt"
-    save_makefile(herbie_bin + [irram_bin] + [opt_bin], make_file)
+    double_bin = "double"
+    save_makefile(herbie_bin + [irram_bin] + [opt_bin] +[double_bin], make_file)
 
 
 # 生成随机输入，也就是随机采点，默认256个，结果存储在case目录的points.txt中，以二进制表示
@@ -415,7 +416,12 @@ def prepare(casename):
 
 
 # 跑irrram,opt,herbie程序，输入为随机采点得到的points.txt文件，输出结果以二进制形式写入到 XXX_result.txt
-def run(casename):
+def run(casename, mode='all'):
+
+    if mode == 'all':
+        run(casename, mode='sa')
+        run(casename, mode='rd')
+        return
 
     print("[INFO] Running case " + casename + " ...")
     os.chdir(src_dir)
@@ -424,6 +430,7 @@ def run(casename):
     herbie_bin = list()  # Herbie可执行文件名称，实验中每个case会选取多个Herbie优化结果进行实验，因此这里是个list
     irram_bin = "irram"  # iRRAM可执行文件名称
     opt_bin = "opt"  # 优化有程序的可执行文件名称
+    double_bin = "double"
 
     herbie_code_file = "herbie.cc"
 
@@ -433,24 +440,29 @@ def run(casename):
         pattern = re.compile(r'^double (.*?' + casename + r'.*?)\(', re.M)
         herbie_bin = pattern.findall(content)
 
-    points_file = "points.txt"
+    points_file = "points.txt." + mode
 
     os.chdir(case_dir)
 
     # 删除旧文件
     for hb in herbie_bin:
         try:
-            os.remove(hb+"_result.txt")
+            os.remove(hb+"_result.txt."+ mode)
         except OSError:
             pass
 
     try:
-        os.remove(irram_bin+"_result.txt")
+        os.remove(irram_bin+"_result.txt." + mode)
     except OSError:
         pass
 
     try:
-        os.remove(opt_bin+"_result.txt")
+        os.remove(opt_bin+"_result.txt." + mode)
+    except OSError:
+        pass
+
+    try:
+        os.remove(double_bin+"_result.txt." + mode)
     except OSError:
         pass
 
@@ -461,38 +473,50 @@ def run(casename):
         print(point, file=open("point.txt", "w"))
         # print("[INFO] Executing herbie program with input :" + point.replace("\n", ""))
         for hb in herbie_bin:
-            os.system("./" + hb + " < point.txt >> " + hb + "_result.txt")
+            os.system("./" + hb + " < point.txt >> " + hb + "_result.txt." + mode)
 
     for point in points:
         print(point, file=open("point.txt", "w"))
         # print("[INFO] Executing optimized program with input :" + point.replace("\n", ""))
-        os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt")
+        os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt." + mode)
 
     for point in points:
         print(point, file=open("point.txt", "w"))
         # print("[INFO] Executing irram program with input :" + point.replace("\n", ""))
-        os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt")
+        os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt." + mode)
+
+    for point in points:
+        print(point, file=open("point.txt", "w"))
+        os.system("./" + double_bin + " < point.txt >> " + double_bin + "_result.txt." + mode)
 
 
 # 分析跑程序得到的result.txt文件，得到每个用例的两种误差，包括herbie所定义的误差以及相对误差，结果输出到result.csv，主要是对analysis的调用
-def analysis(case):
+def analysis(case, mode='all'):
+
+    if mode == 'all':
+        analysis(case, mode='rd')
+        analysis(case, mode='sa')
+        return
 
     print(case)
     case_dir = os.path.join(case_parent_dir, case)
     os.chdir(case_dir)
 
-    result_files = [f for f in os.listdir(case_dir) if os.path.isfile(os.path.join(case_dir, f)) and f.endswith("result.txt")]
+    result_files = [f for f in os.listdir(case_dir) if os.path.isfile(os.path.join(case_dir, f)) and "result.txt" in f]
 
     irram_result_file = None
     herbie_reuslt_files = list()
     opt_result_file = None
+    double_result_file = None
     for f in result_files:
-        if f.startswith("irram"):
+        if f.startswith("irram") and f.endswith(mode):
             irram_result_file = f
-        if f.startswith("herbie"):
+        if f.startswith("herbie") and f.endswith(mode):
             herbie_reuslt_files.append(f)
-        if f.startswith("opt"):
+        if f.startswith("opt") and f.endswith(mode):
             opt_result_file = f
+        if f.startswith("double") and f.endswith(mode):
+            double_result_file = f
 
     if not irram_result_file:
         logging.error("iRRAM result file not found!")
@@ -506,7 +530,11 @@ def analysis(case):
         logging.error("Opt result file not found!")
         return
 
-    analysis_command = "../../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files) + " --opt=" + opt_result_file
+    if not double_result_file:
+        logging.error("double result file not found!")
+        return
+
+    analysis_command = "../../../src/analysis --irram=" + irram_result_file + " --herbie=" + ",".join(herbie_reuslt_files) + " --opt=" + opt_result_file + "  --double=" + double_result_file + " --mode=" + mode + " > error." + mode
     print(analysis_command)
     os.system(analysis_command)
     print("")
@@ -522,10 +550,11 @@ if __name__ == "__main__":
     cases = pattern.findall(content)
     print(cases)
 
-    # for case in cases:
-    #     analysis(case)
+    for case in cases:
+        run(case)
+        analysis(case)
 
-    # prepare('2nthrt')
-    # run('2nthrt')
-    # analysis('2nthrt')
+    # prepare('sintan')
+    # run('sintan')
+    # analysis('sintan')
 
