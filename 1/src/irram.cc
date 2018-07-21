@@ -158,3 +158,11 @@ iRRAM::REAL irram_2isqrt(iRRAM::REAL x) {
 iRRAM::REAL irram_2atan(iRRAM::REAL N) {
     return iRRAM::atan(N+1) - iRRAM::atan(N);
 }
+
+// Herbie case: midarc
+iRRAM::REAL irram_midarc(iRRAM::REAL z1image, iRRAM::REAL z1real, iRRAM::REAL z2image, iRRAM::REAL z2real)
+{
+    iRRAM::REAL r = z1real + z2real;
+    iRRAM::REAL i = z1image + z2image;
+    return r / iRRAM::sqrt((r * r) + (i * i));
+}

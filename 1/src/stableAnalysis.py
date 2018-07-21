@@ -98,6 +98,7 @@ def int2binary(i):
 
 # 将二进制表示的双精度浮点数转换为数值形式
 def binary2double(b):
+    print(b)
     return struct.unpack('d', struct.pack('Q', int('0b'+b, 0)))[0]
 
 
@@ -559,7 +560,8 @@ def is_point_stable(point):
 
 if __name__ == "__main__":
 
-    pth = '../case/herbie/sqrtexp/sqrtexp.pth'
+    #pth = '../case/herbie/sqrtexp/sqrtexp.pth'
+    pth = '../case/iRRAM/midarc/midarc_real.pth'
 
     path_data = path.PathData(pth)
 

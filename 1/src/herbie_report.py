@@ -5,6 +5,7 @@ import logging
 from config import iRRAM_HOME, PROJECT_HOME
 
 report_dir = '/Users/walker/Desktop/HerbieCases'  # Herbie 跑benchmark得到的report文件夹
+# report_dir = '/home/whj/experiment/2/HerbieCases'
 case_parent_dir = os.path.join(PROJECT_HOME, '1/case/herbie')
 src_dir = os.path.join(PROJECT_HOME, '1/src/')
 
@@ -24,6 +25,7 @@ case_input_range = {
     'logs': {'begin': '0.0', 'end': 'INF'},
     'expq2': {'begin': '-700', 'end': '700'},
     'expq3': {'begin': '-1.0', 'end': '1.0'},
+    'midarc': {'begin': '-1.0', 'end': '1.0'},
 }
 
 # 每个herbie实验用例输入的维度
@@ -38,6 +40,7 @@ case_input_dimension = {
     'quadp': 3,
     'quadm': 3,
     'expq3': 3,
+    'midarc': 4,
 }
 
 
@@ -542,19 +545,19 @@ def analysis(case, mode='all'):
 
 if __name__ == "__main__":
 
-    irram_code_file = "irram.cc"
-    with open(irram_code_file, "r") as f:
-        content = f.read()
+    # irram_code_file = "irram.cc"
+    # with open(irram_code_file, "r") as f:
+    #     content = f.read()
+    #
+    # pattern = re.compile(r'irram_(.*)\(')
+    # cases = pattern.findall(content)
+    # print(cases)
+    #
+    # for case in cases:
+    #     run(case)
+    #     analysis(case)
 
-    pattern = re.compile(r'irram_(.*)\(')
-    cases = pattern.findall(content)
-    print(cases)
-
-    for case in cases:
-        run(case)
-        analysis(case)
-
-    # prepare('sintan')
-    # run('sintan')
-    # analysis('sintan')
+    prepare('midarc')
+    run('midarc')
+    analysis('midarc')
 
