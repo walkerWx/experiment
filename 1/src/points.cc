@@ -64,7 +64,7 @@ uint64_t double_num_between(double begin, double end) {
     if (end <= 0) {
         return double_num_between(0.0, -begin)-double_num_between(0.0, -end); 
     }
-    return 0;
+    return  std::numeric_limits<std::uint64_t>::max()-1;
 }
 
 // 生成双精度浮点数d后面第offset个浮点数
@@ -136,6 +136,9 @@ std::string int2binary(int i) {
 double relative_error(std::string irram_res, std::string herbie_res) {
     double irram = binary2double(irram_res);
     double herbie = binary2double(herbie_res);
+    if (std::isnan(herbie) || std::isnan(irram)) {
+        return std::numeric_limits<double>::infinity();
+    }
     if (irram == 0) {
         if (herbie == 0) {
             return 0;

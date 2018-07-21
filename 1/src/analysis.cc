@@ -18,12 +18,12 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    string input_file = "points.txt";
-    string irram_result_file = "irram_result.txt";
-    string opt_result_file = "opt_result.txt";
+    string irram_result_file;
+    string opt_result_file;
+    string double_result_file;
     vector<string> herbie_result_file;
-    string output_file = "result.csv";
 
+    string mode;
     for (int i = 1; i < argc; ++i) {
         string opt(argv[i]);
         vector<string> v = split(opt, '=');
@@ -33,8 +33,15 @@ int main(int argc, char *argv[]) {
             herbie_result_file = split(v[1], ',');
         } else if (v[0] == "--opt") {
             opt_result_file = v[1];
+        } else if (v[0] == "--double") {
+            double_result_file = v[1];
+        } else if (v[0] == "--mode") {
+            mode = v[1];
         }
     }
+
+    string input_file = "points.txt." + mode;
+    string output_file = "result.csv."+ mode;
 
     ifstream ifs(input_file);
     string line;
@@ -44,6 +51,7 @@ int main(int argc, char *argv[]) {
     vector<vector<string>> input_points; 
     vector<string> irram_result;
     vector<string> opt_result;
+    vector<string> double_result;
     vector<vector<string>> herbie_result;
 
     string tmp;
@@ -68,6 +76,13 @@ int main(int argc, char *argv[]) {
     }
     ifs.close();
 
+    // 读取double运行结果
+    ifs.open(double_result_file, ifstream::in);
+    while (ifs >> tmp) {
+        double_result.push_back(tmp);
+    }
+    ifs.close();
+
     // 读取优化后程序运行结果
     ifs.open(opt_result_file, ifstream::in);
     while (ifs >> tmp) {
@@ -86,7 +101,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 保证输入输出数目一致
-    assert(input_points.size() == irram_result.size() && irram_result.size() == herbie_result.front().size() && input_points.size() == opt_result.size());
+    assert(input_points.size() == irram_result.size() && irram_result.size() == herbie_result.front().size() && input_points.size() == opt_result.size() && input_points.size() == double_result.size());
     for (auto r : herbie_result) {
         assert(r.size() == herbie_result.front().size());
     }
@@ -114,6 +129,15 @@ int main(int argc, char *argv[]) {
     string mre_opt_out_OI = "";
     vector<string> mre_input_OI;
 
+    int max_herbie_error_DI = -1; // double程序运行结果与iRRAM运行结果的最大herbie误差, DI代表Double vs iRRAM
+    string mhe_irram_out_DI = "";
+    string mhe_double_out_DI = "";
+    vector<string> mhe_input_DI;
+
+    double max_relative_error_DI = -1.0; // double运行结果与iRRAM运行结果的最大相对误差, DI代表Double  vs iRRAM
+    string mre_irram_out_DI = "";
+    string mre_double_out_DI = "";
+    vector<string> mre_input_DI;
 
     double re = 0.0;
     int he = 0;
@@ -159,6 +183,26 @@ int main(int argc, char *argv[]) {
             ofs << he << ",";
         }
 
+        // 输出double程序的结果
+        ofs << binary2double(double_result[i]) << ",";
+        re = relative_error(irram_result[i], double_result[i]);
+        if (re > max_relative_error_DI) {
+            max_relative_error_DI = re;
+            mre_irram_out_DI = irram_result[i];
+            mre_double_out_DI = double_result[i];
+            mre_input_DI = input_points[i];
+        }
+        ofs << re << ",";
+
+        he = herbie_error(irram_result[i], double_result[i]);
+        if (he > max_herbie_error_DI) {
+            max_herbie_error_DI = he;
+            mhe_irram_out_DI = irram_result[i];
+            mhe_double_out_DI = double_result[i];
+            mhe_input_DI = input_points[i];
+        }
+        ofs << he << ",";
+
         // 输出优化后程序的结果
         ofs << binary2double(opt_result[i]) << ",";
         re = relative_error(irram_result[i], opt_result[i]);
@@ -184,7 +228,16 @@ int main(int argc, char *argv[]) {
 
     cout << scientific << setprecision(numeric_limits<double>::digits10);
 
-    cout << "Max error in bits of Herbie: " << max_herbie_error_HI << endl;
+    cout << "Max bit error between [iRRAM] and [double]: " << max_herbie_error_DI << endl;
+    cout << "Input :" << endl;
+    for (auto p : mhe_input_DI) {
+        cout << p << " " << binary2double(p) << " " << endl;
+    }
+    cout << "iRRAM output:\n" << mhe_irram_out_DI << " " << binary2double(mhe_irram_out_DI) << endl;
+    cout << "double output:\n" << mhe_double_out_DI << " " << binary2double(mhe_double_out_DI) << endl;
+    cout << endl;
+
+    cout << "Max bit error between [iRRAM] and [Herbie]: " << max_herbie_error_HI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_HI) {
         cout << p << " " << binary2double(p) << " " << endl;
@@ -193,7 +246,7 @@ int main(int argc, char *argv[]) {
     cout << "Herbie output:\n" << mhe_herbie_out_HI << " " << binary2double(mhe_herbie_out_HI) << endl;
     cout << "in file : " << mhe_file_HI << endl << endl; 
 
-    cout << "Max error in bits of our Optimization: " << max_herbie_error_OI << endl;
+    cout << "Max bit error between [iRRAM] and [Optimized]: " << max_herbie_error_OI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_OI) {
         cout << p << " " << binary2double(p) << " " << endl;
@@ -201,7 +254,16 @@ int main(int argc, char *argv[]) {
     cout << "iRRAM output:\n" << mhe_irram_out_OI << " " << binary2double(mhe_irram_out_OI) << endl;
     cout << "Optimized output:\n" << mhe_opt_out_OI << " " << binary2double(mhe_opt_out_OI) << endl << endl;
 
-    cout << "Max relative error of Herbie: " << max_relative_error_HI << endl;
+    cout << "Max relative error between [iRRAM] and [double]: " << max_relative_error_DI << endl;
+    cout << "Input :" << endl;
+    for (auto p : mre_input_DI) {
+        cout << p << " " << binary2double(p) << " " << endl;
+    }
+    cout << "iRRAM output:\n" <<  mre_irram_out_DI << " " << binary2double(mre_irram_out_DI) << endl;
+    cout << "double output:\n" << mre_double_out_DI << " " << binary2double(mre_double_out_DI) << endl;
+    cout << endl;
+
+    cout << "Max relative error between [iRRAM] and [Herbie]: " << max_relative_error_HI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_HI) {
         cout << p << " " << binary2double(p) << " " << endl;
@@ -210,7 +272,7 @@ int main(int argc, char *argv[]) {
     cout << "Herbie output:\n" << mre_herbie_out_HI << " " << binary2double(mre_herbie_out_HI) << endl;
     cout << "in file : " << mre_file_HI << endl << endl;
 
-    cout << "Max relative error of our Optimization: " << max_relative_error_OI << endl;
+    cout << "Max relative error between [iRRAM] and [Optimized]: " << max_relative_error_OI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_OI) {
         cout << p << " " << binary2double(p) << " " << endl;
