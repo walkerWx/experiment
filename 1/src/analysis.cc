@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 
     cout << scientific << setprecision(numeric_limits<double>::digits10);
 
-    cout << "Max herbie error between [iRRAM] and [Herbie]: " << max_herbie_error_HI << endl;
+    cout << "Max error in bits of Herbie: " << max_herbie_error_HI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_HI) {
         cout << p << " " << binary2double(p) << " " << endl;
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
     cout << "Herbie output:\n" << mhe_herbie_out_HI << " " << binary2double(mhe_herbie_out_HI) << endl;
     cout << "in file : " << mhe_file_HI << endl << endl; 
 
-    cout << "Max herbie error between [iRRAM] and [Optimized]: " << max_herbie_error_OI << endl;
+    cout << "Max error in bits of our Optimization: " << max_herbie_error_OI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_OI) {
         cout << p << " " << binary2double(p) << " " << endl;
@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
     cout << "iRRAM output:\n" << mhe_irram_out_OI << " " << binary2double(mhe_irram_out_OI) << endl;
     cout << "Optimized output:\n" << mhe_opt_out_OI << " " << binary2double(mhe_opt_out_OI) << endl << endl;
 
-    cout << "Max relative error between [iRRAM] and [Herbie]: " << max_relative_error_HI << endl;
+    cout << "Max relative error of Herbie: " << max_relative_error_HI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_HI) {
         cout << p << " " << binary2double(p) << " " << endl;
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
     cout << "Herbie output:\n" << mre_herbie_out_HI << " " << binary2double(mre_herbie_out_HI) << endl;
     cout << "in file : " << mre_file_HI << endl << endl;
 
-    cout << "Max relative error between [iRRAM] and [Optimized]: " << max_relative_error_OI << endl;
+    cout << "Max relative error of our Optimization: " << max_relative_error_OI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_OI) {
         cout << p << " " << binary2double(p) << " " << endl;

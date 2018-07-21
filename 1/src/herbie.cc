@@ -6200,3 +6200,122 @@ double herbie_report9_9_2cbrtproblem334(double x) {
         return r4991506;
 }
 
+
+double herbie_report_midarcf_if(double z1image, double z1real, double z2image, double z2real) {
+        float r4249333 = z1real;
+        float r4249334 = z2real;
+        float r4249335 = r4249333 + r4249334;
+        float r4249336 = r4249335 * r4249335;
+        float r4249337 = z1image;
+        float r4249338 = z2image;
+        float r4249339 = r4249337 + r4249338;
+        float r4249340 = r4249339 * r4249339;
+        float r4249341 = r4249336 + r4249340;
+        float r4249342 = sqrt(r4249341);
+        float r4249343 = r4249335 / r4249342;
+        return r4249343;
+}
+
+double herbie_report_midarcf_id(double z1image, double z1real, double z2image, double z2real) {
+        double r4249344 = z1real;
+        double r4249345 = z2real;
+        double r4249346 = r4249344 + r4249345;
+        double r4249347 = r4249346 * r4249346;
+        double r4249348 = z1image;
+        double r4249349 = z2image;
+        double r4249350 = r4249348 + r4249349;
+        double r4249351 = r4249350 * r4249350;
+        double r4249352 = r4249347 + r4249351;
+        double r4249353 = sqrt(r4249352);
+        double r4249354 = r4249346 / r4249353;
+        return r4249354;
+}
+
+
+double herbie_report_midarcf_of(double z1image, double z1real, double z2image, double z2real) {
+        float r4249355 = z1real;
+        float r4249356 = z2real;
+        float r4249357 = r4249355 + r4249356;
+        float r4249358 = cbrt(r4249357);
+        float r4249359 = r4249358 * r4249358;
+        float r4249360 = z1image;
+        float r4249361 = z2image;
+        float r4249362 = r4249360 + r4249361;
+        float r4249363 = cbrt(r4249362);
+        float r4249364 = r4249363 * r4249363;
+        float r4249365 = r4249359 / r4249364;
+        float r4249366 = log(r4249363);
+        float r4249367 = exp(r4249366);
+        float r4249368 = r4249358 / r4249367;
+        float r4249369 = r4249365 * r4249368;
+        float r4249370 = -2.67778146099864e+172;
+        bool r4249371 = r4249369 <= r4249370;
+        float r4249372 = r4249356 * r4249361;
+        float r4249373 = r4249360 * r4249372;
+        float r4249374 = 2;
+        float r4249375 = pow(r4249355, r4249374);
+        float r4249376 = r4249373 / r4249375;
+        float r4249377 = r4249360 * r4249361;
+        float r4249378 = r4249377 / r4249355;
+        float r4249379 = r4249378 + r4249356;
+        float r4249380 = r4249376 - r4249379;
+        float r4249381 = r4249357 / r4249380;
+        float r4249382 = -8.171617645397837e+26;
+        bool r4249383 = r4249369 <= r4249382;
+        float r4249384 = r4249357 * r4249357;
+        float r4249385 = r4249362 * r4249362;
+        float r4249386 = r4249384 + r4249385;
+        float r4249387 = sqrt(r4249386);
+        float r4249388 = r4249357 / r4249387;
+        float r4249389 = 0.0008200383634425357;
+        bool r4249390 = r4249369 <= r4249389;
+        float r4249391 = r4249357 / r4249362;
+        float r4249392 = r4249390 ? r4249391 : r4249388;
+        float r4249393 = r4249383 ? r4249388 : r4249392;
+        float r4249394 = r4249371 ? r4249381 : r4249393;
+        return r4249394;
+}
+
+double herbie_report_midarcf_od(double z1image, double z1real, double z2image, double z2real) {
+        double r4249395 = z1real;
+        double r4249396 = z2real;
+        double r4249397 = r4249395 + r4249396;
+        double r4249398 = cbrt(r4249397);
+        double r4249399 = r4249398 * r4249398;
+        double r4249400 = z1image;
+        double r4249401 = z2image;
+        double r4249402 = r4249400 + r4249401;
+        double r4249403 = cbrt(r4249402);
+        double r4249404 = r4249403 * r4249403;
+        double r4249405 = r4249399 / r4249404;
+        double r4249406 = log(r4249403);
+        double r4249407 = exp(r4249406);
+        double r4249408 = r4249398 / r4249407;
+        double r4249409 = r4249405 * r4249408;
+        double r4249410 = -2.67778146099864e+172;
+        bool r4249411 = r4249409 <= r4249410;
+        double r4249412 = r4249396 * r4249401;
+        double r4249413 = r4249400 * r4249412;
+        double r4249414 = 2;
+        double r4249415 = pow(r4249395, r4249414);
+        double r4249416 = r4249413 / r4249415;
+        double r4249417 = r4249400 * r4249401;
+        double r4249418 = r4249417 / r4249395;
+        double r4249419 = r4249418 + r4249396;
+        double r4249420 = r4249416 - r4249419;
+        double r4249421 = r4249397 / r4249420;
+        double r4249422 = -8.171617645397837e+26;
+        bool r4249423 = r4249409 <= r4249422;
+        double r4249424 = r4249397 * r4249397;
+        double r4249425 = r4249402 * r4249402;
+        double r4249426 = r4249424 + r4249425;
+        double r4249427 = sqrt(r4249426);
+        double r4249428 = r4249397 / r4249427;
+        double r4249429 = 0.0008200383634425357;
+        bool r4249430 = r4249409 <= r4249429;
+        double r4249431 = r4249397 / r4249402;
+        double r4249432 = r4249430 ? r4249431 : r4249428;
+        double r4249433 = r4249423 ? r4249428 : r4249432;
+        double r4249434 = r4249411 ? r4249421 : r4249433;
+        return r4249434;
+}

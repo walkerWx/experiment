@@ -49,4 +49,6 @@ void split(const std::string &s, char delim, Out result);
 
 std::vector<std::string> split(const std::string &s, char delim);
 
+#include "self_math.h"
+
 #endif

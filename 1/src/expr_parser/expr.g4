@@ -79,6 +79,7 @@ funcname
    | SUM
    | ABS
    | FACTORIAL
+   | GET_ARC
    ;
 
 relop
@@ -171,6 +172,10 @@ ABS
 
 FACTORIAL
    : 'fac'
+   ;
+
+GET_ARC
+   : 'get_arc'
    ;
 
 LPAREN

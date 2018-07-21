@@ -427,6 +427,26 @@ class TestTransform(unittest.TestCase):
         for te in target:
             self.assertTrue(te in equivalent_expr)
 
+    def test_midarc(self):
+        expr = '((z1real+z2real)/sqrt((((z1real+z2real)*(z1real+z2real))+((z1image+z2image)*(z1image+z2image)))))'
+        target = ['cos(atan(z1image/z1real)/2+atan(z2image/z2real)/2)']
+        rules = list()
+        rules.append(RULES['Minus1'])
+        rules.append(RULES['Minus2'])
+        rules.append(RULES['Minus3'])
+        rules.append(RULES['CommutationPlus'])
+        rules.append(RULES['Midarc'])
+
+        equivalent_expr = generate_equivalent_expressions(expr, rules)
+        equivalent_expr = list(equivalent_expr)
+        equivalent_expr.sort(key=len)
+        print('------------------------------------------------')
+        for ee in equivalent_expr:
+            if ee.startswith('cos'):
+                print(ee)
+        for te in target:
+            self.assertTrue(te in equivalent_expr)
+
 
 if __name__ == '__main__':
     unittest.main()
