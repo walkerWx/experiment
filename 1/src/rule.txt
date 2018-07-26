@@ -80,7 +80,8 @@ TaylorTan: tan(x) -> (x+x*3/3+x**5*2/15+x**7*17/315);
 
 PolarRepresentation: A+B*I -> sqrt(A**2+B**2)*e**(atan(B/A)*I);
 
-Midarc: (a1+a2)/sqrt((a1+a2)*(a1+a2)+(b1+b2)*(b1+b2)) -> cos(get_arc((sqrt(a1*a1+b1*b1)+sqrt(a2*a2+b2*b2)*cos(get_arc(a2,b2)-get_arc(a1,b1))),sqrt(a2*a2+b2*b2)*sin(get_arc(a2,b2)-get_arc(a1,b1)))+get_arc(a1,b1));
+ComplexSum1: (a1+a2)/sqrt((a1+a2)*(a1+a2)+(b1+b2)*(b1+b2)) -> cos(get_arc((sqrt(a1*a1+b1*b1)+sqrt(a2*a2+b2*b2)*cos(get_arc(a2,b2)-get_arc(a1,b1))),sqrt(a2*a2+b2*b2)*sin(get_arc(a2,b2)-get_arc(a1,b1)))+get_arc(a1,b1));
+ComplexSum2: (a1+a2)/sqrt((a1+a2)*(a1+a2)+(b1+b2)*(b1+b2)) -> cos((get_arc(a1,b1)+get_arc(a2,b2))/2);
 
 StirlingGamma: (X-0.5)*ln(X)-X+ln(2*pi)/2+sum(k, 1, n, bnl(2*k)/(2*k*(2*k-1)*X^(2*k-1))) -> ln(gamma(X));
 

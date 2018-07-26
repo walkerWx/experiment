@@ -100,7 +100,7 @@ REAL ln_gamma_approx(int max_index, const REAL& z)
 REAL gamma_approx(int p, const REAL& x){
   if (p>0) p=0;
   REAL y=x;
-  int x_red = y.as_INTEGER();
+  int x_red = y.as_double(53);
   REAL y_factorial = 1;
   for ( int j = x_red; j < -p/5; j++)
     {

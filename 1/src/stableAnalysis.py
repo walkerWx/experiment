@@ -17,6 +17,9 @@ import sympy
 import math
 import logging
 import path
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 logging.basicConfig(format='%(levelname)s %(asctime)s : %(message)s', level=logging.INFO)
 
@@ -98,7 +101,7 @@ def int2binary(i):
 
 # 将二进制表示的双精度浮点数转换为数值形式
 def binary2double(b):
-    print(b)
+    # print(b)
     return struct.unpack('d', struct.pack('Q', int('0b'+b, 0)))[0]
 
 
@@ -247,8 +250,7 @@ class Point:
     # values为一个list，双精度浮点数使用一个64位的01串来表示，整数类型即使用普通数值形式表示
     # types与values相对应，有'decimal'与'integer'两种类型
     def __init__(self, values, types):
-        if len(values) != len(types):
-            sys.exit("Initialize point error, len(values) != len(types)")
+        assert (len(values) == len(types) and "Initialize point error, len(values) != len(types)")
         self.dimension = len(values)
         self.values = values
         self.types = types
@@ -525,6 +527,9 @@ def is_point_stable(point):
     # 首先确认选取的点时稳定的
     float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(point.values), encoding='ascii').stdout
     real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(point.values), encoding='ascii').stdout
+    if (float_res == '1111111111111000000000000000000000000000000000000000000000000000\n' or
+        float_res == '0111111111111000000000000000000000000000000000000000000000000000\n') and len(real_res) == 0:
+        return True
     bits_err = bits_error(real_res, float_res)
     if bits_err >= TOLERANCE:
         return False
@@ -547,7 +552,9 @@ def is_point_stable(point):
         float_res = subprocess.run(['./float'], stdout=subprocess.PIPE, input=' '.join(random_point.values), encoding='ascii').stdout
         # logging.info('Call subprocess real  with parameter {}'.format(' '.join(random_point.values)))
         real_res = subprocess.run(['./real'], stdout=subprocess.PIPE, input=' '.join(random_point.values), encoding='ascii').stdout
-
+        if (float_res == '1111111111111000000000000000000000000000000000000000000000000000\n' or
+            float_res == '0111111111111000000000000000000000000000000000000000000000000000\n') and len(real_res) == 0:
+            real_res = float_res
         bits_err = bits_error(real_res, float_res)
         # stable = (stable and (bits_err < TOLERANCE))
         if bits_err < TOLERANCE:
@@ -558,10 +565,221 @@ def is_point_stable(point):
     return count >= 4  # 稳定不稳定73开认为稳定，后续调整
 
 
+# added by whj
+
+def generate_extreme_points(lower: list, upper: list) -> list:
+    n = len(lower)
+    ret_points = []
+    ret_points.append([lower[0]])
+    ret_points.append([upper[0]])
+    for i in range(1, n):
+        copy_points = copy.deepcopy(ret_points)
+        for k in range(len(ret_points)):
+            ret_points[k].append(lower[i])
+            copy_points[k].append(upper[i])
+        for p in copy_points:
+            ret_points.append(p)
+    return ret_points
+
+
+def get_point_double_distance(pa: list, pb: list):
+    assert(len(pa) == len(pb) and "get_Euclidean_distance2 parameters error, points in different dimension!")
+    n = len(pa)
+    res = 0.0
+    for i in range(n):
+        res += double_distance(pa[i], pb[i])
+    return res
+
+
+def point_c_in_space_of_a_and_b(a: list, b: list, c:list) -> list:
+    assert(len(a) == len(b) and len(b) == len(c) and "point_c_in_space_of_a_and_b parameters error, points in different dimension!")
+    n = len(a)
+
+    def c_inside_the_ab(_a, _b, _c):
+        return _a < _c < _b or _a > _c > _b
+
+    inside = True
+    for i in range(n):
+        if not c_inside_the_ab(a[i], b[i], c[i]):
+            inside = False
+            break
+    return inside
+
+
+def get_middle_point_of_a_b(a: list, b: list) -> list:
+    assert (len(a) == len(b) and "get_middle_point_of_a_b parameters error, points in different dimension!")
+    n = len(a)
+    c = [(a[i]/2 + b[i]/2) for i in range(n)]
+    return c
+
+
+def get_inside_point_area(a: list, b: list):
+    assert (len(a) == len(b) and "get_inside_point_area parameters error, points in different dimension!")
+    n = len(a)
+    lower = [double2binary(min(a[i], b[i])) for i in range(n)]
+    upper = [double2binary(max(a[i], b[i])) for i in range(n)]
+    return lower, upper
+
+
+class Points:
+    num = 0
+    extreme_point_num = 0
+    point_list = []
+    has_inside_point = [[]]
+    distances = [[]]
+    dimension = 1
+    dimension_upper = []
+    dimension_lower = []
+
+    def __init__(self, _lower: list, _upper: list, _dimension=1):
+        self.dimension = _dimension
+        self.dimension_upper = [_upper[i] for i in range(_dimension)]
+        self.dimension_lower = [_lower[i] for i in range(_dimension)]
+        self.point_list = generate_extreme_points(self.dimension_lower, self.dimension_upper)
+        self.num = len(self.point_list)
+        self.extreme_point_num = self.num
+        # True means there is points in points[i] and points[j], when i == j, it is True
+        self.has_inside_point = [[(i == j) for i in range(self.num)] for j in range(self.num)]
+        self.distances = [[get_point_double_distance(self.point_list[i], self.point_list[j]) for i in range(self.num)] for j in range(self.num)]
+
+    def has_inside(self, i, j) -> bool:
+        return self.has_inside_point[i][j]
+
+    def set_inside(self, i, j, value):
+        self.has_inside_point[i][j] = value
+        self.has_inside_point[j][i] = value
+
+    def get_distance(self, i, j):
+        return self.distances[i][j]
+
+    def get_point(self, i) -> list:
+        return self.point_list[i]
+
+    def add_point(self, _point: list):
+        if len(_point) != self.dimension:
+            assert False and "add point with different dimension!"
+        self.point_list.append(_point)
+
+        # add inside relationship
+        for l in self.has_inside_point:
+            l.append(False)
+        self.has_inside_point.append([False for i in range(self.num + 1)])
+        self.has_inside_point[self.num][self.num] = True
+        for i in range(self.num):
+            for j in range(self.num):
+                if not self.has_inside(i, j) and point_c_in_space_of_a_and_b(self.point_list[i], self.point_list[j], _point):
+                    self.set_inside(i, j, True)
+                if point_c_in_space_of_a_and_b(self.point_list[i], _point, self.point_list[j]):
+                    self.set_inside(i, self.num, True)
+                elif point_c_in_space_of_a_and_b(self.point_list[j], _point, self.point_list[i]):
+                    self.set_inside(j, self.num, True)
+
+        # add new point distance list
+        self.distances.append([get_point_double_distance(_point, self.point_list[i]) for i in range(self.num)])
+        for i in range(self.num):
+            self.distances[i].append(self.distances[self.num][i])
+        self.distances[self.num].append(0)
+
+        self.num += 1
+
+    def get_divide_points_idx(self):
+        max_weight = 0
+        max_i = -1
+        max_j = -1
+        for i in range(self.num):
+            for j in range(self.num):
+                if self.has_inside(i, j):
+                    continue
+                w = self.get_distance(i, j)
+                if w > max_weight:
+                    max_weight = w
+                    max_i = i
+                    max_j = j
+        return max_i, max_j
+
+    def get_connect_points(self, i):
+        res = []
+        for k in range(self.num):
+            if not self.has_inside(i, k):
+                res.append(k)
+        return res
+
+    def get_middle_point_of_ij(self, i, j) -> list:
+        return get_middle_point_of_a_b(self.point_list[i], self.point_list[j])
+
+def stable_analysis2(path_data, initial_points_file_name):
+
+    paths = path_data.get_paths()
+    input_variables = path_data.get_input_variables()
+
+    points = list()  # 输入点
+
+    # read points from file
+    initial_points_file = open(initial_points_file_name, 'r')
+    for line in initial_points_file:
+        if line == '\n':
+            continue
+        values = line.split(' ')
+        types = ['decimal' for i in range(len(values))]
+        point = Point(values, types)
+        logging.info(str(point))
+        points.append(point)
+    initial_points_file.close()
+
+    # 判断输入稳定性
+    generate_cpp(path_data, paths)  # 根据路径生成cpp文件
+    subprocess.call(['make > /dev/null'], shell=True)  # 编译
+
+    point_stability_output = [(point, is_point_stable(point), real_output(point)) for point in points]  # 所有输入点及其稳定性信息，结构:[(p1, True), (p2, False)... ]
+
+    # 所有输入点按大小排序，按照输入点的第一个维度的大小
+    point_stability_output = sorted(point_stability_output, key=lambda p: binary2double(p[0].values[0]) if p[0].types[0] == 'decimal' else (binary2int(p[0].values[0]) if p[0].types[0] == 'integer' else 0))
+
+    for pso in point_stability_output:
+        print("{}\t{}".format(str(pso[0]), str(pso[1])))
+
+    # put points into my container
+    lower = [-1 for i in range(4)]
+    upper = [1 for i in range(4)]
+    ps = Points(lower, upper, 4)
+    for pso in point_stability_output:
+        point_str_list = str(pso[0]).split('\t')
+        point_str_list.pop()
+        p = [float(f) for f in point_str_list]
+        ps.add_point(p)
+        print(ps.num)
+
+    idx = 0
+    areas = set()
+    lower_bounds = []
+    upper_bounds = []
+    for pso in point_stability_output:
+        if not pso[1]:
+            con = ps.get_connect_points(idx + ps.extreme_point_num)
+            for k in con:
+                if k < ps.extreme_point_num:
+                    continue
+                # k is unstable, and current point is unstable
+                if point_stability_output[k - ps.extreme_point_num][1]:
+                    area = get_inside_point_area(ps.point_list[idx + ps.extreme_point_num], ps.point_list[k])
+                    lower_bounds.append(area[0])
+                    upper_bounds.append(area[1])
+                    area_str = "lower:{},\nupper:{},".format(str(area[0]), str(area[1]))
+                    areas.add(area_str)
+        idx += 1
+    for a in areas:
+        print(a)
+
+    return lower_bounds, upper_bounds, [(pso[0], pso[1]) for pso in point_stability_output]
+    # return [(pso[0], pso[1]) for pso in point_stability_output]
+
 if __name__ == "__main__":
 
-    #pth = '../case/herbie/sqrtexp/sqrtexp.pth'
+    # pth = '../case/herbie/sqrtexp/sqrtexp.pth'
     pth = '../case/iRRAM/midarc/midarc_real.pth'
+    # pth = '../case/herbie/2nthrt/2nthrt.pth'
+
+    points = '../case/iRRAM/midarc/midarc_points.txt'
 
     path_data = path.PathData(pth)
 
@@ -577,7 +795,7 @@ if __name__ == "__main__":
     #     print(binary2double(p[0]), end='\t')
     #     print(is_point_stable(p))
 
-    stable_analysis(path_data)
+    stable_analysis2(path_data, points)
 
 
 
