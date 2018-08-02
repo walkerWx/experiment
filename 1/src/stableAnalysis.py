@@ -208,7 +208,7 @@ def bits_error(irram_res, opt_res):
     distance = double_distance(irram_double, opt_double)
     if distance == 0:
         return 0
-    return int(math.log2(distance))
+    return int(math.log2(distance)+1)
 
 
 # 生成两个浮点数的中位数mid，满足double_distance(left, mid) == double_distance(mid, right) +- 1

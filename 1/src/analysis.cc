@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
     while (getline(ifs, line)) {
         input_points.push_back(vector<string>());
         vector<string> input_point_stable = split(line, ' ');
+        if (input_point_stable.empty()) continue;
         if (input_point_stable.back() == "True" || input_point_stable.back() == "False") {
             input_point_stable = vector<string>(input_point_stable.begin(), input_point_stable.end()-1);
         }
@@ -101,6 +102,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 保证输入输出数目一致
+    // cout << "input_points: " << input_points.size() << " irram_result: " << irram_result.size() << " herbie_result: " << herbie_result.size() << " opt_result: " << opt_result.size() << " double_result: " << double_result.size() << endl;
     assert(input_points.size() == irram_result.size() && irram_result.size() == herbie_result.front().size() && input_points.size() == opt_result.size() && input_points.size() == double_result.size());
     for (auto r : herbie_result) {
         assert(r.size() == herbie_result.front().size());

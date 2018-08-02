@@ -6,7 +6,7 @@ from config import *
 import json
 import re
 
-
+none_variable_chars = " ~`!@#$%^&*()-+={[}]|\\:;\"\'<,>.?/"
 # variables substitution in expr. e.g x+y --> a+b
 def convert_expr(expr, origin_vars, new_vars):
 
@@ -16,20 +16,47 @@ def convert_expr(expr, origin_vars, new_vars):
 
     new_expr = ''
     i = 0
+    var_start = -1
+    reading_ref = False
     while i < len(expr):
-        if not expr[i].isalpha():
-            new_expr += expr[i]
-            i += 1
-        else:
-            j = i
-            while j < len(expr) and expr[j].isalpha():
-                j += 1
-            var = expr[i:j]
-            if var in m:
+        if reading_ref and expr[i] in none_variable_chars:
+            # end a variable reference
+            var = expr[var_start:i]
+            if var in m.keys():
                 new_expr += m[var]
             else:
+                # is a function reference
                 new_expr += var
-            i = j
+            new_expr += expr[i]
+            reading_ref = False
+        elif reading_ref and (expr[i].isalpha() or expr[i] == '_' or expr[i].isdigit()):
+            # still reading a variable
+            pass
+        elif not reading_ref and (expr[i].isalpha() or expr[i] == '_'):
+            # start a variable reference
+            var_start = i
+            reading_ref = True
+        else:
+            new_expr += expr[i]
+        i += 1
+    if reading_ref:
+        var = expr[var_start:]
+        new_expr += m[var]
+        reading_ref = False
+    # while i < len(expr):
+    #     if not expr[i].isalpha():
+    #         new_expr += expr[i]
+    #         i += 1
+    #     else:
+    #         j = i
+    #         while j < len(expr) and expr[j].isalpha():
+    #             j += 1
+    #         var = expr[i:j]
+    #         if var in m:
+    #             new_expr += m[var]
+    #         else:
+    #             new_expr += var
+    #         i = j
 
     return new_expr
 
@@ -464,5 +491,8 @@ def compatible2cpp(expr):
     return expr
 
 if __name__ == '__main__':
-    e = 'x**0.333333333333333'
-    print(starstar2pow(e))
+    expr_str = "\t\t__return__ = ((z1real+z2real)/sqrt((((z1real+z2real)*(z1real+z2real))+((z1image+z2image)*(z1image+z2image)))))"
+    origin_vars = ["__return__", "z1real", "z2real", "z1image", "z2image"]
+    new_vars = ["__return___real", "z1real_real", "z2real_real", "z1image_real", "z2image_real"]
+    s = convert_expr(expr_str, origin_vars, new_vars)
+    print(s)

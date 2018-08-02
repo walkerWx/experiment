@@ -558,6 +558,6 @@ if __name__ == "__main__":
     #     analysis(case)
 
     prepare('midarc')
-    run('midarc')
-    analysis('midarc')
+    run('midarc', mode='rd')
+    analysis('midarc', mode='rd')
 
