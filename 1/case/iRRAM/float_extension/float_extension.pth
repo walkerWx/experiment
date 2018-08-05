@@ -1,20 +1,75 @@
 {
-"program_name": "float_extension",
-"function_name" : "evaluate",
-"variables" : { "n": "integer", "res":"decimal"},
-"input_variables": ["n"],
-"paths": [{"constrain": "true", "path":["procedure:p1", "loop:l1"]}],
-"return": "res",
-"loops": {
-          "l1": {
-          "variables":{"i": "integer"},
-          "initialize":{"i": "1"},
-          "loop_body": [
-                            {"constrain": "i<n", "path": ["procedure:p2"], "break": "false"},
-                            {"constrain": "!(i<n)", "path": [], "break": "true"}
-                       ]
+    "input_variables": [
+        "n"
+    ],
+    "variables": {
+        "r": "decimal",
+        "n": "integer",
+        "__return__": "decimal"
+    },
+    "function_name": "evaluate",
+    "return": "r",
+    "program_name": "float_extension",
+    "paths": [
+        {
+            "continue": "false",
+            "constrain": "true",
+            "path": [
+                {
+                    "type": "procedure",
+                    "content": [
+                        [
+                            "r",
+                            "0"
+                        ]
+                    ]
+                },
+                {
+                    "type": "loop",
+                    "content": {
+                        "initialize": {
+                            "i": "1"
+                        },
+                        "variables": {
+                            "i": "integer"
+                        },
+                        "loop_body": [
+                            {
+                                "continue": "false",
+                                "constrain": "! (i<n)",
+                                "path": [
+                                    {
+                                        "type": "procedure",
+                                        "content": []
+                                    }
+                                ],
+                                "break": "true"
+                            },
+                            {
+                                "continue": "false",
+                                "constrain": "(i<n)",
+                                "path": [
+                                    {
+                                        "type": "procedure",
+                                        "content": [
+                                            [
+                                                "r",
+                                                "(r+(1/sqrt(i)))"
+                                            ],
+                                            [
+                                                "i",
+                                                "(1+i)"
+                                            ]
+                                        ]
+                                    }
+                                ],
+                                "break": "false"
+                            }
+                        ]
                     }
-         },
-"procedures": {"p1": [["res", "0"]], "p2": [["res", "res+1.0/sqrt(i)"], ["i", "i+1"]]}
- }
-
+                }
+            ],
+            "break": "false"
+        }
+    ]
+}

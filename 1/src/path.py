@@ -311,6 +311,7 @@ class Procedure:
                 update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
                 update_expr = compatible2cpp(update_expr)
                 update_expr = re.sub(r'pow', "power", update_expr)
+                update_expr = addcastreal2functioncall(update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma
             if implement_type == FLOATTYPE:
@@ -490,9 +491,55 @@ def compatible2cpp(expr):
     expr = intdiv2floatdiv(expr)
     return expr
 
+# add cast to function call parameter, transform function call such as sqrt(x) to sqrt(REAL(x))
+def addcastreal2functioncall(expr):
+    func_set = {'power', 'exp', 'sin', 'cos', 'cosh', 'tan', 'cot', 'sec', 'csc',
+                'acos', 'asin','atan', 'ln', 'log', 'sqrt', 'gamma','sum', 'abs', 'max', 'min'}
+    new_expr = ''
+    i = 0
+    var_start = -1
+    reading_ref = False
+    reading_func_call = False
+    function_call_layer = 0
+    while i < len(expr):
+        if reading_ref and expr[i] in none_variable_chars:
+            # end a variable reference
+            var = expr[var_start:i]
+            if expr[i] == '(' and var in func_set:
+                # it is a function call in func_set
+                new_expr += var
+                reading_func_call = True
+            else:
+                # is a var reference
+                if reading_func_call:
+                    new_expr += 'REAL(' + var + ')'
+                else:
+                    new_expr += var
+            new_expr += expr[i]
+            reading_ref = False
+        elif reading_ref and (expr[i].isalpha() or expr[i] == '_' or expr[i].isdigit()):
+            # still reading a variable
+            pass
+        elif not reading_ref and (expr[i].isalpha() or expr[i] == '_'):
+            # start a variable reference
+            var_start = i
+            reading_ref = True
+        else:
+            new_expr += expr[i]
+        if reading_func_call:
+            if expr[i] == '(':
+                function_call_layer += 1
+            elif expr[i] == ')':
+                function_call_layer -= 1
+                if function_call_layer == 0:
+                    reading_func_call = False
+        i += 1
+    if reading_ref:
+        var = expr[var_start:]
+        new_expr += var
+    return new_expr
+
 if __name__ == '__main__':
-    expr_str = "\t\t__return__ = ((z1real+z2real)/sqrt((((z1real+z2real)*(z1real+z2real))+((z1image+z2image)*(z1image+z2image)))))"
-    origin_vars = ["__return__", "z1real", "z2real", "z1image", "z2image"]
-    new_vars = ["__return___real", "z1real_real", "z2real_real", "z1image_real", "z2image_real"]
-    s = convert_expr(expr_str, origin_vars, new_vars)
+    expr_str = "r = (r+(1/sqrt(i)))"
+    s = addcastreal2functioncall(expr_str)
     print(s)

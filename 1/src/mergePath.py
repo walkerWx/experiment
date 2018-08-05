@@ -79,7 +79,10 @@ using namespace iRRAM;
     code_body += "\tstd::string " + ",".join([x + "_str" for x in path_data.get_input_variables()]) + ";\n"
     code_body += "\tiRRAM::cin >> " + " >> ".join([x + "_str" for x in path_data.get_input_variables()]) + ";\n"
     for var in path_data.get_input_variables():
-        code_body += "\tdouble " + var + "_double = binary2double(" + var + "_str);\n"
+        if path_data.get_variable_type(var) == 'decimal':
+            code_body += "\tdouble " + var + "_double = binary2double(" + var + "_str);\n"
+        else:
+            code_body += "\tdouble " + var + "_double = binary2int(" + var + "_str);\n"
     code_body += "\tdouble r_double = " + path_data.get_function_name() + "(" + ", ".join([x + "_double" for x in path_data.get_input_variables()]) + ");\n"
     code_body += '\tiRRAM::cout << double2binary(r_double) << "\\n";\n'
     code_body += "}\n"

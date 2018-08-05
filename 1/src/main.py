@@ -110,7 +110,6 @@ def optimize(path_file):
 
         # 规则集合
         rules = list()
-        # rules.append(RULES['Midarc'])
         rules.append(RULES['ComplexSum1'])
         rules.append(RULES['ComplexSum2'])
         rules.append(RULES['LoopReduce'])
@@ -622,10 +621,11 @@ if __name__ == "__main__":
     # optimize('../case/herbie/midarc/midarc.pth')
     # optimize('../case/iRRAM/midarc/midarc_real.pth')
     # optimize_for_multi_input('../case/iRRAM/midarc/midarc_real.pth', '../case/iRRAM/midarc/midarc_points.txt')
-    optimize_for_multi_input('../case/herbie/midarc/midarc_real.pth', '../case/herbie/midarc/midarc_points.txt')
+    # optimize_for_multi_input('../case/herbie/midarc/midarc_real.pth', '../case/herbie/midarc/midarc_points.txt')
     # iRRMA case
     # optimize('../case/iRRAM/analytic/analytic.pth')
     # optimize('../case/iRRAM/e_example/e_example.pth')
+    optimize('../case/iRRAM/float_extension/float_extension.pth')
     # optimize('../case/iRRAM/jmmuller/jmmuller.pth')
     # optimize('../case/iRRAM/harmonic/harmonic.pth')
     # optimize('../case/iRRAM/gamma/gamma.pth')
@@ -645,7 +645,7 @@ mergePath('../case/analytic/analytic.opt.pth')
 # optimize('../case/e_example/e_example.pth')
 # optimize('../case/analytic/analytic.pth')
 # optimize('../case/midarc/midarc.pth')
-optimize('../case/float_extension/float_extension.pth')
+optimize('../case/float_extension/float_extension.pth.bak')
 # optimize('../case/jmmuller/jmmuller.pth')
 # optimize('../case/gamma/gamma.pth')
 '''

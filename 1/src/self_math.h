@@ -11,31 +11,41 @@ the return value is in [-pi/2, 3*pi/2)
 inline double get_arc(double a, double b)
 {
     const double pi = 3.14159265358979323846;
-//    if(a == 0)
-//    {
-//        if(b == 0) return 0;
-//        else return b < 0 ? -pi/2 : pi/2;
-//    }
-//    else
-//        return a > 0 ? atan(b/a) : (atan(b/a) + pi);
-    return (a == 0 ? (b == 0 ? 0 : (b < 0 ? -pi/2 : pi/2)) : (a > 0 ? atan(b/a) : (atan(b/a) + pi)));
-}
-
-#include "iRRAM/lib.h"
-
-namespace iRRAM
-{
-    inline REAL get_arc(REAL a, REAL b)
+    if(a == 0)
     {
-    //    if(a == 0)
-    //    {
-    //        if(b == 0) return 0;
-    //        else return b < 0 ? -pi/2 : pi/2;
-    //    }
-    //    else
-    //        return a > 0 ? atan(b/a) : (atan(b/a) + pi);
-        return (a == 0 ? (b == 0 ? REAL(0) : (b < 0 ? -pi()/2 : pi()/2)) : (a > 0 ? atan(b/a) : (atan(b/a) + pi())));
+        if(b == 0) return 0;
+        else return b < 0 ? -pi/2 : pi/2;
     }
+    else
+    {
+        if(a > 0)
+        {
+            return atan(b/a);
+        }
+        else
+        {
+            if(b > 0) return atan(b/a) + pi;
+            else return atan(b/a) - pi;
+        }
+    }
+//    return (a == 0 ? (b == 0 ? 0 : (b < 0 ? -pi/2 : pi/2)) : (a > 0 ? atan(b/a) : (atan(b/a) + pi)));
 }
+
+//#include "iRRAM/lib.h"
+//
+//namespace iRRAM
+//{
+//    inline REAL get_arc(REAL a, REAL b)
+//    {
+//    //    if(a == 0)
+//    //    {
+//    //        if(b == 0) return 0;
+//    //        else return b < 0 ? -pi/2 : pi/2;
+//    //    }
+//    //    else
+//    //        return a > 0 ? atan(b/a) : (atan(b/a) + pi);
+//        return (a == 0 ? (b == 0 ? REAL(0) : (b < 0 ? -pi()/2 : pi()/2)) : (a > 0 ? atan(b/a) : (atan(b/a) + pi())));
+//    }
+//}
 
 #endif
