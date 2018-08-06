@@ -636,7 +636,7 @@ def generate_equal_loop(loop):
                 loop_body_path = p1 if len(p1.get_path_list()) == 1 else p2
                 if len(loop_body_path.get_path_list()) == 1:
                     loop_body_procedure = loop_body_path.get_path_list()[0]
-                    if loop_body_procedure.get_update_expr(tv) == tv+'+1':
+                    if loop_body_procedure.get_update_expr(tv) == tv+'+1' or loop_body_procedure.get_update_expr(tv) == '1+'+tv:
 
                         # 判断其他变量是否为累加、累乘的更新形式
                         can_transform = True

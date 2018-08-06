@@ -26,8 +26,8 @@
                                             {
                                                 "type": "procedure",
                                                 "content": [
+                                                    ["z", "z+(y/i)"],
                                                     ["y", "y/i"],
-                                                    ["z", "z+y"],
                                                     ["i", "i+1"]
                                                 ]
                                             }

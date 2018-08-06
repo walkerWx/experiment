@@ -310,7 +310,8 @@ class Procedure:
             if implement_type == REALTYPE:
                 update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
                 update_expr = compatible2cpp(update_expr)
-                update_expr = re.sub(r'pow', "power", update_expr)
+                # update_expr = re.sub(r'pow', "power", update_expr)
+                update_expr = update_expr.replace('pow(', 'power(')
                 update_expr = addcastreal2functioncall(update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma
@@ -539,7 +540,14 @@ def addcastreal2functioncall(expr):
         new_expr += var
     return new_expr
 
+import transform
 if __name__ == '__main__':
-    expr_str = "r = (r+(1/sqrt(i)))"
-    s = addcastreal2functioncall(expr_str)
-    print(s)
+    path_data = PathData('../case/iRRAM/float_extension/float_extension.pth')
+    paths = path_data.get_paths()
+    for p in paths:
+        for l in p.path_list:
+            tmp = l.to_json()
+            if tmp['type'] == 'loop':
+                print(l.to_json())
+                res = transform.generate_equal_loop(l)
+                print(res.to_json())

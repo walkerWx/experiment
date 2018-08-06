@@ -1,22 +1,85 @@
 {
+    "function_name": "evaluate",
+    "paths": [
+        {
+            "break": "false",
+            "continue": "false",
+            "path": [
+                {
+                    "type": "procedure",
+                    "content": [
+                        [
+                            "powx",
+                            "1"
+                        ],
+                        [
+                            "res",
+                            "0"
+                        ]
+                    ]
+                },
+                {
+                    "type": "loop",
+                    "content": {
+                        "loop_body": [
+                            {
+                                "break": "true",
+                                "continue": "false",
+                                "path": [
+                                    {
+                                        "type": "procedure",
+                                        "content": []
+                                    }
+                                ],
+                                "constrain": "!(i<degree)"
+                            },
+                            {
+                                "break": "false",
+                                "continue": "false",
+                                "path": [
+                                    {
+                                        "type": "procedure",
+                                        "content": [
+                                            [
+                                                "i",
+                                                "1+i"
+                                            ],
+                                            [
+                                                "powx",
+                                                "(powx*x)"
+                                            ],
+                                            [
+                                                "res",
+                                                "res+(powx*x)"
+                                            ]
+                                        ]
+                                    }
+                                ],
+                                "constrain": "i<degree"
+                            }
+                        ],
+                        "variables": {
+                            "i": "integer"
+                        },
+                        "initialize": {
+                            "i": "0"
+                        }
+                    }
+                }
+            ],
+            "constrain": "true"
+        }
+    ],
+    "input_variables": [
+        "x",
+        "degree"
+    ],
+    "variables": {
+        "powx": "decimal",
+        "degree": "integer",
+        "res": "decimal",
+        "x": "decimal"
+    },
     "program_name": "analytic",
-	"function_name" : "evaluate",
-	"variables" : {"x": "decimal", "res": "decimal"},
-	"input_variables":["x"],
-    "return": "res",
-	"paths" : [
-	            {
-	                "constrain":"0<x&&x<1",
-	                "path":
-	                    [
-	                        {
-	                            "type":"procedure",
-	                            "content": [
-	                                            ["res", "((((((((((((((x+(x*x))+((x*x)*x))+(((x*x)*x)*x))+((((x*x)*x)*x)*x))+(((((x*x)*x)*x)*x)*x))+((((((x*x)*x)*x)*x)*x)*x))+(((((((x*x)*x)*x)*x)*x)*x)*x))+((((((((x*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+(((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))+((((((((((((((x*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x)*x))"]
-	                                       ]
-	                        }
-	                    ]
-	            }
-	          ]
-
+    "return": "res"
 }

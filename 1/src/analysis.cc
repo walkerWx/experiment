@@ -233,7 +233,10 @@ int main(int argc, char *argv[]) {
     cout << "Max bit error between [iRRAM] and [double]: " << max_herbie_error_DI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_DI) {
-        cout << p << " " << binary2double(p) << " " << endl;
+        cout << p << " ";
+        if(p.size() < 64) cout << binary2int(p);
+        else cout << binary2double(p);
+        cout << " " << endl;
     }
     cout << "iRRAM output:\n" << mhe_irram_out_DI << " " << binary2double(mhe_irram_out_DI) << endl;
     cout << "double output:\n" << mhe_double_out_DI << " " << binary2double(mhe_double_out_DI) << endl;
@@ -242,7 +245,10 @@ int main(int argc, char *argv[]) {
     cout << "Max bit error between [iRRAM] and [Herbie]: " << max_herbie_error_HI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_HI) {
-        cout << p << " " << binary2double(p) << " " << endl;
+        cout << p << " ";
+        if(p.size() < 64) cout << binary2int(p);
+        else cout << binary2double(p);
+        cout << " " << endl;
     }
     cout << "iRRAM output:\n" << mhe_irram_out_HI << " " << binary2double(mhe_irram_out_HI) << endl;
     cout << "Herbie output:\n" << mhe_herbie_out_HI << " " << binary2double(mhe_herbie_out_HI) << endl;
@@ -251,7 +257,10 @@ int main(int argc, char *argv[]) {
     cout << "Max bit error between [iRRAM] and [Optimized]: " << max_herbie_error_OI << endl;
     cout << "Input :" << endl;
     for (auto p : mhe_input_OI) {
-        cout << p << " " << binary2double(p) << " " << endl;
+        cout << p << " ";
+        if(p.size() < 64) cout << binary2int(p);
+        else cout << binary2double(p);
+        cout << " " << endl;
     }
     cout << "iRRAM output:\n" << mhe_irram_out_OI << " " << binary2double(mhe_irram_out_OI) << endl;
     cout << "Optimized output:\n" << mhe_opt_out_OI << " " << binary2double(mhe_opt_out_OI) << endl << endl;
@@ -259,7 +268,10 @@ int main(int argc, char *argv[]) {
     cout << "Max relative error between [iRRAM] and [double]: " << max_relative_error_DI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_DI) {
-        cout << p << " " << binary2double(p) << " " << endl;
+        cout << p << " ";
+        if(p.size() < 64) cout << binary2int(p);
+        else cout << binary2double(p);
+        cout << " " << endl;
     }
     cout << "iRRAM output:\n" <<  mre_irram_out_DI << " " << binary2double(mre_irram_out_DI) << endl;
     cout << "double output:\n" << mre_double_out_DI << " " << binary2double(mre_double_out_DI) << endl;
@@ -268,7 +280,10 @@ int main(int argc, char *argv[]) {
     cout << "Max relative error between [iRRAM] and [Herbie]: " << max_relative_error_HI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_HI) {
-        cout << p << " " << binary2double(p) << " " << endl;
+        cout << p << " ";
+        if(p.size() < 64) cout << binary2int(p);
+        else cout << binary2double(p);
+        cout << " " << endl;
     }
     cout << "iRRAM output:\n" <<  mre_irram_out_HI << " " << binary2double(mre_irram_out_HI) << endl;
     cout << "Herbie output:\n" << mre_herbie_out_HI << " " << binary2double(mre_herbie_out_HI) << endl;
@@ -277,7 +292,10 @@ int main(int argc, char *argv[]) {
     cout << "Max relative error between [iRRAM] and [Optimized]: " << max_relative_error_OI << endl;
     cout << "Input :" << endl;
     for (auto p : mre_input_OI) {
-        cout << p << " " << binary2double(p) << " " << endl;
+        cout << p << " ";
+        if(p.size() < 64) cout << binary2int(p);
+        else cout << binary2double(p);
+        cout << " " << endl;
     }
     cout << "iRRAM output:\n" <<  mre_irram_out_OI << " " << binary2double(mre_irram_out_OI) << endl;
     cout << "Optimized output:\n" << mre_opt_out_OI << " " << binary2double(mre_opt_out_OI) << endl << endl;

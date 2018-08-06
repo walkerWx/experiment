@@ -3,12 +3,11 @@
         "n"
     ],
     "variables": {
-        "r": "decimal",
-        "n": "integer",
-        "__return__": "decimal"
+        "res": "decimal",
+        "n": "integer"
     },
     "function_name": "evaluate",
-    "return": "r",
+    "return": "res",
     "program_name": "float_extension",
     "paths": [
         {
@@ -19,7 +18,7 @@
                     "type": "procedure",
                     "content": [
                         [
-                            "r",
+                            "res",
                             "0"
                         ]
                     ]
@@ -36,29 +35,24 @@
                         "loop_body": [
                             {
                                 "continue": "false",
-                                "constrain": "! (i<n)",
-                                "path": [
-                                    {
-                                        "type": "procedure",
-                                        "content": []
-                                    }
-                                ],
+                                "constrain": "!(i<n)",
+                                "path": [],
                                 "break": "true"
                             },
                             {
                                 "continue": "false",
-                                "constrain": "(i<n)",
+                                "constrain": "i<n",
                                 "path": [
                                     {
                                         "type": "procedure",
                                         "content": [
                                             [
-                                                "r",
-                                                "(r+(1/sqrt(i)))"
+                                                "res",
+                                                "res+(1/sqrt(i))"
                                             ],
                                             [
                                                 "i",
-                                                "(1+i)"
+                                                "i+1"
                                             ]
                                         ]
                                     }
