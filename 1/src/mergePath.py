@@ -24,6 +24,7 @@ def merge_path(path_file):
 
 #include "iRRAM.h"
 #include "../../../src/points.h"
+#include "../../../src/gamma.h"
 
 using namespace std;
 using namespace iRRAM;

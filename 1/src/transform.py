@@ -644,7 +644,8 @@ def generate_equal_loop(loop):
                         for i in range(len(loop_body_procedure.get_procedure())):
                             v = loop_body_procedure.get_procedure()[i][0]
                             e = loop_body_procedure.get_procedure()[i][1]
-
+                            if v == tv:
+                                continue
                             if not e.startswith(v):
                                 can_transform = False
                                 break

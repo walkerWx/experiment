@@ -312,6 +312,7 @@ class Procedure:
                 update_expr = compatible2cpp(update_expr)
                 # update_expr = re.sub(r'pow', "power", update_expr)
                 update_expr = update_expr.replace('pow(', 'power(')
+                update_expr = update_expr.replace('fac(', 'fac_real(')
                 update_expr = addcastreal2functioncall(update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma

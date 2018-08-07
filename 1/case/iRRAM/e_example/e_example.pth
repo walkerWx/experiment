@@ -1,22 +1,22 @@
 {
     "program_name": "e_example",
     "function_name" : "evaluate",
-    "variables" : {"n": "integer", "z": "decimal"},
+    "variables" : {"n": "integer", "z": "decimal", "y": "decimal"},
     "input_variables": ["n"],
     "return": "z",
     "paths": [
                 {
-                    "constrain": "true",
+                    "constrain": "(2<=n)&&(n<=1000)",
                     "path": [
                         {
                             "type": "procedure",
-                            "content": [["z", "1"]]
+                            "content": [["z", "1"], ["y", "1.0"]]
                         },
                         {
                             "type": "loop",
                             "content": {
-                                "variables":{"i": "integer", "y": "decimal"},
-                                "initialize":{"i": "1", "y": "1.0"},
+                                "variables":{"i": "integer"},
+                                "initialize":{"i": "1"},
                                 "loop_body":
                                 [
                                     {
@@ -26,8 +26,7 @@
                                             {
                                                 "type": "procedure",
                                                 "content": [
-                                                    ["z", "z+(y/i)"],
-                                                    ["y", "y/i"],
+                                                    ["z", "z+(1/fac(i))"],
                                                     ["i", "i+1"]
                                                 ]
                                             }

@@ -2,7 +2,7 @@
 #define SELF_MATH_H
 
 #include <cmath>
-
+#include "iRRAM/lib.h"
 /**
 input (a, b) represents a vector
 get the angle between vector (a, b) and vector (1, 0)
@@ -47,5 +47,19 @@ inline double get_arc(double a, double b)
 //        return (a == 0 ? (b == 0 ? REAL(0) : (b < 0 ? -pi()/2 : pi()/2)) : (a > 0 ? atan(b/a) : (atan(b/a) + pi())));
 //    }
 //}
+
+double fac(int n)
+{
+    double res = 1;
+    for(int i = 2; i <= n; ++i) res *= i;
+    return res;
+}
+
+iRRAM::REAL fac_real(int n)
+{
+    iRRAM::REAL res = 1;
+    for(int i = 2; i <= n; ++i) res = res * i;
+    return res;
+}
 
 #endif
