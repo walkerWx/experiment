@@ -12,7 +12,7 @@ REALTYPE = 'real'
 
 
 # 浮点精度与高精度程序的容许的比特误差，容许误差范围内认为是稳定的
-TOLERANCE = 10
+TOLERANCE = 4
 
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
 FLOAT = dict()

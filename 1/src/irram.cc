@@ -166,3 +166,10 @@ iRRAM::REAL irram_midarc(iRRAM::REAL z1image, iRRAM::REAL z1real, iRRAM::REAL z2
     iRRAM::REAL i = z1image + z2image;
     return r / iRRAM::sqrt((r * r) + (i * i));
 }
+
+// Herbie case: float_extension
+iRRAM::REAL irram_float_extension(int n) {
+    iRRAM::REAL r = 0;
+    for (int i=1;i<n;i++) r=r+iRRAM::REAL(1)/sqrt(iRRAM::REAL(i));
+    return r;
+}

@@ -1,0 +1,84 @@
+{
+    "input_variables": [
+        "n"
+    ],
+    "function_name": "evaluate",
+    "variables": {
+        "s": "decimal",
+        "e": "decimal",
+        "n": "integer",
+        "__return__": "decimal"
+    },
+    "paths": [
+        {
+            "constrain": "n>=1&&n<=1000",
+            "break": "false",
+            "path": [
+                {
+                    "content": [
+                        [
+                            "e",
+                            "exp(1)"
+                        ],
+                        [
+                            "s",
+                            "0"
+                        ]
+                    ],
+                    "type": "procedure"
+                },
+                {
+                    "content": {
+                        "variables": {
+                            "i": "integer"
+                        },
+                        "initialize": {
+                            "i": "1"
+                        },
+                        "loop_body": [
+                            {
+                                "constrain": "i<n",
+                                "break": "false",
+                                "path": [
+                                    {
+                                        "content": [
+                                            [
+                                                "s",
+                                                "s+1.0/fac(i)"
+                                            ],
+                                            [
+                                                "i",
+                                                "i+1"
+                                            ]
+                                        ],
+                                        "type": "procedure"
+                                    }
+                                ],
+                                "continue": "false"
+                            },
+                            {
+                                "constrain": "!(i<n)",
+                                "break": "true",
+                                "path": [],
+                                "continue": "false"
+                            }
+                        ]
+                    },
+                    "type": "loop"
+                },
+                {
+                    "content": [
+                        [
+                            "__return__",
+                            "(e-s)"
+                        ]
+                    ],
+                    "type": "procedure"
+                }
+            ],
+            "continue": "false"
+        }
+    ],
+    "program_name": "lambov",
+    "return": "__return__"
+}
