@@ -87,8 +87,8 @@ StirlingGamma: (X-0.5)*ln(X)-X+ln(2*pi)/2+sum(k, 1, n, bnl(2*k)/(2*k*(2*k-1)*X^(
 
 GammaTrans: gamma(X) -> X*gamma(X-1);
 
-Gamma_0: gamma(X) -> 1/X+r @ abs(X) < eps;
+Gamma_0: gamma(X) -> 1.0/X-euler_gamma @ abs(X) < eps;
 
-Gamma_1: gamma(X) -> euler_gamma-1-1/(X+1) @ abs(X+1) < eps;
+Gamma_1: gamma(X) -> X*(euler_gamma-1.0)/((2.0-euler_gamma)*(X+1.0)) @ abs(X+1) < eps;
 
-Gamma_2: gamma(X) -> (8-4*r+3*X-2*r*X)/(4*X+8) @ abs(x+2) < eps;
+Gamma_2: gamma(X) -> (8.0-4.0*euler_gamma+3.0*X-2.0*euler_gamma*X)/(4.0*X+8.0) @ abs(X+2) < eps;

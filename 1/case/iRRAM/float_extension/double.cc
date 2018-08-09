@@ -10,11 +10,13 @@ double float_extension(int n) {
     return r;
 }
 int main() {
-    std::fesetround(FE_TONEAREST);
+    std::fesetround(FE_DOWNWARD);
 	std::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);
 	std::string n_str;
-	std::cin >> n_str;
-	int n_int = binary2int(n_str);
+//	std::cin >> n_str;
+//	int n_int = binary2int(n_str);
+    int n_int;
+    std::cin >> n_int;
 	double r = float_extension(n_int);
 	std::cout << double2binary(r) << "\n";
 }

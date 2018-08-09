@@ -1,6 +1,6 @@
 #include "iRRAM.h"
 
-#define euler_gamma (0.57721566490)
+#define euler_gamma (0.577215664901532860606512090082402431042159335)
 
 using namespace iRRAM;
 

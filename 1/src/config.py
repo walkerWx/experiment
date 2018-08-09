@@ -4,7 +4,7 @@
 # Configuration file
 
 PROJECT_HOME = '/home/whj/experiment'
-iRRAM_HOME = '/home/whj/iRRAM'
+iRRAM_HOME = '/home/whj/iRRAM_improved'
 
 # 优化后程序两种不同的实现类型：浮点数实现、高精度实现
 FLOATTYPE = 'float'
@@ -12,7 +12,7 @@ REALTYPE = 'real'
 
 
 # 浮点精度与高精度程序的容许的比特误差，容许误差范围内认为是稳定的
-TOLERANCE = 4
+TOLERANCE = 10
 
 # 不同实现对应的不同类型的名称以及需要引入的头文件等
 FLOAT = dict()
@@ -24,6 +24,7 @@ FLOAT['cin'] = 'std::cin'
 FLOAT['cout'] = 'std::cout'
 FLOAT['header'] = '''
 #include "points.h"
+#include "self_math.h"
 #include <iostream>
 #include <iomanip>
 #include <cmath>
@@ -31,7 +32,7 @@ FLOAT['header'] = '''
 #include <string>
 #include <cfenv>
 
-#define euler_gamma 0.57721566490
+#define euler_gamma 0.577215664901532860606512090082402431042159335
 #define pi 3.1415926535897932384626433832795
 
 using namespace std;
@@ -43,12 +44,14 @@ REAL['cin'] = 'iRRAM::cin'
 REAL['cout'] = 'iRRAM::cout'
 REAL['header'] = '''
 #include "points.h"
+#include "self_math.h"
 #include "iRRAM.h"
 #include "gamma.h"
 #include <string>
 #include <cfenv>
 
-#define euler_gamma REAL(0.57721566490)
+#undef euler_gamma
+#define euler_gamma REAL(0.577215664901532860606512090082402431042159335)
 #define pi REAL(3.1415926535897932384626433832795)
 
 using namespace iRRAM;

@@ -311,14 +311,18 @@ class Procedure:
                 update_expr = re.sub("(?P<number>\d+(?:\.\d+))", Procedure.to_real, update_expr);
                 update_expr = compatible2cpp(update_expr)
                 # update_expr = re.sub(r'pow', "power", update_expr)
-                update_expr = update_expr.replace('pow(', 'power(')
-                update_expr = update_expr.replace('fac(', 'fac_real(')
+                # update_expr = update_expr.replace('pow(', 'power(')
+                # update_expr = update_expr.replace('fac(', 'fac_real(')
+                update_expr = function_name_replace(update_expr, 'pow', 'power')
+                update_expr = function_name_replace(update_expr, 'fac', 'fac_real')
                 update_expr = addcastreal2functioncall(update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma
             if implement_type == FLOATTYPE:
                 update_expr = compatible2cpp(update_expr)
-                update_expr = re.sub('gamma\(', 'tgamma(', update_expr)
+                # update_expr = update_expr.replace('gamma(', 'tgamma(')
+                # update_expr = re.sub('gamma\(', 'tgamma(', update_expr)
+                update_expr = function_name_replace(update_expr, 'gamma', 'tgamma')
 
             code += indent*'\t'+var + ' = ' + str(update_expr) + ';\n'
         return code
@@ -476,11 +480,20 @@ class Path:
 # 将表达式中的**转换为pow函数
 def starstar2pow(expr):
     expr = re.sub(r'\(([^()]+)\)\*\*\((.*)?\)', r'(pow(\1, \2))', expr)
-    expr = re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*([0-9|.]+)', r'pow(\1, \2)', expr)
-    expr = re.sub(r'([a-zA-Z][a-zA-Z0-9]*)\*\*\((.*)?\)', r'pow(\1, \2)', expr)
+    expr = re.sub(r'([_a-zA-Z][_a-zA-Z0-9]*)\*\*([0-9|.]+)', r'pow(\1, \2)', expr)
+    expr = re.sub(r'([_a-zA-Z][_a-zA-Z0-9]*)\*\*\((.*)?\)', r'pow(\1, \2)', expr)
     expr = re.sub(r'\(([^()]+)\)\*\*([0-9|.]*)', r'(pow(\1, \2))', expr)
     return expr
 
+
+def function_name_replace(expr, old_func, new_func):
+    expr = re.sub(r'^'+old_func + '[\r\n\t ]*\(',
+                  new_func + '(', expr)
+    expr = re.sub(r'([~`!@#$%^&*()\-+={\[}\]|\\:;\"\'<,>.?/])'+old_func+'[\r\n\t ]*\(',
+                  r'\1'+new_func + '(', expr)
+    expr = re.sub(r'[ \r\n\t]'+old_func+'[\r\n\t ]*\(',
+                  r''+new_func + '(', expr)
+    return expr
 
 # 将表达式中的整数除法转换为浮点数除法，1/2 -> 1.0/2
 def intdiv2floatdiv(expr):
@@ -496,50 +509,60 @@ def compatible2cpp(expr):
 # add cast to function call parameter, transform function call such as sqrt(x) to sqrt(REAL(x))
 def addcastreal2functioncall(expr):
     func_set = {'power', 'exp', 'sin', 'cos', 'cosh', 'tan', 'cot', 'sec', 'csc',
-                'acos', 'asin','atan', 'ln', 'log', 'sqrt', 'gamma','sum', 'abs', 'max', 'min'}
-    new_expr = ''
-    i = 0
-    var_start = -1
-    reading_ref = False
-    reading_func_call = False
-    function_call_layer = 0
-    while i < len(expr):
-        if reading_ref and expr[i] in none_variable_chars:
-            # end a variable reference
-            var = expr[var_start:i]
-            if expr[i] == '(' and var in func_set:
-                # it is a function call in func_set
-                new_expr += var
-                reading_func_call = True
-            else:
-                # is a var reference
-                if reading_func_call:
-                    new_expr += 'REAL(' + var + ')'
-                else:
-                    new_expr += var
-            new_expr += expr[i]
-            reading_ref = False
-        elif reading_ref and (expr[i].isalpha() or expr[i] == '_' or expr[i].isdigit()):
-            # still reading a variable
-            pass
-        elif not reading_ref and (expr[i].isalpha() or expr[i] == '_'):
-            # start a variable reference
-            var_start = i
-            reading_ref = True
-        else:
-            new_expr += expr[i]
-        if reading_func_call:
-            if expr[i] == '(':
-                function_call_layer += 1
-            elif expr[i] == ')':
-                function_call_layer -= 1
-                if function_call_layer == 0:
-                    reading_func_call = False
-        i += 1
-    if reading_ref:
-        var = expr[var_start:]
-        new_expr += var
-    return new_expr
+                'acos', 'asin','atan', 'ln', 'log', 'sqrt', 'sum', 'abs', 'max', 'min'}
+    # set function's namespace
+    for func in func_set:
+        new_func = 'iRRAM::'+func
+        expr = re.sub(r'^' + func + '[\r\n\t ]*\(',
+                      new_func + '((REAL)', expr)
+        expr = re.sub(r'([~`!@#$%^&*()\-+={\[}\]|\\:;\"\'<,>.?/])' + func + '[\r\n\t ]*\(',
+                      r'\1' + new_func + '((REAL)', expr)
+        expr = re.sub(r'[ \r\n\t]' + func + '[\r\n\t ]*\(',
+                      r'' + new_func + '((REAL)', expr)
+    return expr
+    # new_expr = ''
+    # i = 0
+    # var_start = -1
+    # reading_ref = False
+    # reading_func_call = False
+    # function_call_layer = 0
+    # while i < len(expr):
+    #     if reading_ref and expr[i] in none_variable_chars:
+    #         # end a variable reference
+    #         var = expr[var_start:i]
+    #         if expr[i] == '(' and var in func_set:
+    #             # it is a function call in func_set
+    #             new_expr += var
+    #             reading_func_call = True
+    #         else:
+    #             # is a var reference
+    #             if reading_func_call:
+    #                 new_expr += 'REAL(' + var + ')'
+    #             else:
+    #                 new_expr += var
+    #         new_expr += expr[i]
+    #         reading_ref = False
+    #     elif reading_ref and (expr[i].isalpha() or expr[i] == '_' or expr[i].isdigit()):
+    #         # still reading a variable
+    #         pass
+    #     elif not reading_ref and (expr[i].isalpha() or expr[i] == '_'):
+    #         # start a variable reference
+    #         var_start = i
+    #         reading_ref = True
+    #     else:
+    #         new_expr += expr[i]
+    #     if reading_func_call:
+    #         if expr[i] == '(':
+    #             function_call_layer += 1
+    #         elif expr[i] == ')':
+    #             function_call_layer -= 1
+    #             if function_call_layer == 0:
+    #                 reading_func_call = False
+    #     i += 1
+    # if reading_ref:
+    #     var = expr[var_start:]
+    #     new_expr += var
+    # return new_expr
 
 import transform
 if __name__ == '__main__':

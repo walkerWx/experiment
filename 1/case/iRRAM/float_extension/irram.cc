@@ -11,14 +11,15 @@ iRRAM::REAL irram_float_extension(int n) {
     return r;
 }
 void compute() {
-	std::fesetround(FE_TONEAREST);
+	std::fesetround(FE_DOWNWARD);
 	std::cout << std::scientific << std::setprecision(std::numeric_limits<double>::digits10);
 	iRRAM::cout << iRRAM::setRwidth(30);
 	std::string n_str;
-	iRRAM::cin >> n_str;
-	int n_int = binary2int(n_str);
-	iRRAM::REAL n_irram(n_int);
-	iRRAM::REAL r_irram = irram_float_extension(n_irram);
+//	iRRAM::cin >> n_str;
+//	int n_int = binary2int(n_str);
+    int n_int;
+    iRRAM::cin >> n_int;
+	iRRAM::REAL r_irram = irram_float_extension(n_int);
 	double r_double = r_irram.as_double();
 	iRRAM::cout << double2binary(r_double) << "\n";
 }

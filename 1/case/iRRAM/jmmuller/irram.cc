@@ -26,8 +26,7 @@ void compute() {
 	std::string n_str;
 	iRRAM::cin >> n_str;
 	int n_int = binary2int(n_str);
-	iRRAM::REAL n_irram(n_int);
-	iRRAM::REAL r_irram = jmmuller(n_irram);
+	iRRAM::REAL r_irram = jmmuller(n_int);
 	double r_double = r_irram.as_double();
 	iRRAM::cout << double2binary(r_double) << "\n";
 }

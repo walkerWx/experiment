@@ -1,6 +1,6 @@
 # Makefile for user_programs
 
-iRRAM_HOME=/home/walker/Projects/iRRAM
+iRRAM_HOME=/home/whj/iRRAM_improved
 
 CC = clang -std=c11
 CFLAGS = -g -O2
@@ -14,17 +14,23 @@ LDLIBS =  -L$(iRRAM_HOME)/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread
 
 all: float real bits_error analysis
 
-float: points.o 
+float: points.o self_math.o
 
-real: points.o
+float_origin: points.o self_math.o
 
-bits_error: points.o
+real: points.o self_math.o
 
-analysis: points.o
+bits_error: points.o self_math.o
+
+analysis: points.o self_math.o
+
+analysis_irram: points.o self_math.o
 
 points.o: points.cc points.h
 
+self_math.o: self_math.cc self_math.h
+
 clean:
-	rm -rf $(EXAMPLES_BIN) float.cpp real.cpp input output float real float_output real_output points.o bits_error analysis
+	rm -rf $(EXAMPLES_BIN) float.cpp real.cpp input output float real float_output points.o bits_error analysis
 
 install:
