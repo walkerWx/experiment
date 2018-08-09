@@ -1,6 +1,7 @@
 import os
 import re
 import logging
+import time
 
 from config import iRRAM_HOME, PROJECT_HOME
 
@@ -163,16 +164,18 @@ def save_makefile(bins, file):
     content += "CPPFLAGS = -I$(iRRAM_HOME)/installed/include\n"
     content += "CXX = clang++ -std=c++11\n"
     content += "CXXCPP = clang++ -E -std=c++11\n"
-    content += "CXXFLAGS = -g -O2\n"
+    content += "CXXFLAGS = -g -O2 $(CPPFLAGS)\n"
     content += "LDFLAGS = -Xlinker -rpath -Xlinker $(iRRAM_HOME)/installed/lib\n"
     content += "LDLIBS =  -L$(iRRAM_HOME)/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread\n"
     content += "all: " + " ".join(bins) + "\n"
     for bin in bins:
-        content += bin + ": " + bin + ".cc points.o\n"
-    content += "points.o: ../../../src/points.cc ../../../src/points.h\n"
+        content += bin + ": " + bin + ".cc points.o self_math.o\n"
+    content += "self_math.o: ../../../src/self_math.cc ../../../src/self_math.h\n"
+    content += "\t$(CXX) -c -o $@ $< $(CXXFLAGS)\n"
+    content += "points.o: ../../../src/points.cc ../../../src/points.h self_math.o\n"
     content += "\t$(CXX) -c -o $@ $< $(CXXFLAGS)\n"
     content += "clean:\n"
-    content += "\trm -rf " + " ".join(bins) + " points.o *.dSYM\n"
+    content += "\trm -rf " + " ".join(bins) + " points.o self_math.o *.dSYM\n"
     content += "deepclean: clean\n"
     content += "\trm -rf *.cc *.txt result.csv Makefile *_o.pth.json\n"
 
@@ -413,21 +416,34 @@ def run(casename, mode='all'):
     #     # print("[INFO] Executing herbie program with input :" + point.replace("\n", ""))
     #     for hb in herbie_bin:
     #         os.system("./" + hb + " < point.txt >> " + hb + "_result.txt." + mode)
-
-    for point in points:
-        print(point, file=open("point.txt", "w"))
-        # print("[INFO] Executing optimized program with input :" + point.replace("\n", ""))
-        os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt." + mode)
-
+    begin = time.clock()
     for point in points:
         print(point, file=open("point.txt", "w"))
         # print("[INFO] Executing irram program with input :" + point.replace("\n", ""))
         os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt." + mode)
+    end = time.clock()
+    irram_time = end - begin
 
+    begin = time.clock()
+    for point in points:
+        print(point, file=open("point.txt", "w"))
+        # print("[INFO] Executing optimized program with input :" + point.replace("\n", ""))
+        os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt." + mode)
+    end = time.clock()
+    opt_time = end - begin
+
+    begin = time.clock()
     for point in points:
         print(point, file=open("point.txt", "w"))
         os.system("./" + double_bin + " < point.txt >> " + double_bin + "_result.txt." + mode)
+    end = time.clock()
+    double_time = end - begin
 
+    time_info_file = open('time_info', 'w')
+    time_info_file.writelines('Execution time of [Optimized]:' + str(opt_time) + ", average execution time per case: " + str(opt_time/len(points)) + '\n')
+    time_info_file.writelines('Execution time of [iRRAM]    :' + str(irram_time) + ", average execution time per case: " + str(opt_time/len(points)) + '\n')
+    time_info_file.writelines('Execution time of [double]   :' + str(double_time) + ", average execution time per case: " + str(opt_time/len(points)) + '\n')
+    time_info_file.close()
 
 # 分析跑程序得到的result.txt文件，得到每个用例的两种误差，包括herbie所定义的误差以及相对误差，结果输出到result.csv，主要是对analysis的调用
 def analysis(case, mode='all'):
@@ -496,6 +512,8 @@ if __name__ == "__main__":
     # case = 'harmonic'
     # case = 'gamma'
     case = 'jmmuller'
+    # case = 'lambov'
+    # case = 'e_example'
     prepare(case)
     run(case, mode='rd')
     analysis(case, mode='rd')
