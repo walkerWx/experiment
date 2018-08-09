@@ -413,6 +413,9 @@ def divide_stable_unstable(point_stability_output, index):
 
     lsi = point_stability_output[index][1]
     rsi = point_stability_output[index+1][1]
+    assert (lsi != rsi and "point stability array error!")
+    # can do return
+    # if return, return []
 
     mid_point = get_middle_point(left_point, right_point)  # FIXME mid_point是有可能不在输入域上的，如何处理？
 
@@ -441,7 +444,7 @@ def divide_stable_unstable(point_stability_output, index):
 
         if msi == lsi:
             left_point = mid_point
-        elif msi == rsi:
+        else:
             right_point = mid_point
 
         mid_point = get_middle_point(left_point, right_point)  # FIXME 同上
@@ -781,7 +784,7 @@ if __name__ == "__main__":
 
     points = '../case/iRRAM/midarc/midarc_points.txt'
 
-    path_data = path.PathData(pth)
+    # path_data = path.PathData(pth)
 
     # start = 0.1
     # end = 0.25
@@ -795,7 +798,16 @@ if __name__ == "__main__":
     #     print(binary2double(p[0]), end='\t')
     #     print(is_point_stable(p))
 
-    stable_analysis2(path_data, points)
+    # stable_analysis2(path_data, points)
+    irram_bits = '1100001011111100011010111111010100100110001101000000000010010000'
+    double_bits = '1100001011111111111111111111111111111111111111111111111111111010'
+    opt_bits = '1100001011111100011010111111010100100110001100111111111111111100'
+    input_str = '0100000100111000010111100100001101000010000110011111100100010000'
+    print(bits_error(irram_bits, double_bits))
+    print(bits_error(irram_bits, opt_bits))
+    print(str(binary2double(input_str)))
+    print(double2binary(10e14))
+
 
 
 
