@@ -51,7 +51,7 @@ REAL['header'] = '''
 #include <cfenv>
 
 #undef euler_gamma
-#define euler_gamma REAL("0.577215664901532860606512090082402431042159335")
+#define euler_gamma REAL("0.57721566490153286060651209008240243104215933593992")
 #define pi REAL(3.1415926535897932384626433832795)
 
 using namespace iRRAM;

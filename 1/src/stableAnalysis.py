@@ -413,9 +413,10 @@ def divide_stable_unstable(point_stability_output, index):
 
     lsi = point_stability_output[index][1]
     rsi = point_stability_output[index+1][1]
-    assert (lsi != rsi and "point stability array error!")
+    # assert (lsi != rsi and "point stability array error!")
     # can do return
     # if return, return []
+    if lsi == rsi: return []
 
     mid_point = get_middle_point(left_point, right_point)  # FIXME mid_point是有可能不在输入域上的，如何处理？
 

@@ -5,7 +5,7 @@
 "input_variables": ["x"],
 "paths":[
             {
-                "constrain": "1e4<x&&x<1e20",
+                "constrain": "1e10<x&&x<1e15",
                 "path": [{"type": "procedure", "content":[["r", "gamma((2.0-euler_gamma+x)/(euler_gamma-1.0-x)-1)"]]}]
             }
         ],
