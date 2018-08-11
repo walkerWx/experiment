@@ -1,4 +1,4 @@
-#include "iRRAM.h"
+#include "iRRAM/lib.h"
 
 #define euler_gamma (0.577215664901532860606512090082402431042159335)
 

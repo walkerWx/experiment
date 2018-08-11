@@ -1,7 +1,7 @@
 import os
 import re
 import logging
-import time
+import subprocess
 
 from config import iRRAM_HOME, PROJECT_HOME
 
@@ -164,7 +164,7 @@ def save_makefile(bins, file):
     content += "CPPFLAGS = -I$(iRRAM_HOME)/installed/include\n"
     content += "CXX = clang++ -std=c++11\n"
     content += "CXXCPP = clang++ -E -std=c++11\n"
-    content += "CXXFLAGS = -g -O2 $(CPPFLAGS)\n"
+    content += "CXXFLAGS = -g -O0 $(CPPFLAGS)\n"
     content += "LDFLAGS = -Xlinker -rpath -Xlinker $(iRRAM_HOME)/installed/lib\n"
     content += "LDLIBS =  -L$(iRRAM_HOME)/installed/lib -liRRAM -lmpfr -lgmp -lm -lpthread\n"
     content += "all: " + " ".join(bins) + "\n"
@@ -416,33 +416,42 @@ def run(casename, mode='all'):
     #     # print("[INFO] Executing herbie program with input :" + point.replace("\n", ""))
     #     for hb in herbie_bin:
     #         os.system("./" + hb + " < point.txt >> " + hb + "_result.txt." + mode)
-    begin = time.clock()
+    opt_time = 0.0
+    irram_time = 0.0
+    double_time = 0.0
     for point in points:
         print(point, file=open("point.txt", "w"))
         # print("[INFO] Executing irram program with input :" + point.replace("\n", ""))
-        os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt." + mode)
-    end = time.clock()
-    irram_time = end - begin
+        # os.system("./" + irram_bin + " < point.txt >> " + irram_bin + "_result.txt." + mode)
+        os.system("./" + irram_bin + " < point.txt > " + "tmp_result.txt")
+        tmp_file = open("tmp_result.txt", 'r')
+        tmp_str = tmp_file.read()
+        irram_time += float(tmp_str.split('\n')[0])
+        os.system('echo \"' + tmp_str.split('\n')[1] + '\" >> ' + irram_bin + "_result.txt." + mode)
 
-    begin = time.clock()
+
     for point in points:
         print(point, file=open("point.txt", "w"))
         # print("[INFO] Executing optimized program with input :" + point.replace("\n", ""))
-        os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt." + mode)
-    end = time.clock()
-    opt_time = end - begin
+        # os.system("./" + opt_bin + " < point.txt >> " + opt_bin + "_result.txt." + mode)
+        os.system("./" + opt_bin + " < point.txt > " + "tmp_result.txt")
+        tmp_file = open("tmp_result.txt", 'r')
+        tmp_str = tmp_file.read()
+        opt_time += float(tmp_str.split('\n')[0])
+        os.system('echo \"' + tmp_str.split('\n')[1] + '\" >> ' + opt_bin + "_result.txt." + mode)
 
-    begin = time.clock()
     for point in points:
         print(point, file=open("point.txt", "w"))
-        os.system("./" + double_bin + " < point.txt >> " + double_bin + "_result.txt." + mode)
-    end = time.clock()
-    double_time = end - begin
+        os.system("./" + double_bin + " < point.txt > " + "tmp_result.txt")
+        tmp_file = open("tmp_result.txt", 'r')
+        tmp_str = tmp_file.read()
+        opt_time += float(tmp_str.split('\n')[0])
+        os.system('echo \"' + tmp_str.split('\n')[1] + '\" >> ' + double_bin + "_result.txt." + mode)
 
     time_info_file = open('time_info', 'w')
     time_info_file.writelines('Execution time of [Optimized]:' + str(opt_time) + ", average execution time per case: " + str(opt_time/len(points)) + '\n')
-    time_info_file.writelines('Execution time of [iRRAM]    :' + str(irram_time) + ", average execution time per case: " + str(opt_time/len(points)) + '\n')
-    time_info_file.writelines('Execution time of [double]   :' + str(double_time) + ", average execution time per case: " + str(opt_time/len(points)) + '\n')
+    time_info_file.writelines('Execution time of [iRRAM]    :' + str(irram_time) + ", average execution time per case: " + str(irram_time/len(points)) + '\n')
+    time_info_file.writelines('Execution time of [double]   :' + str(double_time) + ", average execution time per case: " + str(double_time/len(points)) + '\n')
     time_info_file.close()
 
 # 分析跑程序得到的result.txt文件，得到每个用例的两种误差，包括herbie所定义的误差以及相对误差，结果输出到result.csv，主要是对analysis的调用
@@ -509,11 +518,14 @@ if __name__ == "__main__":
     #     run(case)
     #     analysis(case)
     # case = 'float_extension'
+    # case = 'float_extension2'
     # case = 'harmonic'
     # case = 'gamma'
-    case = 'jmmuller'
+    # case = 'jmmuller'
     # case = 'lambov'
-    # case = 'e_example'
+    case = 'e_example'
+    # case = 'analytic'
+    # case = 'itsys'
     prepare(case)
     run(case, mode='rd')
     analysis(case, mode='rd')

@@ -1,6 +1,7 @@
 # Makefile for user_programs
 
 iRRAM_HOME=/home/whj/iRRAM_improved
+#iRRAM_HOME=/home/whj/iRRAM
 
 CC = clang -std=c11
 CFLAGS = -g -O2

@@ -1,8 +1,8 @@
 #include "self_math.h"
 
 bool iRRAM::enableReiterate = true;
-int iRRAM::MAXiterationnum = 10;
-bool iRRAM::alwaysenableReiterate = false;
+int iRRAM::MAXiterationnum = 20;
+bool iRRAM::alwaysenableReiterate = true;
 
 double get_arc(double a, double b)
 {

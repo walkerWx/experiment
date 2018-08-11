@@ -314,7 +314,7 @@ class Procedure:
                 # update_expr = update_expr.replace('pow(', 'power(')
                 # update_expr = update_expr.replace('fac(', 'fac_real(')
                 update_expr = function_name_replace(update_expr, 'pow', 'power')
-                update_expr = function_name_replace(update_expr, 'fac', 'fac_real')
+                # update_expr = function_name_replace(update_expr, 'fac', 'fac_real')
                 update_expr = addcastreal2functioncall(update_expr)
 
             # gamma function rename as in c++ gamma is named tgamma
@@ -566,7 +566,7 @@ def addcastreal2functioncall(expr):
 
 import transform
 if __name__ == '__main__':
-    path_data = PathData('../case/iRRAM/float_extension/float_extension.pth')
+    path_data = PathData('../case/iRRAM/float_extension/float_extension2.pth')
     paths = path_data.get_paths()
     for p in paths:
         for l in p.path_list:

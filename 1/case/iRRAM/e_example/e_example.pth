@@ -6,7 +6,7 @@
     "return": "z",
     "paths": [
                 {
-                    "constrain": "(2<=n)&&(n<=1000)",
+                    "constrain": "1<=n&&n<=100",
                     "path": [
                         {
                             "type": "procedure",
@@ -26,7 +26,7 @@
                                             {
                                                 "type": "procedure",
                                                 "content": [
-                                                    ["z", "z+(1/fac(i))"],
+                                                    ["z", "z+(y/fac(i))"],
                                                     ["i", "i+1"]
                                                 ]
                                             }

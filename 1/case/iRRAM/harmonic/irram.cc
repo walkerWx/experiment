@@ -2,6 +2,7 @@
 #include <iostream>
 #include "iRRAM.h"
 #include <cfenv>
+#include <sys/time.h>
 #include "../../../src/points.h"
 
 // Herbie case: float_extension
@@ -21,7 +22,18 @@ void compute() {
 	std::string n_str;
 	iRRAM::cin >> n_str;
 	int n_int = binary2int(n_str);
+    struct timeval tstart, tfinish;
+    if(gettimeofday(&tstart,NULL)!=0){
+        printf("Get time error!\n");
+        return;
+    }
 	iRRAM::REAL r_irram = evaluate(n_int);
+    if(gettimeofday(&tfinish,NULL)!=0){
+        printf("Get time error!\n");
+        return;
+    }
+    double usec=(tfinish.tv_sec-tstart.tv_sec)*1000000+tfinish.tv_usec-tstart.tv_usec;
 	double r_double = r_irram.as_double();
+	iRRAM::cout << usec << "\n";
 	iRRAM::cout << double2binary(r_double) << "\n";
 }

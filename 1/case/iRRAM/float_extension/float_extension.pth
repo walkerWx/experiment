@@ -48,7 +48,7 @@
                                         "content": [
                                             [
                                                 "res",
-                                                "res+(1/sqrt(i))"
+                                                "res+(1.0/sqrt(i))"
                                             ],
                                             [
                                                 "i",

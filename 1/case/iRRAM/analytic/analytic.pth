@@ -45,12 +45,12 @@
                                                 "1+i"
                                             ],
                                             [
-                                                "powx",
-                                                "(powx*x)"
-                                            ],
-                                            [
                                                 "res",
                                                 "res+(powx*x)"
+                                            ],
+                                            [
+                                                "powx",
+                                                "(powx*x)"
                                             ]
                                         ]
                                     }
@@ -71,8 +71,7 @@
         }
     ],
     "input_variables": [
-        "x",
-        "degree"
+        "x"
     ],
     "variables": {
         "powx": "decimal",
