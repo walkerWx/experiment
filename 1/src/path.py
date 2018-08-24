@@ -513,10 +513,10 @@ def addcastreal2functioncall(expr):
     # set function's namespace
     for func in func_set:
         new_func = 'iRRAM::'+func
-        expr = re.sub(r'^' + func + '[\r\n\t ]*\(',
-                      new_func + '((REAL)', expr)
         expr = re.sub(r'([~`!@#$%^&*()\-+={\[}\]|\\:;\"\'<,>.?/])' + func + '[\r\n\t ]*\(',
                       r'\1' + new_func + '((REAL)', expr)
+        expr = re.sub(r'^' + func + '[\r\n\t ]*\(',
+                      new_func + '((REAL)', expr)
         expr = re.sub(r'[ \r\n\t]' + func + '[\r\n\t ]*\(',
                       r'' + new_func + '((REAL)', expr)
     return expr
